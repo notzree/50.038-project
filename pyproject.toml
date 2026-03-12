@@ -7,6 +7,8 @@ requires-python = ">=3.12"
 dependencies = [
     "ipykernel>=7.2.0",
     "kagglehub>=1.0.0",
+    "librosa>=0.11.0",
+    "numpy>=2.3.3",
     "polars>=1.38.1",
     "python-dotenv>=1.2.1",
     "spotdl>=4.4.3",
