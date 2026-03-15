@@ -1,0 +1,43 @@
+Project command runbook (so far)
+
+0) Install/update dependencies from lockfile
+uv sync
+
+1) Download a smaller local subset of songs
+uv run python src/main.py --limit 100
+
+Optional: control parallel download workers
+uv run python src/main.py --limit 100 --max-workers 6
+
+2) Check how many songs were downloaded
+ls "src/data/songs" | wc -l
+
+3) Build audio manifest CSV from downloaded MP3 files
+uv run python -c "from pathlib import Path; import polars as pl; songs=sorted(Path('src/data/songs').glob('*.mp3')); rows=[{'track_id': p.stem, 'file_path': str(p)} for p in songs]; pl.DataFrame(rows, schema={'track_id': pl.String, 'file_path': pl.String}).write_csv('src/data/audio_manifest.csv')"
+
+4) Run feature extraction using the manifest
+uv run python src/extract_features.py --manifest src/data/audio_manifest.csv --output src/data/audio_features_basic.csv
+
+5) Quick check: extraction success/failure counts
+uv run python -c "import polars as pl; df=pl.read_csv('src/data/audio_features_basic.csv'); print(df.group_by('status').len())"
+
+6) Optional: inspect first rows of extracted features
+uv run python -c "import polars as pl; print(pl.read_csv('src/data/audio_features_basic.csv').head())"
+
+7) View columns + sample rows of charts dataset
+uv run python -c "import polars as pl; df=pl.read_csv('src/data/charts.csv', n_rows=10); print(df.columns); print(df.head())"
+
+8) Optional: print only charts column names
+uv run python -c "import polars as pl; print(pl.read_csv('src/data/charts.csv', n_rows=0).columns)"
+
+9) Optional: find charts.csv if path is unclear
+uv run python -c "from pathlib import Path; print([str(p) for p in Path('src').rglob('charts.csv')])"
+
+10) Check git status at any point
+git status
+
+Notes
+- Current default pipeline uses CSV files, not parquet.
+- Manifest path: src/data/audio_manifest.csv
+- Features path: src/data/audio_features_basic.csv
+- Songs directory: src/data/songs/

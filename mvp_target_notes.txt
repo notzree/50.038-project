@@ -1,0 +1,46 @@
+MVP target notes (current decision)
+
+Context
+- We currently have downloaded audio clips and extracted basic audio features.
+- The chart dataset (spotify-charts) has columns like: title, rank, date, artist, url, region, chart, trend, streams.
+- In this dataset, date is the chart snapshot date (when that row was observed on chart), not the official song release date.
+
+Why we changed target definition
+- "Viral in first 30 days of release" is hard to do correctly right now because we do not have a reliable official release date in this dataset.
+- "Will appear on chart at all" is also not useful globally because downloaded tracks came from charts, so many labels would be trivially positive.
+
+Current MVP target (recommended)
+- Unit of prediction: (track_id, region)
+- Target: appears_in_region
+  - appears_in_region = 1 if track_id appears at least once in that region's top200 chart
+  - appears_in_region = 0 otherwise
+
+Why this is a good first-presentation target
+- Simple and easy to explain.
+- Produces meaningful positive/negative labels per region.
+- Works directly with available columns: url/track_id, region, chart, date.
+- Fast to build and test on local machine.
+
+How to build labels (high-level)
+1) Keep chart rows with chart == "top200".
+2) Derive track_id from url (last path segment).
+3) Build candidate pairs (track_id, region) for modeling.
+4) For each pair:
+   - 1 if pair exists in top200 chart rows
+   - 0 if pair does not exist
+
+Data pipeline status (current)
+- Step 1 done: audio files in src/data/songs/
+- Step 2 done: manifest at src/data/audio_manifest.csv
+- Step 5 done: features at src/data/audio_features_basic.csv
+- Next immediate step: build labels for appears_in_region and join with features for baseline model
+
+Baseline model suggestion for MVP
+- Start with binary classification (not regression).
+- Model: Logistic Regression or Random Forest.
+- Metrics: F1, ROC-AUC, confusion matrix, and simple per-region breakdown.
+
+Notes for report/presentation
+- Clearly state that date is chart observation date.
+- Mention that official release date is not used in MVP.
+- Mention future extension: switch to longevity or 30-day targets when release-date and censoring strategy are added.
