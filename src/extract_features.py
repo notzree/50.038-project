@@ -33,6 +33,8 @@ def extract_basic_features(audio_path: str) -> dict:
     duration_sec = float(len(y) / sr)
 
     tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
+    tempo_arr = np.asarray(tempo).reshape(-1)
+    tempo_bpm = float(tempo_arr.mean()) if tempo_arr.size > 0 else 0.0
 
     rms = librosa.feature.rms(y=y)[0]
     spectral_centroid = librosa.feature.spectral_centroid(y=y, sr=sr)[0]
@@ -43,7 +45,7 @@ def extract_basic_features(audio_path: str) -> dict:
     return {
         "duration_sec_extracted": duration_sec,
         "sample_rate_extracted": int(sr),
-        "tempo_bpm": float(tempo),
+        "tempo_bpm": tempo_bpm,
         "rms_mean": float(np.mean(rms)),
         "spectral_centroid_mean": float(np.mean(spectral_centroid)),
         "spectral_rolloff_mean": float(np.mean(spectral_rolloff)),
@@ -74,6 +76,10 @@ def main():
 
     manifest_path = Path(args.manifest)
     output_path = Path(args.output)
+
+    print("Starting feature extraction")
+    print(f"Manifest: {manifest_path}")
+    print(f"Output: {output_path}")
 
     if not manifest_path.exists():
         raise FileNotFoundError(f"Manifest not found: {manifest_path}")

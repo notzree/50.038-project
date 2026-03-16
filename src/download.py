@@ -117,6 +117,7 @@ def _download_one(title: str, artist: str, track_id: str) -> tuple[str, str | No
 def get_mp3s_for_dataset(
     lf: pl.LazyFrame,
     max_workers: int = 12,
+    limit: int | None = None,
 ) -> None:
     """Download mp3s for all unique songs using yt-dlp YouTube search.
 
@@ -138,6 +139,10 @@ def get_mp3s_for_dataset(
         for row in songs.iter_rows(named=True)
         if row["url"].rsplit("/", 1)[-1] not in existing
     ]
+
+    if limit is not None:
+        to_download = to_download[:limit]
+
     print(f"Downloading {len(to_download)} songs ({len(existing)} already downloaded)")
 
     failed = []

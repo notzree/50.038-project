@@ -36,6 +36,33 @@ uv run python -c "from pathlib import Path; print([str(p) for p in Path('src').r
 10) Check git status at any point
 git status
 
+11) Build MVP labels + train table (appears_in_region)
+uv run python src/build_mvp_dataset.py
+
+12) Train MVP baseline + comparison model and save artifacts
+uv run python src/train_mvp_model.py --input src/data/train_table_mvp.csv --metrics-out src/data/mvp_metrics.json --model-out src/data/mvp_model.joblib --region-metrics-out src/data/mvp_region_metrics.csv
+
+13) Predict one audio file with trained model
+uv run python src/predict_single_audio.py --audio src/data/songs/<track_id>.mp3 --region Singapore --model src/data/mvp_model.joblib
+
+13a) Predict in interactive prompt mode (asks for path and region)
+uv run python src/predict_single_audio.py
+
+13b) Predict by selecting a local file from Finder popup
+uv run python src/predict_single_audio.py --pick-file --region Singapore --model src/data/mvp_model.joblib
+
+14) Run entire MVP pipeline in one command (using existing songs)
+uv run python src/run_mvp_pipeline.py
+
+15) Run entire MVP pipeline with fresh download
+uv run python src/run_mvp_pipeline.py --download --limit 100
+
+15b) Run pipeline and single-song prediction together
+uv run python src/run_mvp_pipeline.py --predict-audio "/full/path/to/song.mp3" --predict-region Singapore
+
+16) Run multi-seed benchmark (stability check)
+uv run python src/benchmark_mvp.py --seeds 42,7,123
+
 Notes
 - Current default pipeline uses CSV files, not parquet.
 - Manifest path: src/data/audio_manifest.csv
