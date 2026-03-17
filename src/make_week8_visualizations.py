@@ -123,8 +123,8 @@ def plot_feature_distributions(train_csv: Path, out_path: Path) -> None:
         axes[j].axis("off")
 
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False)
-    fig.suptitle("Feature Distributions by Label", y=0.98)
+    fig.suptitle("Feature Distributions by Label", y=1.02, fontsize=14)
+    fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False, bbox_to_anchor=(0.5, 0.99))
     fig.tight_layout(rect=[0, 0, 1, 0.95])
     fig.savefig(out_path, dpi=180)
     plt.close(fig)
