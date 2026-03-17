@@ -31,6 +31,7 @@ This pipeline runs:
 - error rows for analysis (`src/data/mvp_error_rows.csv`)
 - error counts by region (`src/data/mvp_error_counts_by_region.csv`)
 - initial visualization (`src/data/plots/mvp_label_distribution.png`)
+- full Week 8 visualization set (`src/data/plots/week8/`)
 
 Run pipeline + single-song prediction in one command:
 ```bash
@@ -119,3 +120,17 @@ uv run python src/make_initial_visualization.py
 
 Output:
 - `src/data/plots/mvp_label_distribution.png`
+
+Generate the full Week 8 visualization set:
+```bash
+uv run python src/make_week8_visualizations.py
+```
+
+Outputs in:
+- `src/data/plots/week8/01_dataset_overview.png`
+- `src/data/plots/week8/02_label_distribution.png`
+- `src/data/plots/week8/03_feature_distributions.png`
+- `src/data/plots/week8/04_model_comparison.png`
+- `src/data/plots/week8/05_confusion_matrices.png`
+- `src/data/plots/week8/06_region_performance.png`
+- `src/data/plots/week8/07_region_errors.png`

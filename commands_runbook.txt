@@ -63,6 +63,9 @@ uv run python src/run_mvp_pipeline.py --predict-audio "/full/path/to/song.mp3" -
 16) Run multi-seed benchmark (stability check)
 uv run python src/benchmark_mvp.py --seeds 42,7,123
 
+17) Generate full Week 8 visualization set
+uv run python src/make_week8_visualizations.py
+
 Notes
 - Current default pipeline uses CSV files, not parquet.
 - Manifest path: src/data/audio_manifest.csv

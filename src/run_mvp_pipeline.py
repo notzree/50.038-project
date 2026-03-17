@@ -124,6 +124,16 @@ def main() -> None:
         help="Initial visualization PNG output path",
     )
     parser.add_argument(
+        "--skip-week8-visualizations",
+        action="store_true",
+        help="Skip full Week 8 visualization set generation",
+    )
+    parser.add_argument(
+        "--week8-viz-dir",
+        default="src/data/plots/week8",
+        help="Output directory for Week 8 visualization set",
+    )
+    parser.add_argument(
         "--predict-audio",
         default=None,
         help="Optional audio path for single-song prediction after training",
@@ -238,6 +248,31 @@ def main() -> None:
         print("\n=== Make initial visualization ===")
         print("Skipping visualization step (--skip-visualization enabled)")
 
+    if not args.skip_week8_visualizations:
+        run_step(
+            "Make Week 8 visualization set",
+            [
+                sys.executable,
+                "src/make_week8_visualizations.py",
+                "--train",
+                args.train_out,
+                "--labels",
+                args.labels_out,
+                "--metrics",
+                args.metrics_out,
+                "--region-metrics",
+                args.region_metrics_out,
+                "--error-counts",
+                "src/data/mvp_error_counts_by_region.csv",
+                "--out-dir",
+                args.week8_viz_dir,
+            ],
+            cwd=repo_root,
+        )
+    else:
+        print("\n=== Make Week 8 visualization set ===")
+        print("Skipping Week 8 visuals (--skip-week8-visualizations enabled)")
+
     if args.predict_audio and args.predict_region:
         predict_cmd = [
             sys.executable,
@@ -274,6 +309,8 @@ def main() -> None:
     print(f"Error rows: {args.errors_out}")
     if not args.skip_visualization:
         print(f"Visualization: {args.viz_out}")
+    if not args.skip_week8_visualizations:
+        print(f"Week 8 visualizations: {args.week8_viz_dir}")
 
 
 if __name__ == "__main__":
