@@ -135,28 +135,36 @@ def plot_model_comparison(metrics_json: Path, out_path: Path) -> None:
         metrics = json.load(f)
 
     models = metrics["models"]
-    model_names = ["logistic_regression", "random_forest"]
-    display_names = ["Logistic Regression", "Random Forest"]
+    model_names = list(models.keys())
+    display_names = [n.replace("_", " ").title() for n in model_names]
     metric_names = ["f1", "roc_auc", "precision", "recall"]
+    colors = ["#5E81AC", "#A3BE8C", "#EBCB8B", "#BF616A", "#B48EAD"]
 
     x = np.arange(len(metric_names))
-    width = 0.35
-
-    vals1 = [models[model_names[0]][m] for m in metric_names]
-    vals2 = [models[model_names[1]][m] for m in metric_names]
+    n_models = len(model_names)
+    width = 0.8 / n_models
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    b1 = ax.bar(x - width / 2, vals1, width, label=display_names[0], color="#5E81AC")
-    b2 = ax.bar(x + width / 2, vals2, width, label=display_names[1], color="#A3BE8C")
+    bars_list = []
+    for i, (name, display) in enumerate(zip(model_names, display_names)):
+        # Support both old (flat) and new (nested with test/val/cv) metrics format
+        model_data = models[name]
+        if isinstance(model_data, dict) and "test" in model_data:
+            model_data = model_data["test"]
+        vals = [model_data.get(m, 0) for m in metric_names]
+        offset = (i - (n_models - 1) / 2) * width
+        b = ax.bar(x + offset, vals, width, label=display, color=colors[i % len(colors)])
+        bars_list.append(b)
+
     ax.set_xticks(x)
     ax.set_xticklabels([m.upper() for m in metric_names])
     ax.set_ylim(0, 1)
     ax.set_ylabel("Score")
-    ax.set_title("Model Comparison on MVP Test Split")
+    ax.set_title("Model Comparison on Test Split")
     ax.legend(frameon=False)
     ax.grid(axis="y", alpha=0.25)
 
-    for bars in (b1, b2):
+    for bars in bars_list:
         for bar in bars:
             h = bar.get_height()
             ax.text(
@@ -165,7 +173,7 @@ def plot_model_comparison(metrics_json: Path, out_path: Path) -> None:
                 f"{h:.2f}",
                 ha="center",
                 va="bottom",
-                fontsize=9,
+                fontsize=8,
             )
 
     fig.tight_layout()
@@ -192,11 +200,19 @@ def plot_confusion_matrices(metrics_json: Path, out_path: Path) -> None:
     with open(metrics_json) as f:
         metrics = json.load(f)
 
-    m = metrics["selected_model_thresholding"]
-    cm_default = m["default_0_5"]["confusion_matrix"]
-    cm_tuned = m["best_f1_threshold_on_test"]["confusion_matrix"]
-    t_default = m["default_0_5"]["threshold"]
-    t_tuned = m["best_f1_threshold_on_test"]["threshold"]
+    # Support both old and new metrics format
+    if "thresholding" in metrics:
+        m = metrics["thresholding"]
+        cm_default = m.get("test_at_default_0_5", m.get("val_default_0_5", {})).get("confusion_matrix", [[0,0],[0,0]])
+        cm_tuned = m.get("test_at_tuned_threshold", m.get("val_best_f1_threshold", {})).get("confusion_matrix", [[0,0],[0,0]])
+        t_default = 0.5
+        t_tuned = m.get("val_best_f1_threshold", {}).get("threshold", 0.5)
+    else:
+        m = metrics["selected_model_thresholding"]
+        cm_default = m["default_0_5"]["confusion_matrix"]
+        cm_tuned = m["best_f1_threshold_on_test"]["confusion_matrix"]
+        t_default = m["default_0_5"]["threshold"]
+        t_tuned = m["best_f1_threshold_on_test"]["threshold"]
 
     fig, axes = plt.subplots(1, 2, figsize=(10, 4))
     _plot_cm(axes[0], cm_default, f"Default threshold ({t_default})")

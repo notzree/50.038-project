@@ -1,15 +1,7 @@
 import argparse
-import subprocess
-import sys
 from pathlib import Path
 
-import polars as pl
-
-
-def run_step(step_name: str, command: list[str], cwd: Path) -> None:
-    print(f"\n=== {step_name} ===")
-    print("Running:", " ".join(command))
-    subprocess.run(command, check=True, cwd=cwd)
+import pandas as pd
 
 
 def build_manifest(songs_dir: Path, manifest_path: Path) -> int:
@@ -21,21 +13,16 @@ def build_manifest(songs_dir: Path, manifest_path: Path) -> int:
     rows = [{"track_id": p.stem, "file_path": str(p)} for p in songs]
 
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
-    if rows:
-        pl.DataFrame(
-            rows, schema={"track_id": pl.String, "file_path": pl.String}
-        ).write_csv(manifest_path)
-    else:
-        pl.DataFrame(schema={"track_id": pl.String, "file_path": pl.String}).write_csv(
-            manifest_path
-        )
+    pd.DataFrame(rows, columns=["track_id", "file_path"]).to_csv(
+        manifest_path, index=False
+    )
 
     print(f"Manifest rows: {len(rows)}")
     return len(rows)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run end-to-end MVP pipeline")
+    parser = argparse.ArgumentParser(description="Run end-to-end pipeline")
     parser.add_argument(
         "--download",
         action="store_true",
@@ -65,8 +52,20 @@ def main() -> None:
     )
     parser.add_argument(
         "--features-out",
-        default="src/data/audio_features_basic.csv",
+        default="src/data/audio_features.csv",
         help="Audio features CSV output path",
+    )
+    parser.add_argument(
+        "--feature-set",
+        choices=["basic", "full"],
+        default="full",
+        help="Feature set to extract (default: full)",
+    )
+    parser.add_argument(
+        "--feature-workers",
+        type=int,
+        default=None,
+        help="Number of parallel workers for feature extraction",
     )
     parser.add_argument(
         "--charts",
@@ -86,7 +85,7 @@ def main() -> None:
     parser.add_argument(
         "--train-out",
         default="src/data/train_table_mvp.csv",
-        help="MVP training table CSV output path",
+        help="Training table CSV output path",
     )
     parser.add_argument(
         "--metrics-out",
@@ -114,24 +113,30 @@ def main() -> None:
         help="Error rows CSV output path",
     )
     parser.add_argument(
-        "--skip-visualization",
+        "--skip-visualizations",
         action="store_true",
-        help="Skip initial visualization generation",
+        help="Skip all visualization generation",
     )
     parser.add_argument(
-        "--viz-out",
-        default="src/data/plots/mvp_label_distribution.png",
-        help="Initial visualization PNG output path",
+        "--viz-dir",
+        default="src/data/plots",
+        help="Output directory for visualizations",
     )
     parser.add_argument(
-        "--skip-week8-visualizations",
+        "--genres",
+        default=None,
+        help="Path to genre_features.csv. Auto-detected if src/data/genre_features.csv exists.",
+    )
+    parser.add_argument(
+        "--tune",
         action="store_true",
-        help="Skip full Week 8 visualization set generation",
+        help="Enable Optuna hyperparameter tuning during training",
     )
     parser.add_argument(
-        "--week8-viz-dir",
-        default="src/data/plots/week8",
-        help="Output directory for Week 8 visualization set",
+        "--n-trials",
+        type=int,
+        default=50,
+        help="Number of Optuna trials per model (requires --tune)",
     )
     parser.add_argument(
         "--predict-audio",
@@ -151,26 +156,40 @@ def main() -> None:
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parent.parent
-    songs_dir = (repo_root / args.songs_dir).resolve()
-    manifest_path = (repo_root / args.manifest).resolve()
 
-    print("Starting MVP pipeline")
+    # Resolve all paths relative to repo root so it works from any cwd
+    def _resolve(p: str) -> str:
+        return str((repo_root / p).resolve())
+
+    songs_dir = Path(_resolve(args.songs_dir))
+    manifest_path = Path(_resolve(args.manifest))
+    features_out = _resolve(args.features_out)
+    charts = _resolve(args.charts)
+    labels_out = _resolve(args.labels_out)
+    train_out = _resolve(args.train_out)
+    metrics_out = _resolve(args.metrics_out)
+    model_out = _resolve(args.model_out)
+    region_metrics_out = _resolve(args.region_metrics_out)
+    test_preds_out = _resolve(args.test_preds_out)
+    errors_out = _resolve(args.errors_out)
+    viz_dir = Path(_resolve(args.viz_dir))
+
+    print("Starting pipeline")
     print(f"Repo root: {repo_root}")
 
+    # --- Step 1: Download ---
     if args.download:
-        cmd = [
-            sys.executable,
-            "src/main.py",
-            "--max-workers",
-            str(args.max_workers),
-        ]
-        if args.limit is not None:
-            cmd.extend(["--limit", str(args.limit)])
-        run_step("Download songs", cmd, cwd=repo_root)
+        print("\n=== Download songs ===")
+        from download import download_dataset, get_mp3s_for_dataset, unify_title_url_mappings
+
+        csv_path = download_dataset()
+        unified_df = unify_title_url_mappings(csv_path)
+        get_mp3s_for_dataset(unified_df, max_workers=args.max_workers, limit=args.limit)
     else:
         print("\n=== Download songs ===")
         print("Skipping download step (use --download to enable)")
 
+    # --- Step 2: Build manifest ---
     songs_dir.mkdir(parents=True, exist_ok=True)
     song_count = build_manifest(songs_dir=songs_dir, manifest_path=manifest_path)
     if song_count == 0:
@@ -178,139 +197,112 @@ def main() -> None:
         print("Add songs to src/data/songs or rerun with --download")
         return
 
-    run_step(
-        "Extract features",
-        [
-            sys.executable,
-            "src/extract_features.py",
-            "--manifest",
-            args.manifest,
-            "--output",
-            args.features_out,
-        ],
-        cwd=repo_root,
+    # --- Step 3: Extract features ---
+    print("\n=== Extract features ===")
+    from extract_features import run_extraction
+
+    run_extraction(
+        manifest_csv=str(manifest_path),
+        output_csv=features_out,
+        feature_set=args.feature_set,
+        workers=args.feature_workers,
     )
 
-    run_step(
-        "Build labels and train table",
-        [
-            sys.executable,
-            "src/build_mvp_dataset.py",
-            "--charts",
-            args.charts,
-            "--features",
-            args.features_out,
-            "--labels-out",
-            args.labels_out,
-            "--train-out",
-            args.train_out,
-            "--chart-name",
-            args.chart_name,
-        ],
-        cwd=repo_root,
+    # --- Step 4: Build labels and train table ---
+    print("\n=== Build labels and train table ===")
+    from build_mvp_dataset import build_labels_and_train_table
+
+    # Auto-detect genre CSV
+    genres_path = args.genres
+    if genres_path is None:
+        auto_genres = repo_root / "src" / "data" / "genre_features.csv"
+        if auto_genres.exists():
+            genres_path = str(auto_genres)
+            print(f"Auto-detected genre features: {genres_path}")
+
+    build_labels_and_train_table(
+        charts_csv=charts,
+        features_csv=features_out,
+        labels_csv=labels_out,
+        train_csv=train_out,
+        chart_name=args.chart_name,
+        genres_csv=genres_path,
     )
 
-    run_step(
-        "Train and evaluate models",
-        [
-            sys.executable,
-            "src/train_mvp_model.py",
-            "--input",
-            args.train_out,
-            "--metrics-out",
-            args.metrics_out,
-            "--model-out",
-            args.model_out,
-            "--region-metrics-out",
-            args.region_metrics_out,
-            "--test-preds-out",
-            args.test_preds_out,
-            "--errors-out",
-            args.errors_out,
-        ],
-        cwd=repo_root,
+    # --- Step 5: Train and evaluate ---
+    print("\n=== Train and evaluate models ===")
+    from train_mvp_model import train_and_evaluate
+
+    train_and_evaluate(
+        input_csv=train_out,
+        metrics_out=metrics_out,
+        model_out=model_out,
+        region_metrics_out=region_metrics_out,
+        test_preds_out=test_preds_out,
+        errors_out=errors_out,
+        test_size=0.2,
+        seed=42,
+        tune=args.tune,
+        n_trials=args.n_trials,
     )
 
-    if not args.skip_visualization:
-        run_step(
-            "Make initial visualization",
-            [
-                sys.executable,
-                "src/make_initial_visualization.py",
-                "--labels",
-                args.labels_out,
-                "--out",
-                args.viz_out,
-            ],
-            cwd=repo_root,
+    # --- Step 6: Visualizations ---
+    if not args.skip_visualizations:
+        print("\n=== Generate visualizations ===")
+        from make_visualizations import (
+            plot_confusion_matrices,
+            plot_dataset_overview,
+            plot_feature_distributions,
+            plot_label_distribution,
+            plot_model_comparison,
+            plot_region_errors,
+            plot_region_performance,
         )
-    else:
-        print("\n=== Make initial visualization ===")
-        print("Skipping visualization step (--skip-visualization enabled)")
 
-    if not args.skip_week8_visualizations:
-        run_step(
-            "Make Week 8 visualization set",
-            [
-                sys.executable,
-                "src/make_week8_visualizations.py",
-                "--train",
-                args.train_out,
-                "--labels",
-                args.labels_out,
-                "--metrics",
-                args.metrics_out,
-                "--region-metrics",
-                args.region_metrics_out,
-                "--error-counts",
-                "src/data/mvp_error_counts_by_region.csv",
-                "--out-dir",
-                args.week8_viz_dir,
-            ],
-            cwd=repo_root,
+        viz_dir.mkdir(parents=True, exist_ok=True)
+
+        error_counts_path = Path(errors_out).with_name(
+            "mvp_error_counts_by_region.csv"
         )
-    else:
-        print("\n=== Make Week 8 visualization set ===")
-        print("Skipping Week 8 visuals (--skip-week8-visualizations enabled)")
 
+        plot_dataset_overview(
+            Path(train_out), Path(labels_out), viz_dir / "01_dataset_overview.png"
+        )
+        plot_label_distribution(Path(labels_out), viz_dir / "02_label_distribution.png")
+        plot_feature_distributions(Path(train_out), viz_dir / "03_feature_distributions.png")
+        plot_model_comparison(Path(metrics_out), viz_dir / "04_model_comparison.png")
+        plot_confusion_matrices(Path(metrics_out), viz_dir / "05_confusion_matrices.png")
+        plot_region_performance(
+            Path(region_metrics_out), viz_dir / "06_region_performance.png"
+        )
+        if error_counts_path.exists():
+            plot_region_errors(error_counts_path, viz_dir / "07_region_errors.png")
+    else:
+        print("\n=== Visualizations ===")
+        print("Skipping (--skip-visualizations enabled)")
+
+    # --- Step 7: Optional single prediction ---
     if args.predict_audio and args.predict_region:
-        predict_cmd = [
-            sys.executable,
-            "src/predict_single_audio.py",
-            "--audio",
-            args.predict_audio,
-            "--region",
-            args.predict_region,
-            "--model",
-            args.model_out,
-        ]
+        print("\n=== Predict single song ===")
+        from predict_single_audio import predict_single
+        import json
+
+        result = predict_single(args.predict_audio, args.predict_region, model_out)
+        print(json.dumps(result, indent=2))
+
         if args.predict_output_json:
-            predict_cmd.extend(["--output-json", args.predict_output_json])
-
-        run_step("Predict single song", predict_cmd, cwd=repo_root)
+            out = Path(args.predict_output_json)
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(json.dumps(result, indent=2))
     elif args.predict_audio or args.predict_region:
-        print("\n=== Predict single song ===")
-        print(
-            "Skipping prediction: provide both --predict-audio and --predict-region "
-            "to run single-song inference."
-        )
-    else:
-        print("\n=== Predict single song ===")
-        print("Skipping prediction step (no --predict-audio/--predict-region provided)")
+        print("\nSkipping prediction: provide both --predict-audio and --predict-region")
 
-    print("\nMVP pipeline complete")
-    print(f"Features: {args.features_out}")
-    print(f"Labels: {args.labels_out}")
-    print(f"Train table: {args.train_out}")
-    print(f"Metrics: {args.metrics_out}")
-    print(f"Model: {args.model_out}")
-    print(f"Region metrics: {args.region_metrics_out}")
-    print(f"Test predictions: {args.test_preds_out}")
-    print(f"Error rows: {args.errors_out}")
-    if not args.skip_visualization:
-        print(f"Visualization: {args.viz_out}")
-    if not args.skip_week8_visualizations:
-        print(f"Week 8 visualizations: {args.week8_viz_dir}")
+    print("\nPipeline complete")
+    print(f"Features: {features_out}")
+    print(f"Labels: {labels_out}")
+    print(f"Train table: {train_out}")
+    print(f"Metrics: {metrics_out}")
+    print(f"Model: {model_out}")
 
 
 if __name__ == "__main__":

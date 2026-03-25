@@ -56,16 +56,19 @@ def main() -> None:
 
         selected = metrics["selected_model"]
         selected_scores = metrics["models"][selected]
-        tuned = metrics["selected_model_thresholding"]["best_f1_threshold_on_test"]
+        tuned = metrics["thresholding"]["val_best_f1_threshold"]
+
+        # Use test metrics for reporting
+        test_scores = selected_scores.get("test", selected_scores)
 
         summary_rows.append(
             {
                 "seed": seed,
                 "selected_model": selected,
-                "selected_f1": selected_scores["f1"],
-                "selected_roc_auc": selected_scores["roc_auc"],
-                "selected_precision": selected_scores["precision"],
-                "selected_recall": selected_scores["recall"],
+                "selected_f1": test_scores["f1"],
+                "selected_roc_auc": test_scores["roc_auc"],
+                "selected_precision": test_scores["precision"],
+                "selected_recall": test_scores["recall"],
                 "best_threshold": tuned["threshold"],
                 "best_threshold_f1": tuned["f1"],
             }
