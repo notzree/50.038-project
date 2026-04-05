@@ -6,6 +6,7 @@ import joblib
 import pandas as pd
 
 from extract_features import extract_basic_features, extract_full_features
+from human_features import compute_human_features
 
 
 def pick_audio_file_from_finder() -> str:
@@ -71,7 +72,8 @@ def predict_single(audio_path: str, region: str, model_path: str) -> dict:
         print(f"Extracting basic features from: {audio_path}")
         features = extract_basic_features(audio_path)
 
-    row = {"region": region, **features}
+    human_features = compute_human_features(features)
+    row = {"region": region, **features, **human_features}
 
     # Add genre placeholder if model expects it
     if metadata and "primary_genre" in metadata.get("feature_columns", []):
@@ -135,7 +137,7 @@ def main() -> None:
     parser.add_argument("--region", required=False, help="Region name used in training")
     parser.add_argument(
         "--model",
-        default="src/data/mvp_model.joblib",
+        default="src/data/model.joblib",
         help="Path to trained model artifact",
     )
     parser.add_argument(

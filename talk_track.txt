@@ -1,0 +1,30 @@
+Presentation talk track (2-3 minutes)
+
+Problem framing
+- We predict whether a song appears in a region's top200 chart.
+- Prediction unit is (track_id, region).
+
+Data and preprocessing
+- We use chart history by region and extracted audio clips.
+- We compute full audio descriptors and human-readable proxy features.
+- We build binary labels: appears_in_region.
+
+Modeling
+- Baseline model: Logistic Regression.
+- Comparison model: Random Forest.
+- We evaluate with F1, ROC-AUC, precision, recall, and confusion matrices.
+
+Results summary
+- Data is imbalanced, so we avoid relying on accuracy alone.
+- Random Forest typically outperforms the baseline on F1/ROC-AUC.
+- Region-level error analysis highlights uneven performance by market.
+
+Artifacts and pipeline
+- End-to-end run script: `src/run_pipeline.py`.
+- Outputs include metrics, model artifact, region metrics, and plots.
+- Single-song inference available via `src/predict_single_audio.py`.
+
+Next steps
+- Scale training data volume.
+- Add external trend/context features.
+- Extend targets to time-window and longevity predictions.

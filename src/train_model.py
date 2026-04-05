@@ -69,8 +69,8 @@ def split_data(
     val is used for model selection + threshold tuning.
     test is held out for final reporting only.
     """
-    X_trainval, X_test, y_trainval, y_test, meta_trainval, meta_test = (
-        train_test_split(X, y, meta, test_size=test_size, random_state=seed, stratify=y)
+    X_trainval, X_test, y_trainval, y_test, meta_trainval, meta_test = train_test_split(
+        X, y, meta, test_size=test_size, random_state=seed, stratify=y
     )
 
     # val_size is relative to the whole dataset, so adjust for the trainval subset
@@ -84,9 +84,7 @@ def split_data(
         stratify=y_trainval,
     )
 
-    print(
-        f"Split: train={len(y_train)}, val={len(y_val)}, test={len(y_test)}"
-    )
+    print(f"Split: train={len(y_train)}, val={len(y_val)}, test={len(y_test)}")
     return {
         "X_train": X_train,
         "y_train": y_train,
@@ -135,7 +133,7 @@ def _build_preprocessor(feature_cols: list[str]) -> ColumnTransformer:
 # ---------------------------------------------------------------------------
 
 
-def _make_model(name: str, seed: int, scale_pos_weight: float = 1.0, **params):
+def _make_model(name: str, seed: int, **params):
     """Construct a classifier by name. Override defaults with **params."""
     if name == "logistic_regression":
         defaults = dict(max_iter=2000, class_weight="balanced", random_state=seed)
@@ -152,37 +150,6 @@ def _make_model(name: str, seed: int, scale_pos_weight: float = 1.0, **params):
         defaults.update(params)
         return RandomForestClassifier(**defaults)
 
-    elif name == "xgboost":
-        from xgboost import XGBClassifier
-
-        defaults = dict(
-            n_estimators=300,
-            max_depth=6,
-            learning_rate=0.1,
-            scale_pos_weight=scale_pos_weight,
-            random_state=seed,
-            n_jobs=-1,
-            eval_metric="logloss",
-            verbosity=0,
-        )
-        defaults.update(params)
-        return XGBClassifier(**defaults)
-
-    elif name == "lightgbm":
-        from lightgbm import LGBMClassifier
-
-        defaults = dict(
-            n_estimators=300,
-            max_depth=6,
-            learning_rate=0.1,
-            is_unbalance=True,
-            random_state=seed,
-            n_jobs=-1,
-            verbose=-1,
-        )
-        defaults.update(params)
-        return LGBMClassifier(**defaults)
-
     else:
         raise ValueError(f"Unknown model: {name}")
 
@@ -191,23 +158,10 @@ def build_model_candidates(
     seed: int, y_train: np.ndarray | None = None
 ) -> dict[str, object]:
     """Return a dict of name -> classifier instance."""
-    if y_train is not None:
-        n_neg = int((y_train == 0).sum())
-        n_pos = int((y_train == 1).sum())
-        scale_pos = n_neg / max(n_pos, 1)
-    else:
-        scale_pos = 1.0
-
     candidates = {
         "logistic_regression": _make_model("logistic_regression", seed),
         "random_forest": _make_model("random_forest", seed),
     }
-
-    for name in ("xgboost", "lightgbm"):
-        try:
-            candidates[name] = _make_model(name, seed, scale_pos_weight=scale_pos)
-        except ImportError:
-            print(f"{name} not installed, skipping")
 
     return candidates
 
@@ -231,9 +185,7 @@ def cross_validate_models(
 
     for name, clf in candidates.items():
         print(f"  Cross-validating {name} ({k}-fold)...")
-        pipe = Pipeline(
-            steps=[("preprocessor", preprocessor), ("model", clf)]
-        )
+        pipe = Pipeline(steps=[("preprocessor", preprocessor), ("model", clf)])
 
         f1_scores = cross_val_score(
             pipe, X_train, y_train, cv=cv, scoring="f1", n_jobs=-1
@@ -272,20 +224,6 @@ _SEARCH_SPACES = {
         "n_estimators": ("int", 100, 500, {"step": 50}),
         "max_depth": ("int", 5, 30, {}),
         "min_samples_split": ("int", 2, 20, {}),
-    },
-    "xgboost": {
-        "n_estimators": ("int", 100, 500, {"step": 50}),
-        "max_depth": ("int", 3, 10, {}),
-        "learning_rate": ("float", 0.01, 0.3, {"log": True}),
-        "subsample": ("float", 0.6, 1.0, {}),
-        "colsample_bytree": ("float", 0.6, 1.0, {}),
-    },
-    "lightgbm": {
-        "n_estimators": ("int", 100, 500, {"step": 50}),
-        "max_depth": ("int", 3, 10, {}),
-        "learning_rate": ("float", 0.01, 0.3, {"log": True}),
-        "subsample": ("float", 0.6, 1.0, {}),
-        "colsample_bytree": ("float", 0.6, 1.0, {}),
     },
 }
 
@@ -327,9 +265,7 @@ def tune_hyperparameters(
         def objective(trial, _name=name):
             params = _suggest_params(trial, _name)
             clf = _make_model(_name, seed, **params)
-            pipe = Pipeline(
-                steps=[("preprocessor", preprocessor), ("model", clf)]
-            )
+            pipe = Pipeline(steps=[("preprocessor", preprocessor), ("model", clf)])
             scores = cross_val_score(
                 pipe, X_train, y_train, cv=cv, scoring="f1", n_jobs=-1
             )
@@ -471,9 +407,7 @@ def select_and_evaluate(
     # Evaluate all models on val set for comparison
     model_metrics = {}
     for name, clf_obj in candidates.items():
-        pipe = Pipeline(
-            steps=[("preprocessor", preprocessor), ("model", clf_obj)]
-        )
+        pipe = Pipeline(steps=[("preprocessor", preprocessor), ("model", clf_obj)])
         pipe.fit(splits["X_train"], splits["y_train"])
         model_metrics[name] = {
             "val": _evaluate_model(pipe, splits["X_val"], splits["y_val"]),
@@ -483,17 +417,13 @@ def select_and_evaluate(
 
     # Threshold tuning on VALIDATION set (not test)
     val_prob = best_clf.predict_proba(splits["X_val"])[:, 1]
-    default_threshold_metrics = _evaluate_at_threshold(
-        splits["y_val"], val_prob, 0.5
-    )
+    default_threshold_metrics = _evaluate_at_threshold(splits["y_val"], val_prob, 0.5)
     tuned_threshold_metrics = _find_best_threshold(splits["y_val"], val_prob)
 
     # Final test evaluation at tuned threshold
     test_prob = best_clf.predict_proba(splits["X_test"])[:, 1]
     tuned_threshold = tuned_threshold_metrics["threshold"]
-    test_at_tuned = _evaluate_at_threshold(
-        splits["y_test"], test_prob, tuned_threshold
-    )
+    test_at_tuned = _evaluate_at_threshold(splits["y_test"], test_prob, tuned_threshold)
     test_at_default = _evaluate_at_threshold(splits["y_test"], test_prob, 0.5)
 
     metrics = {
@@ -576,7 +506,7 @@ def save_artifacts(
     )
     error_by_region["false_positives"] = error_by_region["false_positives"].astype(int)
     error_by_region["false_negatives"] = error_by_region["false_negatives"].astype(int)
-    error_by_region_path = errors_path.with_name("mvp_error_counts_by_region.csv")
+    error_by_region_path = errors_path.with_name("error_counts_by_region.csv")
     error_by_region.to_csv(error_by_region_path, index=False)
 
     # -- Region metrics --
@@ -604,7 +534,11 @@ def save_artifacts(
 
     # -- Model metadata (for frontend) --
     X_train = splits["X_train"]
-    valid_regions = sorted(X_train["region"].unique().tolist()) if "region" in X_train.columns else []
+    valid_regions = (
+        sorted(X_train["region"].unique().tolist())
+        if "region" in X_train.columns
+        else []
+    )
     valid_genres = (
         sorted(X_train["primary_genre"].dropna().unique().tolist())
         if "primary_genre" in X_train.columns
@@ -722,7 +656,9 @@ def train_and_evaluate(
     tuned_params = None
     if tune:
         # Tune top 3 models by CV F1
-        ranked = sorted(cv_results, key=lambda n: cv_results[n]["f1_mean"], reverse=True)
+        ranked = sorted(
+            cv_results, key=lambda n: cv_results[n]["f1_mean"], reverse=True
+        )
         top_models = ranked[:3]
         print(f"Tuning top {len(top_models)} models: {top_models}")
         tuned_results = tune_hyperparameters(
@@ -770,32 +706,32 @@ def main() -> None:
     )
     parser.add_argument(
         "--input",
-        default="src/data/train_table_mvp.csv",
+        default="src/data/train_table.csv",
         help="Path to training CSV",
     )
     parser.add_argument(
         "--metrics-out",
-        default="src/data/mvp_metrics.json",
+        default="src/data/model_metrics.json",
         help="Where to write JSON metrics",
     )
     parser.add_argument(
         "--model-out",
-        default="src/data/mvp_model.joblib",
+        default="src/data/model.joblib",
         help="Where to write selected model artifact",
     )
     parser.add_argument(
         "--region-metrics-out",
-        default="src/data/mvp_region_metrics.csv",
+        default="src/data/region_metrics.csv",
         help="Where to write per-region evaluation CSV",
     )
     parser.add_argument(
         "--test-preds-out",
-        default="src/data/mvp_test_predictions.csv",
+        default="src/data/test_predictions.csv",
         help="Where to write test predictions with probabilities",
     )
     parser.add_argument(
         "--errors-out",
-        default="src/data/mvp_error_rows.csv",
+        default="src/data/error_rows.csv",
         help="Where to write false positive/false negative rows",
     )
     parser.add_argument(

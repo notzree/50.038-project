@@ -51,9 +51,24 @@ def main() -> None:
         help="Manifest CSV output path",
     )
     parser.add_argument(
+        "--qc-summary-out",
+        default="src/data/audio_qc_summary.json",
+        help="QC summary JSON output path",
+    )
+    parser.add_argument(
+        "--qc-issues-out",
+        default="src/data/audio_qc_issues.csv",
+        help="QC issues CSV output path",
+    )
+    parser.add_argument(
         "--features-out",
         default="src/data/audio_features.csv",
         help="Audio features CSV output path",
+    )
+    parser.add_argument(
+        "--human-features-out",
+        default="src/data/audio_features_human.csv",
+        help="Human-readable feature proxy CSV output path",
     )
     parser.add_argument(
         "--feature-set",
@@ -84,32 +99,32 @@ def main() -> None:
     )
     parser.add_argument(
         "--train-out",
-        default="src/data/train_table_mvp.csv",
+        default="src/data/train_table.csv",
         help="Training table CSV output path",
     )
     parser.add_argument(
         "--metrics-out",
-        default="src/data/mvp_metrics.json",
+        default="src/data/model_metrics.json",
         help="Model metrics JSON output path",
     )
     parser.add_argument(
         "--model-out",
-        default="src/data/mvp_model.joblib",
+        default="src/data/model.joblib",
         help="Serialized selected model output path",
     )
     parser.add_argument(
         "--region-metrics-out",
-        default="src/data/mvp_region_metrics.csv",
+        default="src/data/region_metrics.csv",
         help="Per-region metrics CSV output path",
     )
     parser.add_argument(
         "--test-preds-out",
-        default="src/data/mvp_test_predictions.csv",
+        default="src/data/test_predictions.csv",
         help="Test predictions CSV output path",
     )
     parser.add_argument(
         "--errors-out",
-        default="src/data/mvp_error_rows.csv",
+        default="src/data/error_rows.csv",
         help="Error rows CSV output path",
     )
     parser.add_argument(
@@ -167,6 +182,9 @@ def main() -> None:
     charts = _resolve(args.charts)
     labels_out = _resolve(args.labels_out)
     train_out = _resolve(args.train_out)
+    qc_summary_out = _resolve(args.qc_summary_out)
+    qc_issues_out = _resolve(args.qc_issues_out)
+    human_features_out = _resolve(args.human_features_out)
     metrics_out = _resolve(args.metrics_out)
     model_out = _resolve(args.model_out)
     region_metrics_out = _resolve(args.region_metrics_out)
@@ -180,7 +198,11 @@ def main() -> None:
     # --- Step 1: Download ---
     if args.download:
         print("\n=== Download songs ===")
-        from download import download_dataset, get_mp3s_for_dataset, unify_title_url_mappings
+        from download import (
+            download_dataset,
+            get_mp3s_for_dataset,
+            unify_title_url_mappings,
+        )
 
         csv_path = download_dataset()
         unified_df = unify_title_url_mappings(csv_path)
@@ -197,6 +219,17 @@ def main() -> None:
         print("Add songs to src/data/songs or rerun with --download")
         return
 
+    # --- Step 2b: QC manifest ---
+    print("\n=== Run dataset QC (manifest) ===")
+    from qc_audio_dataset import run_qc
+
+    run_qc(
+        manifest_csv=str(manifest_path),
+        features_csv=None,
+        summary_out=qc_summary_out,
+        issues_out=qc_issues_out,
+    )
+
     # --- Step 3: Extract features ---
     print("\n=== Extract features ===")
     from extract_features import run_extraction
@@ -208,9 +241,27 @@ def main() -> None:
         workers=args.feature_workers,
     )
 
+    # --- Step 3b: QC with extraction status ---
+    print("\n=== Run dataset QC (post-feature extraction) ===")
+    run_qc(
+        manifest_csv=str(manifest_path),
+        features_csv=features_out,
+        summary_out=qc_summary_out,
+        issues_out=qc_issues_out,
+    )
+
+    # --- Step 3c: Build human-readable proxy features ---
+    print("\n=== Build human-readable feature proxies ===")
+    from engineer_human_features import build_human_features
+
+    build_human_features(
+        input_csv=features_out,
+        output_csv=human_features_out,
+    )
+
     # --- Step 4: Build labels and train table ---
     print("\n=== Build labels and train table ===")
-    from build_mvp_dataset import build_labels_and_train_table
+    from build_dataset import build_labels_and_train_table
 
     # Auto-detect genre CSV
     genres_path = args.genres
@@ -223,6 +274,7 @@ def main() -> None:
     build_labels_and_train_table(
         charts_csv=charts,
         features_csv=features_out,
+        human_features_csv=human_features_out,
         labels_csv=labels_out,
         train_csv=train_out,
         chart_name=args.chart_name,
@@ -231,7 +283,7 @@ def main() -> None:
 
     # --- Step 5: Train and evaluate ---
     print("\n=== Train and evaluate models ===")
-    from train_mvp_model import train_and_evaluate
+    from train_model import train_and_evaluate
 
     train_and_evaluate(
         input_csv=train_out,
@@ -261,17 +313,19 @@ def main() -> None:
 
         viz_dir.mkdir(parents=True, exist_ok=True)
 
-        error_counts_path = Path(errors_out).with_name(
-            "mvp_error_counts_by_region.csv"
-        )
+        error_counts_path = Path(errors_out).with_name("error_counts_by_region.csv")
 
         plot_dataset_overview(
             Path(train_out), Path(labels_out), viz_dir / "01_dataset_overview.png"
         )
         plot_label_distribution(Path(labels_out), viz_dir / "02_label_distribution.png")
-        plot_feature_distributions(Path(train_out), viz_dir / "03_feature_distributions.png")
+        plot_feature_distributions(
+            Path(train_out), viz_dir / "03_feature_distributions.png"
+        )
         plot_model_comparison(Path(metrics_out), viz_dir / "04_model_comparison.png")
-        plot_confusion_matrices(Path(metrics_out), viz_dir / "05_confusion_matrices.png")
+        plot_confusion_matrices(
+            Path(metrics_out), viz_dir / "05_confusion_matrices.png"
+        )
         plot_region_performance(
             Path(region_metrics_out), viz_dir / "06_region_performance.png"
         )
@@ -295,10 +349,14 @@ def main() -> None:
             out.parent.mkdir(parents=True, exist_ok=True)
             out.write_text(json.dumps(result, indent=2))
     elif args.predict_audio or args.predict_region:
-        print("\nSkipping prediction: provide both --predict-audio and --predict-region")
+        print(
+            "\nSkipping prediction: provide both --predict-audio and --predict-region"
+        )
 
     print("\nPipeline complete")
     print(f"Features: {features_out}")
+    print(f"Human features: {human_features_out}")
+    print(f"QC summary: {qc_summary_out}")
     print(f"Labels: {labels_out}")
     print(f"Train table: {train_out}")
     print(f"Metrics: {metrics_out}")

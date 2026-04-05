@@ -4,15 +4,15 @@ from pathlib import Path
 
 import pandas as pd
 
-from train_mvp_model import train_and_evaluate
+from train_model import train_and_evaluate
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run multi-seed MVP benchmark")
+    parser = argparse.ArgumentParser(description="Run multi-seed model benchmark")
     parser.add_argument(
         "--input",
-        default="src/data/train_table_mvp.csv",
-        help="Path to MVP training CSV",
+        default="src/data/train_table.csv",
+        help="Path to training CSV",
     )
     parser.add_argument(
         "--seeds",
@@ -45,11 +45,11 @@ def main() -> None:
         print(f"\n--- Seed {seed} ---")
         metrics = train_and_evaluate(
             input_csv=args.input,
-            metrics_out=str(seed_dir / "mvp_metrics.json"),
-            model_out=str(seed_dir / "mvp_model.joblib"),
-            region_metrics_out=str(seed_dir / "mvp_region_metrics.csv"),
-            test_preds_out=str(seed_dir / "mvp_test_predictions.csv"),
-            errors_out=str(seed_dir / "mvp_error_rows.csv"),
+            metrics_out=str(seed_dir / "model_metrics.json"),
+            model_out=str(seed_dir / "model.joblib"),
+            region_metrics_out=str(seed_dir / "region_metrics.csv"),
+            test_preds_out=str(seed_dir / "test_predictions.csv"),
+            errors_out=str(seed_dir / "error_rows.csv"),
             test_size=args.test_size,
             seed=seed,
         )
