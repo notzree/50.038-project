@@ -1,0 +1,33 @@
+Current limitations
+
+1) Data scale and coverage
+- Current runs may use a subset of available songs.
+- Generalization improves as more tracks are included.
+
+2) Label imbalance
+- appears_in_region positives are much rarer than negatives.
+- Accuracy alone is not sufficient; F1/precision/recall are prioritized.
+
+3) Feature scope
+- Current model uses audio descriptors + region (+ optional genre).
+- External social/search signals are not yet integrated.
+
+4) Target granularity
+- Current label is binary appearance in region.
+- Timing and longevity are not yet modeled directly.
+
+Roadmap
+
+Phase 1: Scale data processing
+- Run extraction and training on larger/full dataset.
+- Improve QC and duplicate handling.
+
+Phase 2: Enrich features
+- Add external trend/context datasets.
+- Improve human-readable proxy features and calibration.
+
+Phase 3: Upgrade targets
+- Add time-window targets and chart-longevity targets.
+
+Phase 4: Product experience
+- Build region map with timeline controls and probability outputs.

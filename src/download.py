@@ -2,7 +2,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import kagglehub
-import polars as pl
+import pandas as pd
 import yt_dlp
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
@@ -17,7 +17,7 @@ def download_dataset() -> str:
     return path
 
 
-def unify_title_url_mappings(csv_path: str) -> pl.LazyFrame:
+def unify_title_url_mappings(csv_path: str) -> pd.DataFrame:
     """Create a 1:1 mapping between (title, artist) and URL.
 
     Two problems exist in the raw data:
@@ -28,28 +28,24 @@ def unify_title_url_mappings(csv_path: str) -> pl.LazyFrame:
     - Step 1: Canonicalize title/artist per URL (fixes metadata drift)
     - Step 2: Pick one canonical URL per (title, artist) (dedup re-releases)
     """
-    lf = pl.scan_csv(csv_path)
+    df = pd.read_csv(csv_path)
 
-    # Step 1: Normalize title/artist per URL
-    url_canonical = lf.group_by("url").agg(
-        pl.col("title").first().alias("canonical_title"),
-        pl.col("artist").first().alias("canonical_artist"),
-    )
-    step1 = (
-        lf.join(url_canonical, on="url", how="left")
-        .drop("title", "artist")
-        .rename({"canonical_title": "title", "canonical_artist": "artist"})
-    )
+    # Step 1: Normalize title/artist per URL (take first occurrence)
+    url_canonical = df.groupby("url").agg(
+        canonical_title=("title", "first"),
+        canonical_artist=("artist", "first"),
+    ).reset_index()
+
+    step1 = df.drop(columns=["title", "artist"]).merge(url_canonical, on="url")
+    step1 = step1.rename(columns={"canonical_title": "title", "canonical_artist": "artist"})
 
     # Step 2: Pick one URL per (title, artist)
-    title_artist_canonical = step1.group_by("title", "artist").agg(
-        pl.col("url").first().alias("canonical_url")
-    )
-    step2 = (
-        step1.join(title_artist_canonical, on=["title", "artist"], how="left")
-        .drop("url")
-        .rename({"canonical_url": "url"})
-    )
+    title_artist_canonical = step1.groupby(["title", "artist"]).agg(
+        canonical_url=("url", "first")
+    ).reset_index()
+
+    step2 = step1.drop(columns=["url"]).merge(title_artist_canonical, on=["title", "artist"])
+    step2 = step2.rename(columns={"canonical_url": "url"})
 
     return step2
 
@@ -115,7 +111,7 @@ def _download_one(title: str, artist: str, track_id: str) -> tuple[str, str | No
 
 
 def get_mp3s_for_dataset(
-    lf: pl.LazyFrame,
+    df: pd.DataFrame,
     max_workers: int = 12,
     limit: int | None = None,
 ) -> None:
@@ -127,8 +123,8 @@ def get_mp3s_for_dataset(
     """
     os.makedirs(SONGS_DIR, exist_ok=True)
 
-    # Get unique (url, title, artist) — url is used to extract the track ID for filenames
-    songs = lf.select("url", "title", "artist").unique(subset=["url"]).collect()
+    # Get unique (url, title, artist)
+    songs = df[["url", "title", "artist"]].drop_duplicates(subset=["url"])
 
     # Filter out already-downloaded tracks
     existing = {
@@ -136,7 +132,7 @@ def get_mp3s_for_dataset(
     }
     to_download = [
         row
-        for row in songs.iter_rows(named=True)
+        for _, row in songs.iterrows()
         if row["url"].rsplit("/", 1)[-1] not in existing
     ]
 
