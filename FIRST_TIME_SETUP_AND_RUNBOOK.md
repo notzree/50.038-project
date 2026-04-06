@@ -58,20 +58,21 @@ uv run python src/run_pipeline.py --download --limit 100
 Pipeline creates:
 
 1. `src/data/audio_manifest.csv`
-2. `src/data/audio_qc_summary.json`
-3. `src/data/audio_qc_issues.csv`
-4. `src/data/audio_features.csv`
-5. `src/data/audio_features_human.csv`
-6. `src/data/labels_appears_in_region.csv`
-7. `src/data/train_table.csv`
-8. `src/data/model_metrics.json`
-9. `src/data/model.joblib`
-10. `src/data/model_metadata.json`
-11. `src/data/region_metrics.csv`
-12. `src/data/test_predictions.csv`
-13. `src/data/error_rows.csv`
-14. `src/data/error_counts_by_region.csv`
-15. visualizations in `src/data/plots/`
+2. `src/data/track_catalog.csv`
+3. `src/data/audio_qc_summary.json`
+4. `src/data/audio_qc_issues.csv`
+5. `src/data/audio_features.csv`
+6. `src/data/audio_features_human.csv`
+7. `src/data/labels_appears_in_region.csv`
+8. `src/data/train_table.csv`
+9. `src/data/model_metrics.json`
+10. `src/data/model.joblib`
+11. `src/data/model_metadata.json`
+12. `src/data/region_metrics.csv`
+13. `src/data/test_predictions.csv`
+14. `src/data/error_rows.csv`
+15. `src/data/error_counts_by_region.csv`
+16. visualizations in `src/data/plots/`
 
 Important visual outputs include:
 

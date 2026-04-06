@@ -4,21 +4,128 @@ from pathlib import Path
 import pandas as pd
 
 
-def build_manifest(songs_dir: Path, manifest_path: Path) -> int:
-    print("\n=== Build manifest ===")
+def _safe_read_csv(csv_path: str | None) -> pd.DataFrame | None:
+    if not csv_path:
+        return None
+    p = Path(csv_path)
+    if not p.exists():
+        return None
+    try:
+        return pd.read_csv(p)
+    except Exception:
+        return None
+
+
+def build_catalog_and_manifest(
+    songs_dir: Path,
+    manifest_path: Path,
+    catalog_path: Path,
+    charts_csv: str,
+    nonviral_meta_csv: str | None,
+) -> int:
+    print("\n=== Build track catalog + manifest ===")
     print(f"Songs dir: {songs_dir}")
     print(f"Manifest: {manifest_path}")
+    print(f"Catalog: {catalog_path}")
 
     songs = sorted(songs_dir.glob("*.mp3"))
-    rows = [{"track_id": p.stem, "file_path": str(p)} for p in songs]
-
-    manifest_path.parent.mkdir(parents=True, exist_ok=True)
-    pd.DataFrame(rows, columns=["track_id", "file_path"]).to_csv(
-        manifest_path, index=False
+    base = pd.DataFrame(
+        [{"track_id": p.stem, "file_path": str(p)} for p in songs],
+        columns=["track_id", "file_path"],
     )
+    if base.empty:
+        manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        catalog_path.parent.mkdir(parents=True, exist_ok=True)
+        base.to_csv(manifest_path, index=False)
+        base.to_csv(catalog_path, index=False)
+        print("No songs found while building catalog/manifest")
+        return 0
 
-    print(f"Manifest rows: {len(rows)}")
-    return len(rows)
+    # Viral/chart metadata from charts dataset
+    charts = _safe_read_csv(charts_csv)
+    if charts is not None and {"url", "title", "artist"}.issubset(charts.columns):
+        charts = charts.copy()
+        charts["track_id"] = (
+            charts["url"].str.split("?").str[0].str.rsplit("/", n=1).str[-1]
+        )
+        chart_meta = (
+            charts[["track_id", "title", "artist"]]
+            .dropna(subset=["track_id"])
+            .drop_duplicates(subset=["track_id"], keep="first")
+            .rename(columns={"title": "track_title", "artist": "track_artist"})
+        )
+        chart_meta["in_charts"] = 1
+    else:
+        chart_meta = pd.DataFrame(
+            columns=["track_id", "track_title", "track_artist", "in_charts"]
+        )
+
+    # Non-viral metadata
+    nonviral = _safe_read_csv(nonviral_meta_csv)
+    if nonviral is not None and "track_id" in nonviral.columns:
+        nonviral = nonviral.copy()
+        if "global_nonviral" not in nonviral.columns:
+            nonviral["global_nonviral"] = 1
+        nonviral = (
+            nonviral[
+                [
+                    c
+                    for c in [
+                        "track_id",
+                        "global_nonviral",
+                        "track_name",
+                        "artists",
+                        "popularity",
+                    ]
+                    if c in nonviral.columns
+                ]
+            ]
+            .drop_duplicates(subset=["track_id"], keep="first")
+            .rename(
+                columns={
+                    "track_name": "nonviral_track_name",
+                    "artists": "nonviral_artists",
+                }
+            )
+        )
+    else:
+        nonviral = pd.DataFrame(columns=["track_id", "global_nonviral"])
+
+    catalog = base.merge(chart_meta, on="track_id", how="left")
+    catalog = catalog.merge(nonviral, on="track_id", how="left")
+
+    catalog["in_charts"] = catalog["in_charts"].fillna(0).astype(int)
+    catalog["global_nonviral"] = catalog["global_nonviral"].fillna(0).astype(int)
+
+    catalog["source_type"] = "unknown"
+    catalog.loc[
+        (catalog["in_charts"] == 1) & (catalog["global_nonviral"] == 0),
+        "source_type",
+    ] = "viral_charts"
+    catalog.loc[
+        (catalog["in_charts"] == 0) & (catalog["global_nonviral"] == 1),
+        "source_type",
+    ] = "global_nonviral"
+    catalog.loc[
+        (catalog["in_charts"] == 1) & (catalog["global_nonviral"] == 1),
+        "source_type",
+    ] = "mixed"
+
+    catalog = catalog.sort_values("track_id").reset_index(drop=True)
+
+    catalog_path.parent.mkdir(parents=True, exist_ok=True)
+    catalog.to_csv(catalog_path, index=False)
+
+    manifest = catalog[
+        ["track_id", "file_path", "source_type", "global_nonviral"]
+    ].rename(columns={"global_nonviral": "is_nonviral_global"})
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest.to_csv(manifest_path, index=False)
+
+    src_counts = catalog["source_type"].value_counts().to_dict()
+    print(f"Catalog rows: {len(catalog)} | source distribution: {src_counts}")
+    print(f"Manifest rows: {len(manifest)}")
+    return len(manifest)
 
 
 def main() -> None:
@@ -49,6 +156,11 @@ def main() -> None:
         "--manifest",
         default="src/data/audio_manifest.csv",
         help="Manifest CSV output path",
+    )
+    parser.add_argument(
+        "--catalog-out",
+        default="src/data/track_catalog.csv",
+        help="Track catalog CSV output path",
     )
     parser.add_argument(
         "--qc-summary-out",
@@ -143,6 +255,28 @@ def main() -> None:
         help="Path to genre_features.csv. Auto-detected if src/data/genre_features.csv exists.",
     )
     parser.add_argument(
+        "--download-nonviral",
+        action="store_true",
+        help="Download non-viral songs before building the manifest",
+    )
+    parser.add_argument(
+        "--nonviral-limit",
+        type=int,
+        default=None,
+        help="Max non-viral songs to download (requires --download-nonviral)",
+    )
+    parser.add_argument(
+        "--nonviral-popularity-threshold",
+        type=int,
+        default=25,
+        help="Max popularity score to qualify as non-viral (default: 25)",
+    )
+    parser.add_argument(
+        "--nonviral-meta",
+        default=None,
+        help="Path to nonviral_track_ids.csv. Auto-detected if src/data/nonviral_track_ids.csv exists.",
+    )
+    parser.add_argument(
         "--tune",
         action="store_true",
         help="Enable Optuna hyperparameter tuning during training",
@@ -178,6 +312,7 @@ def main() -> None:
 
     songs_dir = Path(_resolve(args.songs_dir))
     manifest_path = Path(_resolve(args.manifest))
+    catalog_path = Path(_resolve(args.catalog_out))
     features_out = _resolve(args.features_out)
     charts = _resolve(args.charts)
     labels_out = _resolve(args.labels_out)
@@ -211,9 +346,37 @@ def main() -> None:
         print("\n=== Download songs ===")
         print("Skipping download step (use --download to enable)")
 
-    # --- Step 2: Build manifest ---
+    # --- Step 1b: Download non-viral songs ---
+    if args.download_nonviral:
+        print("\n=== Download non-viral songs ===")
+        from download_nonviral import get_nonviral_mp3s
+
+        get_nonviral_mp3s(
+            limit=args.nonviral_limit,
+            max_workers=args.max_workers,
+            popularity_threshold=args.nonviral_popularity_threshold,
+        )
+    else:
+        print("\n=== Download non-viral songs ===")
+        print("Skipping non-viral download step (use --download-nonviral to enable)")
+
+    # Auto-detect nonviral metadata CSV early (for catalog build)
+    nonviral_meta_path = args.nonviral_meta
+    if nonviral_meta_path is None:
+        auto_nonviral = repo_root / "src" / "data" / "nonviral_track_ids.csv"
+        if auto_nonviral.exists():
+            nonviral_meta_path = str(auto_nonviral)
+            print(f"Auto-detected non-viral metadata: {nonviral_meta_path}")
+
+    # --- Step 2: Build catalog + manifest ---
     songs_dir.mkdir(parents=True, exist_ok=True)
-    song_count = build_manifest(songs_dir=songs_dir, manifest_path=manifest_path)
+    song_count = build_catalog_and_manifest(
+        songs_dir=songs_dir,
+        manifest_path=manifest_path,
+        catalog_path=catalog_path,
+        charts_csv=charts,
+        nonviral_meta_csv=nonviral_meta_path,
+    )
     if song_count == 0:
         print("No songs found. Stopping pipeline.")
         print("Add songs to src/data/songs or rerun with --download")
@@ -274,11 +437,13 @@ def main() -> None:
     build_labels_and_train_table(
         charts_csv=charts,
         features_csv=features_out,
+        track_catalog_csv=str(catalog_path),
         human_features_csv=human_features_out,
         labels_csv=labels_out,
         train_csv=train_out,
         chart_name=args.chart_name,
         genres_csv=genres_path,
+        nonviral_meta_csv=nonviral_meta_path,
     )
 
     # --- Step 5: Train and evaluate ---
@@ -359,6 +524,7 @@ def main() -> None:
     print(f"QC summary: {qc_summary_out}")
     print(f"Labels: {labels_out}")
     print(f"Train table: {train_out}")
+    print(f"Track catalog: {catalog_path}")
     print(f"Metrics: {metrics_out}")
     print(f"Model: {model_out}")
 
