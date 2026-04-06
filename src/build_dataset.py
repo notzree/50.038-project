@@ -11,6 +11,7 @@ def build_labels_and_train_table(
     train_csv: str,
     chart_name: str,
     genres_csv: str | None = None,
+    nonviral_meta_csv: str | None = None,
 ) -> None:
     print("Building labels and training table")
     print(f"Charts CSV: {charts_csv}")
@@ -19,6 +20,8 @@ def build_labels_and_train_table(
         print(f"Human features CSV: {human_features_csv}")
     if genres_csv:
         print(f"Genres CSV: {genres_csv}")
+    if nonviral_meta_csv:
+        print(f"Non-viral meta CSV: {nonviral_meta_csv}")
 
     features = pd.read_csv(features_csv)
 
@@ -84,6 +87,17 @@ def build_labels_and_train_table(
         except Exception as e:
             print(f"Warning: could not merge genres: {e}")
 
+    # Merge non-viral metadata if available
+    if nonviral_meta_csv:
+        try:
+            nonviral = pd.read_csv(nonviral_meta_csv)[["track_id", "global_nonviral"]]
+            train = train.merge(nonviral, on="track_id", how="left")
+            train["global_nonviral"] = train["global_nonviral"].fillna(0).astype(int)
+            n_nonviral = (train["global_nonviral"] == 1).sum()
+            print(f"Merged non-viral metadata: {n_nonviral}/{len(train)} rows are non-viral")
+        except Exception as e:
+            print(f"Warning: could not merge non-viral metadata: {e}")
+
     train.to_csv(train_csv, index=False)
 
     label_counts = labels["appears_in_region"].value_counts().sort_index()
@@ -127,6 +141,11 @@ def main() -> None:
         default=None,
         help="Optional path to genre_features.csv (from fetch_genres.py)",
     )
+    parser.add_argument(
+        "--nonviral-meta",
+        default=None,
+        help="Optional path to nonviral_track_ids.csv (from download_nonviral.py)",
+    )
     args = parser.parse_args()
 
     build_labels_and_train_table(
@@ -137,6 +156,7 @@ def main() -> None:
         train_csv=args.train_out,
         chart_name=args.chart_name,
         genres_csv=args.genres,
+        nonviral_meta_csv=args.nonviral_meta,
     )
     print("Dataset build complete")
 

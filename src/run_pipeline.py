@@ -143,6 +143,28 @@ def main() -> None:
         help="Path to genre_features.csv. Auto-detected if src/data/genre_features.csv exists.",
     )
     parser.add_argument(
+        "--download-nonviral",
+        action="store_true",
+        help="Download non-viral songs before building the manifest",
+    )
+    parser.add_argument(
+        "--nonviral-limit",
+        type=int,
+        default=None,
+        help="Max non-viral songs to download (requires --download-nonviral)",
+    )
+    parser.add_argument(
+        "--nonviral-popularity-threshold",
+        type=int,
+        default=25,
+        help="Max popularity score to qualify as non-viral (default: 25)",
+    )
+    parser.add_argument(
+        "--nonviral-meta",
+        default=None,
+        help="Path to nonviral_track_ids.csv. Auto-detected if src/data/nonviral_track_ids.csv exists.",
+    )
+    parser.add_argument(
         "--tune",
         action="store_true",
         help="Enable Optuna hyperparameter tuning during training",
@@ -211,6 +233,20 @@ def main() -> None:
         print("\n=== Download songs ===")
         print("Skipping download step (use --download to enable)")
 
+    # --- Step 1b: Download non-viral songs ---
+    if args.download_nonviral:
+        print("\n=== Download non-viral songs ===")
+        from download_nonviral import get_nonviral_mp3s
+
+        get_nonviral_mp3s(
+            limit=args.nonviral_limit,
+            max_workers=args.max_workers,
+            popularity_threshold=args.nonviral_popularity_threshold,
+        )
+    else:
+        print("\n=== Download non-viral songs ===")
+        print("Skipping non-viral download step (use --download-nonviral to enable)")
+
     # --- Step 2: Build manifest ---
     songs_dir.mkdir(parents=True, exist_ok=True)
     song_count = build_manifest(songs_dir=songs_dir, manifest_path=manifest_path)
@@ -271,6 +307,14 @@ def main() -> None:
             genres_path = str(auto_genres)
             print(f"Auto-detected genre features: {genres_path}")
 
+    # Auto-detect nonviral metadata CSV
+    nonviral_meta_path = args.nonviral_meta
+    if nonviral_meta_path is None:
+        auto_nonviral = repo_root / "src" / "data" / "nonviral_track_ids.csv"
+        if auto_nonviral.exists():
+            nonviral_meta_path = str(auto_nonviral)
+            print(f"Auto-detected non-viral metadata: {nonviral_meta_path}")
+
     build_labels_and_train_table(
         charts_csv=charts,
         features_csv=features_out,
@@ -279,6 +323,7 @@ def main() -> None:
         train_csv=train_out,
         chart_name=args.chart_name,
         genres_csv=genres_path,
+        nonviral_meta_csv=nonviral_meta_path,
     )
 
     # --- Step 5: Train and evaluate ---
