@@ -13,6 +13,7 @@ dependencies = [
     "pandas>=2.3.2",
     "polars>=1.38.1",
     "python-dotenv>=1.2.1",
+    "pytrends>=4.9.2",
     "scikit-learn>=1.8.0",
     "spotdl>=4.4.3",
     "yt-dlp>=2026.2.21",
