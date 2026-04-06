@@ -21,6 +21,7 @@ uv run python src/run_pipeline.py --download --limit 100
 
 Pipeline outputs:
 - `src/data/audio_manifest.csv`
+- `src/data/track_catalog.csv`
 - `src/data/audio_qc_summary.json`
 - `src/data/audio_qc_issues.csv`
 - `src/data/audio_features.csv`
@@ -35,6 +36,10 @@ Pipeline outputs:
 - `src/data/error_rows.csv`
 - `src/data/error_counts_by_region.csv`
 - `src/data/plots/` visualizations
+
+Table notes:
+- `audio_manifest.csv` now includes `source_type` and `is_nonviral_global`.
+- `track_catalog.csv` stores canonical per-track metadata (chart/non-viral source flags and optional title/artist metadata).
 
 Key visualization files:
 - `src/data/plots/01_dataset_overview.png`
@@ -95,6 +100,15 @@ Run multi-seed benchmark:
 ```bash
 uv run python src/benchmark_models.py --seeds 42,7,123
 ```
+
+Run overnight high-level formula search:
+```bash
+uv run python src/optimize_human_formulas.py --formula-sets A,E,B,C,D,F --seeds 42
+```
+
+Outputs:
+- `src/data/formula_search/formula_search_summary.csv`
+- `src/data/formula_search/best_formula_result.json`
 
 Generate visualization set:
 ```bash

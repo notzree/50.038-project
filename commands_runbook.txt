@@ -9,6 +9,9 @@ uv run python src/main.py --limit 100
 2) Run full pipeline with existing songs
 uv run python src/run_pipeline.py
 
+2b) Include non-viral download during pipeline run
+uv run python src/run_pipeline.py --download-nonviral --nonviral-limit 300 --nonviral-popularity-threshold 25
+
 3) Run full pipeline with fresh download
 uv run python src/run_pipeline.py --download --limit 100
 
@@ -49,6 +52,7 @@ uv run python src/make_visualizations.py --out-dir src/data/plots
 Notes
 - Pipeline is CSV-first.
 - Manifest path: src/data/audio_manifest.csv
+- Track catalog path: src/data/track_catalog.csv
 - Features path: src/data/audio_features.csv
 - Human features path: src/data/audio_features_human.csv
 - Songs directory: src/data/songs/

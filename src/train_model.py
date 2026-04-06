@@ -104,7 +104,9 @@ def split_data(
 
 
 def _build_preprocessor(feature_cols: list[str]) -> ColumnTransformer:
-    categorical_features = [c for c in feature_cols if c in {"region", "primary_genre"}]
+    categorical_features = [
+        c for c in feature_cols if c in {"region", "primary_genre", "source_type"}
+    ]
     numeric_features = [c for c in feature_cols if c not in categorical_features]
 
     numeric_transformer = Pipeline(

@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import kagglehub
 import pandas as pd
 
-from download import DATA_DIR, SONGS_DIR, _download_one
+from download import DATA_DIR, SONGS_DIR, _download_one, download_dataset
 
 NONVIRAL_META_CSV = os.path.join(DATA_DIR, "nonviral_track_ids.csv")
 
@@ -35,25 +35,43 @@ def get_nonviral_mp3s(
     csv_path = download_nonviral_dataset()
     df = pd.read_csv(csv_path)
 
+    # Exclude any track IDs that are already present in charts dataset
+    charts_csv = download_dataset()
+    charts_df = pd.read_csv(charts_csv, usecols=["url"])
+    chart_track_ids = set(
+        charts_df["url"].astype(str).str.split("?").str[0].str.rsplit("/", n=1).str[-1]
+    )
+
     # Filter to low-popularity tracks
     df = df[df["popularity"] < popularity_threshold].copy()
 
     # Drop rows without a track_id, track_name, or artists
     df = df.dropna(subset=["track_id", "track_name", "artists"])
     df = df.drop_duplicates(subset=["track_id"])
+    df = df[~df["track_id"].astype(str).isin(chart_track_ids)].copy()
 
     # Get existing track IDs from songs dir
-    existing = {f.removesuffix(".mp3") for f in os.listdir(SONGS_DIR) if f.endswith(".mp3")}
+    existing = {
+        f.removesuffix(".mp3") for f in os.listdir(SONGS_DIR) if f.endswith(".mp3")
+    }
 
     # Also load previously recorded nonviral IDs so we don't re-attempt known failures
     recorded_nonviral: set[str] = set()
     if os.path.exists(NONVIRAL_META_CSV):
         recorded_nonviral = set(pd.read_csv(NONVIRAL_META_CSV)["track_id"].astype(str))
+        before = len(recorded_nonviral)
+        recorded_nonviral -= chart_track_ids
+        removed = before - len(recorded_nonviral)
+        if removed > 0:
+            print(
+                f"Dropped {removed} chart-overlap IDs from existing non-viral metadata"
+            )
 
     to_download = [
         row
         for _, row in df.iterrows()
-        if str(row["track_id"]) not in existing and str(row["track_id"]) not in recorded_nonviral
+        if str(row["track_id"]) not in existing
+        and str(row["track_id"]) not in recorded_nonviral
     ]
 
     if limit is not None:
@@ -87,7 +105,11 @@ def get_nonviral_mp3s(
                     print(f"  [{i}/{len(to_download)}] downloaded")
 
     # Write metadata CSV
+    successful = [
+        track_id for track_id in successful if track_id not in chart_track_ids
+    ]
     meta = pd.DataFrame({"track_id": successful, "global_nonviral": 1})
+    meta = meta.drop_duplicates(subset=["track_id"], keep="first")
     meta.to_csv(NONVIRAL_META_CSV, index=False)
     print(f"Wrote {len(meta)} non-viral track IDs to {NONVIRAL_META_CSV}")
 
