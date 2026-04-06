@@ -1,47 +1,31 @@
 # First-Time Setup and Runbook
 
-This guide is for someone cloning the project for the first time, including the case where you already have a **very large local audio collection** (for example, ~100,000 files from charting songs).
+This guide is for someone cloning the project for the first time, including large local audio collections (for example, ~100,000 files).
 
-## What this project does (MVP)
+## What this project does
 
-- Builds an MVP classifier for `(track_id, region)`.
-- Target label: `appears_in_region`
-  - `1` if a track appears at least once in that region's `top200` chart.
+- Builds a region-level classifier on `(track_id, region)`.
+- Target label: `appears_in_region`.
+  - `1` if track appears at least once in that region's `top200` chart.
   - `0` otherwise.
-- Uses basic extracted audio features + region to train baseline models.
-
----
+- Uses extracted audio features + human-readable proxy features for training.
 
 ## 0) Prerequisites
 
 - Python 3.12+
 - `uv` installed
-- Sufficient disk space (100k audio files + generated CSVs/model artifacts)
-- If using built-in downloader (`src/main.py`): network access + ffmpeg support for `yt-dlp`
+- Enough disk for audio + CSV outputs
 
-From repository root:
+From repo root:
 
 ```bash
 uv sync
 ```
 
----
+## 1) Put audio files in expected folder
 
-## 1) Put audio files in the expected folder
-
-Expected folder:
-
-- `src/data/songs/`
-
-Expected filename convention:
-
-- `<track_id>.mp3`
-
-Where `track_id` matches Spotify URL tail used in charts data, e.g.:
-
-- `https://open.spotify.com/track/6mICuAdrwEjh6Y6lroV2Kg` -> `6mICuAdrwEjh6Y6lroV2Kg.mp3`
-
-If you already have many files (e.g. 100k), place them in `src/data/songs/` before running pipeline.
+- Folder: `src/data/songs/`
+- Naming: `<track_id>.mp3`
 
 Optional quick count:
 
@@ -49,81 +33,67 @@ Optional quick count:
 ls "src/data/songs" | wc -l
 ```
 
----
-
 ## 2) Ensure charts dataset exists
 
-If `src/data/charts.csv` is not present, run:
+If `src/data/charts.csv` is missing:
 
 ```bash
 uv run python src/main.py --limit 1
 ```
 
-This will initialize charts download and fetch one clip. If you already have `charts.csv`, skip.
+## 3) Run full pipeline (recommended)
 
----
-
-## 3) Run full MVP pipeline (recommended)
-
-Using existing audio files in `src/data/songs/`:
+Using existing songs:
 
 ```bash
-uv run python src/run_mvp_pipeline.py
+uv run python src/run_pipeline.py
 ```
 
-This runs:
-
-1. Build manifest (`src/data/audio_manifest.csv`)
-2. Extract audio features (`src/data/audio_features_basic.csv`)
-3. Build labels (`src/data/labels_appears_in_region.csv`)
-4. Build training table (`src/data/train_table_mvp.csv`)
-5. Train/evaluate models (`src/data/mvp_metrics.json`)
-6. Save selected model (`src/data/mvp_model.joblib`)
-7. Save analysis artifacts:
-   - `src/data/mvp_region_metrics.csv`
-   - `src/data/mvp_test_predictions.csv`
-   - `src/data/mvp_error_rows.csv`
-   - `src/data/mvp_error_counts_by_region.csv`
-8. Generate initial label distribution visualization:
-   - `src/data/plots/mvp_label_distribution.png`
-
-If you want pipeline to download songs too:
+With download step:
 
 ```bash
-uv run python src/run_mvp_pipeline.py --download --limit 100
+uv run python src/run_pipeline.py --download --limit 100
 ```
 
-If you also want a single-song prediction at the end of the pipeline:
+Pipeline creates:
+
+1. `src/data/audio_manifest.csv`
+2. `src/data/track_catalog.csv`
+3. `src/data/audio_qc_summary.json`
+4. `src/data/audio_qc_issues.csv`
+5. `src/data/audio_features.csv`
+6. `src/data/audio_features_human.csv`
+7. `src/data/labels_appears_in_region.csv`
+8. `src/data/train_table.csv`
+9. `src/data/model_metrics.json`
+10. `src/data/model.joblib`
+11. `src/data/model_metadata.json`
+12. `src/data/region_metrics.csv`
+13. `src/data/test_predictions.csv`
+14. `src/data/error_rows.csv`
+15. `src/data/error_counts_by_region.csv`
+16. visualizations in `src/data/plots/`
+
+Important visual outputs include:
+
+- `src/data/plots/01_dataset_overview.png`
+- `src/data/plots/04_model_comparison.png`
+- `src/data/plots/05_confusion_matrices.png`
+- `src/data/plots/08_region_feature_lift_heatmap.png`
+- `src/data/plots/09_region_probability_gap.png`
+
+## 4) Large-scale run strategy (~100k audio)
+
+Recommended:
+
+1. Sanity run on smaller subset first.
+2. Confirm QC + extraction success + training outputs.
+3. Run full set overnight.
+
+## 5) Benchmark stability
 
 ```bash
-uv run python src/run_mvp_pipeline.py --predict-audio "/full/path/to/song.mp3" --predict-region Singapore
-```
-
----
-
-## 4) For very large audio sets (~100k): practical run strategy
-
-Recommended approach:
-
-1. Run once on a subset first (sanity):
-   - Move/copy a small subset into `src/data/songs/`
-   - Run pipeline and confirm artifacts look correct
-2. Then run full set overnight/long session.
-
-Notes for scale:
-
-- Feature extraction is the longest step.
-- CSV outputs can become large; keep enough free disk.
-- If process is interrupted, rerun pipeline; it will rebuild manifest and regenerate downstream outputs.
-
----
-
-## 5) Benchmark stability (recommended before reporting)
-
-Run multiple seeds:
-
-```bash
-uv run python src/benchmark_mvp.py --seeds 42,7,123
+uv run python src/benchmark_models.py --seeds 42,7,123
 ```
 
 Outputs:
@@ -131,46 +101,31 @@ Outputs:
 - `src/data/benchmarks/benchmark_summary.csv`
 - `src/data/benchmarks/benchmark_aggregate.json`
 
----
-
 ## 6) Predict a single audio file
 
-Interactive prompt mode (asks for path and region):
+Interactive prompt:
 
 ```bash
 uv run python src/predict_single_audio.py
 ```
 
-Direct path mode:
+Direct path:
 
 ```bash
-uv run python src/predict_single_audio.py --audio "/full/path/to/song.mp3" --region Singapore --model src/data/mvp_model.joblib
+uv run python src/predict_single_audio.py --audio "/full/path/to/song.mp3" --region Singapore --model src/data/model.joblib
 ```
 
-Popup picker mode (if available in your Python build):
+Finder picker (if available):
 
 ```bash
-uv run python src/predict_single_audio.py --pick-file --region Singapore --model src/data/mvp_model.joblib
+uv run python src/predict_single_audio.py --pick-file --region Singapore --model src/data/model.joblib
 ```
 
-If popup fails with Tkinter error, use interactive/direct path mode.
-
----
-
-## 7) Useful references in this repo
-
-- Workflow commands: `commands_runbook.txt`
-- MVP target definition: `mvp_target_notes.txt`
-- Limitations/roadmap: `mvp_limitations_and_roadmap.txt`
-- Week 8 speaking guide: `week8_talk_track.txt`
-
----
-
-## 8) Minimum "done" checklist for first-time runner
+## 7) Minimum done checklist
 
 - `uv sync` completed
 - `src/data/songs/` populated
 - `src/data/charts.csv` exists
-- `uv run python src/run_mvp_pipeline.py` completes
-- `src/data/mvp_metrics.json` exists and is readable
-- `uv run python src/predict_single_audio.py` runs successfully
+- `uv run python src/run_pipeline.py` completes
+- `src/data/model_metrics.json` exists
+- single-song prediction runs successfully

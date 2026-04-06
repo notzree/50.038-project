@@ -5,7 +5,8 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
-from extract_features import extract_basic_features
+from extract_features import extract_basic_features, extract_full_features
+from human_features import compute_human_features
 
 
 def pick_audio_file_from_finder() -> str:
@@ -42,24 +43,82 @@ def normalize_user_path(raw: str) -> str:
     return cleaned
 
 
+def _load_metadata(model_path: str) -> dict | None:
+    """Load model_metadata.json from alongside the model file."""
+    metadata_path = Path(model_path).with_name("model_metadata.json")
+    if not metadata_path.exists():
+        print(f"Warning: {metadata_path} not found, falling back to basic features")
+        return None
+    try:
+        return json.loads(metadata_path.read_text())
+    except (json.JSONDecodeError, OSError) as e:
+        raise RuntimeError(
+            f"model_metadata.json exists but is corrupt: {e}. "
+            f"Re-run training to regenerate it."
+        ) from e
+
+
 def predict_single(audio_path: str, region: str, model_path: str) -> dict:
     print(f"Loading model: {model_path}")
     clf = joblib.load(model_path)
 
-    print(f"Extracting features from: {audio_path}")
-    features = extract_basic_features(audio_path)
-    row = {"region": region, **features}
+    # Load metadata to determine feature set and threshold
+    metadata = _load_metadata(model_path)
+
+    if metadata and metadata.get("feature_set") == "full":
+        print(f"Extracting full features from: {audio_path}")
+        features = extract_full_features(audio_path)
+    else:
+        print(f"Extracting basic features from: {audio_path}")
+        features = extract_basic_features(audio_path)
+
+    human_features = compute_human_features(features)
+    row = {"region": region, **features, **human_features}
+
+    # Add genre placeholder if model expects it
+    if metadata and "primary_genre" in metadata.get("feature_columns", []):
+        row["primary_genre"] = "unknown"
+
     X = pd.DataFrame([row])
+
+    # Validate feature columns match what model expects
+    if metadata and "feature_columns" in metadata:
+        expected = set(metadata["feature_columns"])
+        actual = set(X.columns)
+        missing = expected - actual
+        if missing:
+            raise ValueError(
+                f"Feature mismatch: model expects {sorted(missing)} but extraction "
+                f"didn't produce them. Check --feature-set matches training."
+            )
 
     pred = int(clf.predict(X)[0])
     prob = float(clf.predict_proba(X)[0, 1])
 
+    # Use tuned threshold if available
+    threshold = 0.5
+    if metadata and "best_threshold" in metadata:
+        threshold = metadata["best_threshold"]
+
+    pred_tuned = int(prob >= threshold)
+
     return {
         "audio_path": audio_path,
         "region": region,
-        "prediction": pred,
+        "prediction": pred_tuned,
         "probability_appears_in_region": prob,
+        "threshold_used": threshold,
     }
+
+
+def predict_batch(
+    audio_paths: list[str], regions: list[str], model_path: str
+) -> list[dict]:
+    """Batch prediction for multiple audio files."""
+    return [
+        predict_single(path, region, model_path)
+        for path, region in zip(audio_paths, regions)
+    ]
 
 
 def main() -> None:
@@ -78,7 +137,7 @@ def main() -> None:
     parser.add_argument("--region", required=False, help="Region name used in training")
     parser.add_argument(
         "--model",
-        default="src/data/mvp_model.joblib",
+        default="src/data/model.joblib",
         help="Path to trained model artifact",
     )
     parser.add_argument(

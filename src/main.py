@@ -30,9 +30,8 @@ def main():
     csv_path = download_dataset()
     print(f"Using charts dataset at: {csv_path}")
 
-    # Lazy scan - no full load into memory
-    unified_lf = unify_title_url_mappings(csv_path)
-    get_mp3s_for_dataset(unified_lf, max_workers=args.max_workers, limit=args.limit)
+    unified_df = unify_title_url_mappings(csv_path)
+    get_mp3s_for_dataset(unified_df, max_workers=args.max_workers, limit=args.limit)
     print("Download pipeline complete")
 
 
