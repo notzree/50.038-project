@@ -45,6 +45,9 @@ uv run python src/benchmark_models.py --seeds 42,7,123
 13) Generate visualization set
 uv run python src/make_visualizations.py --out-dir src/data/plots
 
+14) Preview the Streamlit UI
+uv run streamlit run src/app/user_interface.py
+
 13b) Main region-aware high-level feature visuals
 - src/data/plots/08_region_feature_lift_heatmap.png
 - src/data/plots/09_region_probability_gap.png
