@@ -4,15 +4,15 @@ from pathlib import Path
 
 import pandas as pd
 
-from train_mvp_model import train_and_evaluate
+from train_model import train_and_evaluate
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run multi-seed MVP benchmark")
+    parser = argparse.ArgumentParser(description="Run multi-seed model benchmark")
     parser.add_argument(
         "--input",
-        default="src/data/train_table_mvp.csv",
-        help="Path to MVP training CSV",
+        default="src/data/train_table.csv",
+        help="Path to training CSV",
     )
     parser.add_argument(
         "--seeds",
@@ -45,27 +45,30 @@ def main() -> None:
         print(f"\n--- Seed {seed} ---")
         metrics = train_and_evaluate(
             input_csv=args.input,
-            metrics_out=str(seed_dir / "mvp_metrics.json"),
-            model_out=str(seed_dir / "mvp_model.joblib"),
-            region_metrics_out=str(seed_dir / "mvp_region_metrics.csv"),
-            test_preds_out=str(seed_dir / "mvp_test_predictions.csv"),
-            errors_out=str(seed_dir / "mvp_error_rows.csv"),
+            metrics_out=str(seed_dir / "model_metrics.json"),
+            model_out=str(seed_dir / "model.joblib"),
+            region_metrics_out=str(seed_dir / "region_metrics.csv"),
+            test_preds_out=str(seed_dir / "test_predictions.csv"),
+            errors_out=str(seed_dir / "error_rows.csv"),
             test_size=args.test_size,
             seed=seed,
         )
 
         selected = metrics["selected_model"]
         selected_scores = metrics["models"][selected]
-        tuned = metrics["selected_model_thresholding"]["best_f1_threshold_on_test"]
+        tuned = metrics["thresholding"]["val_best_f1_threshold"]
+
+        # Use test metrics for reporting
+        test_scores = selected_scores.get("test", selected_scores)
 
         summary_rows.append(
             {
                 "seed": seed,
                 "selected_model": selected,
-                "selected_f1": selected_scores["f1"],
-                "selected_roc_auc": selected_scores["roc_auc"],
-                "selected_precision": selected_scores["precision"],
-                "selected_recall": selected_scores["recall"],
+                "selected_f1": test_scores["f1"],
+                "selected_roc_auc": test_scores["roc_auc"],
+                "selected_precision": test_scores["precision"],
+                "selected_recall": test_scores["recall"],
                 "best_threshold": tuned["threshold"],
                 "best_threshold_f1": tuned["f1"],
             }

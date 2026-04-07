@@ -1,0 +1,70 @@
+Human Feature Formula Sets (Proposal)
+
+Recommended number of sets: 6
+- 1 current baseline (v1)
+- 5 alternatives with different design biases
+
+Notes
+- All *_n inputs are normalized/clipped to [0, 1].
+- Keep outputs clipped to [0, 1].
+- Use validation/CV metrics to select best set; do not select on test.
+
+Set A - Baseline (current v1)
+- danceability = 0.35*tempo_n + 0.35*onset_n + 0.30*stability_n
+- energy = 0.45*rms_n + 0.30*centroid_n + 0.25*rolloff_n
+- brightness = 0.55*centroid_n + 0.45*rolloff_n
+- rhythmic_stability = stability_n
+- acousticness = 1 - (0.45*zcr_n + 0.30*brightness + 0.25*energy)
+- speechiness = 0.55*zcr_n + 0.45*mfcc2_n
+- instrumentalness = 0.45*acousticness + 0.35*bass_n + 0.20*(1-speechiness)
+- valence = 0.30*tempo_n + 0.25*brightness + 0.25*mfcc1_n + 0.20*mfcc3_n - 0.15*abs_mfcc2_n
+
+Set B - Rhythm-heavy
+- danceability = 0.45*tempo_n + 0.30*onset_n + 0.25*stability_n
+- energy = 0.35*rms_n + 0.25*centroid_n + 0.20*rolloff_n + 0.20*onset_n
+- brightness = 0.50*centroid_n + 0.50*rolloff_n
+- rhythmic_stability = 0.70*stability_n + 0.30*(1-onset_std_n)
+- acousticness = 1 - (0.40*zcr_n + 0.30*brightness + 0.30*energy)
+- speechiness = 0.60*zcr_n + 0.40*mfcc2_n
+- instrumentalness = 0.40*acousticness + 0.30*bass_n + 0.30*(1-speechiness)
+- valence = 0.35*tempo_n + 0.20*brightness + 0.20*mfcc1_n + 0.25*mfcc3_n
+
+Set C - Timbre-heavy
+- danceability = 0.25*tempo_n + 0.30*onset_n + 0.45*stability_n
+- energy = 0.30*rms_n + 0.35*centroid_n + 0.35*rolloff_n
+- brightness = 0.60*centroid_n + 0.40*rolloff_n
+- rhythmic_stability = stability_n
+- acousticness = 1 - (0.35*zcr_n + 0.40*brightness + 0.25*energy)
+- speechiness = 0.45*zcr_n + 0.55*mfcc2_n
+- instrumentalness = 0.50*acousticness + 0.25*bass_n + 0.25*(1-speechiness)
+- valence = 0.20*tempo_n + 0.30*brightness + 0.30*mfcc1_n + 0.20*mfcc3_n
+
+Set D - Acoustic-contrast
+- danceability = 0.30*tempo_n + 0.40*onset_n + 0.30*stability_n
+- energy = 0.50*rms_n + 0.20*centroid_n + 0.30*rolloff_n
+- brightness = 0.45*centroid_n + 0.55*rolloff_n
+- rhythmic_stability = 0.80*stability_n + 0.20*(1-zcr_n)
+- acousticness = 1 - (0.50*zcr_n + 0.25*brightness + 0.25*energy)
+- speechiness = 0.65*zcr_n + 0.35*mfcc2_n
+- instrumentalness = 0.55*acousticness + 0.20*bass_n + 0.25*(1-speechiness)
+- valence = 0.25*tempo_n + 0.20*brightness + 0.35*mfcc1_n + 0.20*mfcc3_n
+
+Set E - Balanced (regularized)
+- danceability = 0.34*tempo_n + 0.33*onset_n + 0.33*stability_n
+- energy = 0.34*rms_n + 0.33*centroid_n + 0.33*rolloff_n
+- brightness = 0.50*centroid_n + 0.50*rolloff_n
+- rhythmic_stability = stability_n
+- acousticness = 1 - (0.34*zcr_n + 0.33*brightness + 0.33*energy)
+- speechiness = 0.50*zcr_n + 0.50*mfcc2_n
+- instrumentalness = 0.34*acousticness + 0.33*bass_n + 0.33*(1-speechiness)
+- valence = 0.25*tempo_n + 0.25*brightness + 0.25*mfcc1_n + 0.25*mfcc3_n
+
+Set F - Nonlinear-lite
+- danceability = sqrt(tempo_n*onset_n)*0.6 + stability_n*0.4
+- energy = (rms_n^0.5)*0.4 + centroid_n*0.3 + rolloff_n*0.3
+- brightness = max(centroid_n, rolloff_n)
+- rhythmic_stability = 1 - tempo_stability_n
+- acousticness = clip(1 - (0.4*zcr_n + 0.3*brightness + 0.3*energy), 0, 1)
+- speechiness = clip(0.6*zcr_n + 0.4*mfcc2_n, 0, 1)
+- instrumentalness = clip(0.5*acousticness + 0.5*(1-speechiness), 0, 1)
+- valence = clip(0.3*tempo_n + 0.2*brightness + 0.3*mfcc1_n + 0.2*mfcc3_n, 0, 1)

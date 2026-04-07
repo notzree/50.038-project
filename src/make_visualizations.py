@@ -124,7 +124,14 @@ def plot_feature_distributions(train_csv: Path, out_path: Path) -> None:
 
     handles, labels = axes[0].get_legend_handles_labels()
     fig.suptitle("Feature Distributions by Label", y=1.02, fontsize=14)
-    fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False, bbox_to_anchor=(0.5, 0.99))
+    fig.legend(
+        handles,
+        labels,
+        loc="upper center",
+        ncol=2,
+        frameon=False,
+        bbox_to_anchor=(0.5, 0.99),
+    )
     fig.tight_layout(rect=[0, 0, 1, 0.95])
     fig.savefig(out_path, dpi=180)
     plt.close(fig)
@@ -135,28 +142,38 @@ def plot_model_comparison(metrics_json: Path, out_path: Path) -> None:
         metrics = json.load(f)
 
     models = metrics["models"]
-    model_names = ["logistic_regression", "random_forest"]
-    display_names = ["Logistic Regression", "Random Forest"]
+    model_names = list(models.keys())
+    display_names = [n.replace("_", " ").title() for n in model_names]
     metric_names = ["f1", "roc_auc", "precision", "recall"]
+    colors = ["#5E81AC", "#A3BE8C", "#EBCB8B", "#BF616A", "#B48EAD"]
 
     x = np.arange(len(metric_names))
-    width = 0.35
-
-    vals1 = [models[model_names[0]][m] for m in metric_names]
-    vals2 = [models[model_names[1]][m] for m in metric_names]
+    n_models = len(model_names)
+    width = 0.8 / n_models
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    b1 = ax.bar(x - width / 2, vals1, width, label=display_names[0], color="#5E81AC")
-    b2 = ax.bar(x + width / 2, vals2, width, label=display_names[1], color="#A3BE8C")
+    bars_list = []
+    for i, (name, display) in enumerate(zip(model_names, display_names)):
+        # Support both old (flat) and new (nested with test/val/cv) metrics format
+        model_data = models[name]
+        if isinstance(model_data, dict) and "test" in model_data:
+            model_data = model_data["test"]
+        vals = [model_data.get(m, 0) for m in metric_names]
+        offset = (i - (n_models - 1) / 2) * width
+        b = ax.bar(
+            x + offset, vals, width, label=display, color=colors[i % len(colors)]
+        )
+        bars_list.append(b)
+
     ax.set_xticks(x)
     ax.set_xticklabels([m.upper() for m in metric_names])
     ax.set_ylim(0, 1)
     ax.set_ylabel("Score")
-    ax.set_title("Model Comparison on MVP Test Split")
+    ax.set_title("Model Comparison on Test Split")
     ax.legend(frameon=False)
     ax.grid(axis="y", alpha=0.25)
 
-    for bars in (b1, b2):
+    for bars in bars_list:
         for bar in bars:
             h = bar.get_height()
             ax.text(
@@ -165,7 +182,7 @@ def plot_model_comparison(metrics_json: Path, out_path: Path) -> None:
                 f"{h:.2f}",
                 ha="center",
                 va="bottom",
-                fontsize=9,
+                fontsize=8,
             )
 
     fig.tight_layout()
@@ -192,11 +209,23 @@ def plot_confusion_matrices(metrics_json: Path, out_path: Path) -> None:
     with open(metrics_json) as f:
         metrics = json.load(f)
 
-    m = metrics["selected_model_thresholding"]
-    cm_default = m["default_0_5"]["confusion_matrix"]
-    cm_tuned = m["best_f1_threshold_on_test"]["confusion_matrix"]
-    t_default = m["default_0_5"]["threshold"]
-    t_tuned = m["best_f1_threshold_on_test"]["threshold"]
+    # Support both old and new metrics format
+    if "thresholding" in metrics:
+        m = metrics["thresholding"]
+        cm_default = m.get("test_at_default_0_5", m.get("val_default_0_5", {})).get(
+            "confusion_matrix", [[0, 0], [0, 0]]
+        )
+        cm_tuned = m.get(
+            "test_at_tuned_threshold", m.get("val_best_f1_threshold", {})
+        ).get("confusion_matrix", [[0, 0], [0, 0]])
+        t_default = 0.5
+        t_tuned = m.get("val_best_f1_threshold", {}).get("threshold", 0.5)
+    else:
+        m = metrics["selected_model_thresholding"]
+        cm_default = m["default_0_5"]["confusion_matrix"]
+        cm_tuned = m["best_f1_threshold_on_test"]["confusion_matrix"]
+        t_default = m["default_0_5"]["threshold"]
+        t_tuned = m["best_f1_threshold_on_test"]["threshold"]
 
     fig, axes = plt.subplots(1, 2, figsize=(10, 4))
     _plot_cm(axes[0], cm_default, f"Default threshold ({t_default})")
@@ -260,16 +289,127 @@ def plot_region_errors(error_counts_csv: Path, out_path: Path, top_n: int = 15) 
     plt.close(fig)
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate Week 8 visualization set")
-    parser.add_argument("--train", default="src/data/train_table_mvp.csv")
-    parser.add_argument("--labels", default="src/data/labels_appears_in_region.csv")
-    parser.add_argument("--metrics", default="src/data/mvp_metrics.json")
-    parser.add_argument("--region-metrics", default="src/data/mvp_region_metrics.csv")
-    parser.add_argument(
-        "--error-counts", default="src/data/mvp_error_counts_by_region.csv"
+def plot_region_feature_lift_heatmap(
+    train_csv: Path,
+    out_path: Path,
+    top_n_regions: int = 20,
+    min_region_support: int = 100,
+) -> None:
+    """Heatmap of per-region proxy feature lift: mean(pos) - mean(neg)."""
+    df = pd.read_csv(train_csv)
+    proxy_cols = [c for c in df.columns if c.endswith("_proxy")]
+    if not proxy_cols:
+        print("No proxy columns found, skipping region feature lift heatmap")
+        return
+
+    support = df.groupby("region").size().rename("support")
+    pos_count = df[df["appears_in_region"] == 1].groupby("region").size().rename("pos")
+    neg_count = df[df["appears_in_region"] == 0].groupby("region").size().rename("neg")
+    region_stats = pd.concat([support, pos_count, neg_count], axis=1).fillna(0)
+    eligible = region_stats[
+        (region_stats["support"] >= min_region_support)
+        & (region_stats["pos"] > 0)
+        & (region_stats["neg"] > 0)
+    ].index
+
+    if len(eligible) == 0:
+        print("No eligible regions with both classes, skipping heatmap")
+        return
+
+    work = df[df["region"].isin(eligible)]
+    pos_means = (
+        work[work["appears_in_region"] == 1].groupby("region")[proxy_cols].mean()
     )
-    parser.add_argument("--out-dir", default="src/data/plots/week8")
+    neg_means = (
+        work[work["appears_in_region"] == 0].groupby("region")[proxy_cols].mean()
+    )
+    lift = (pos_means - neg_means).dropna(how="all")
+    if lift.empty:
+        print("Lift matrix is empty, skipping heatmap")
+        return
+
+    lift["_abs_mean"] = lift.abs().mean(axis=1)
+    lift = lift.sort_values("_abs_mean", ascending=False).head(top_n_regions)
+    lift = lift.drop(columns=["_abs_mean"])
+
+    fig, ax = plt.subplots(figsize=(13, 7))
+    vmax = max(0.01, float(np.nanmax(np.abs(lift.values))))
+    im = ax.imshow(lift.values, cmap="RdBu_r", vmin=-vmax, vmax=vmax, aspect="auto")
+    cbar = fig.colorbar(im, ax=ax)
+    cbar.set_label("Feature lift (mean positive - mean negative)")
+
+    ax.set_xticks(np.arange(len(proxy_cols)))
+    ax.set_xticklabels(proxy_cols, rotation=35, ha="right")
+    ax.set_yticks(np.arange(len(lift.index)))
+    ax.set_yticklabels(lift.index)
+    ax.set_title("Region-wise High-Level Feature Lift")
+
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=180)
+    plt.close(fig)
+
+
+def plot_region_probability_gap(
+    test_preds_csv: Path,
+    out_path: Path,
+    top_n_regions: int = 15,
+    min_region_support: int = 20,
+) -> None:
+    """Per-region mean predicted probability by true class (0 vs 1)."""
+    df = pd.read_csv(test_preds_csv)
+    required = {"region", "y_true", "y_prob"}
+    if not required.issubset(df.columns):
+        print("Missing region/y_true/y_prob columns in test predictions, skipping")
+        return
+
+    grouped = df.groupby(["region", "y_true"])["y_prob"].mean().reset_index()
+    pivot = grouped.pivot(index="region", columns="y_true", values="y_prob").rename(
+        columns={0: "neg_mean_prob", 1: "pos_mean_prob"}
+    )
+    support = df.groupby("region").size().rename("support")
+    merged = pivot.join(support, how="inner").dropna(
+        subset=["neg_mean_prob", "pos_mean_prob"]
+    )
+    merged = merged[merged["support"] >= min_region_support]
+    if merged.empty:
+        print("No eligible regions for probability gap plot, skipping")
+        return
+
+    merged["gap"] = merged["pos_mean_prob"] - merged["neg_mean_prob"]
+    merged = merged.sort_values("gap", ascending=False).head(top_n_regions)
+    merged = merged.sort_values("gap", ascending=True)
+
+    y = np.arange(len(merged))
+    h = 0.35
+    fig, ax = plt.subplots(figsize=(11, 6))
+    ax.barh(
+        y - h / 2, merged["neg_mean_prob"], h, color="#90A4AE", label="True class 0"
+    )
+    ax.barh(
+        y + h / 2, merged["pos_mean_prob"], h, color="#E07A5F", label="True class 1"
+    )
+    ax.set_yticks(y)
+    ax.set_yticklabels(merged.index)
+    ax.set_xlim(0, 1)
+    ax.set_xlabel("Mean predicted probability")
+    ax.set_title("Region-wise Mean Predicted Probability by True Class")
+    ax.legend(frameon=False)
+    ax.grid(axis="x", alpha=0.25)
+
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=180)
+    plt.close(fig)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Generate project visualization set")
+    parser.add_argument("--train", default="src/data/train_table.csv")
+    parser.add_argument("--labels", default="src/data/labels_appears_in_region.csv")
+    parser.add_argument("--metrics", default="src/data/model_metrics.json")
+    parser.add_argument("--region-metrics", default="src/data/region_metrics.csv")
+    parser.add_argument("--error-counts", default="src/data/error_counts_by_region.csv")
+    parser.add_argument("--test-preds", default="src/data/test_predictions.csv")
+    parser.add_argument("--out-dir", default="src/data/plots")
     args = parser.parse_args()
 
     out_dir = Path(args.out_dir)
@@ -288,8 +428,14 @@ def main() -> None:
         Path(args.region_metrics), out_dir / "06_region_performance.png"
     )
     plot_region_errors(Path(args.error_counts), out_dir / "07_region_errors.png")
+    plot_region_feature_lift_heatmap(
+        Path(args.train), out_dir / "08_region_feature_lift_heatmap.png"
+    )
+    plot_region_probability_gap(
+        Path(args.test_preds), out_dir / "09_region_probability_gap.png"
+    )
 
-    print(f"Wrote Week 8 visualizations to: {out_dir}")
+    print(f"Wrote visualizations to: {out_dir}")
 
 
 if __name__ == "__main__":
