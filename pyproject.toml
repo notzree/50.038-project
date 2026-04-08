@@ -17,4 +17,6 @@ dependencies = [
     "spotipy>=2.23.0",
     "spotdl>=4.4.3",
     "yt-dlp>=2026.2.21",
+    "streamlit>=1.56.0",
+    "pydeck>=0.9.1",
 ]

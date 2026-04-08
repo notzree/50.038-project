@@ -45,6 +45,9 @@ uv run python src/predict_single_audio.py --pick-file --region Singapore --model
 15) Generate visualization set (core)
 uv run python src/make_visualizations.py --out-dir src/data/plots
 
+14) Preview the Streamlit UI
+uv run streamlit run src/app/user_interface.py
+
 16) Generate trends-focused visuals from trends-merged table
 uv run python src/make_visualizations.py --train src/data/train_table_with_trends.csv --labels src/data/labels_appears_in_region.csv --metrics src/data/model_metrics_with_trends.json --region-metrics src/data/region_metrics_with_trends.csv --error-counts src/data/error_counts_by_region_with_trends.csv --test-preds src/data/test_predictions_with_trends.csv --model src/data/model_with_trends.joblib --out-dir src/data/plots
 
@@ -56,6 +59,9 @@ uv run python src/google_trends_collector.py --charts src/data/charts.csv --mani
 
 19) Run formula-set search experiment (optional)
 uv run python src/optimize_high_level_formulas.py --formula-sets A,B,C,D --seeds 42 --output-dir src/data/formula_search
+
+20) Preview the Streamlit UI
+uv run streamlit run src/app/user_interface.py
 
 Notes
 - Pipeline is CSV-first.
