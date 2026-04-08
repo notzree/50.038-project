@@ -1,73 +1,67 @@
 Project command runbook
 
-0) Install dependencies
+1) Install dependencies
 uv sync
-
-1) Download a local subset (optional)
-uv run python src/main.py --limit 100
 
 2) Run full pipeline with existing songs
 uv run python src/run_pipeline.py
 
-2b) Include non-viral download during pipeline run
-uv run python src/run_pipeline.py --download-nonviral --nonviral-limit 300 --nonviral-popularity-threshold 25
-
-3) Run full pipeline with fresh download
+3) Run full pipeline with fresh viral download
 uv run python src/run_pipeline.py --download --limit 100
 
-3b) Run pipeline with Google Trends compact features
+4) Run full pipeline with additional non-viral download
+uv run python src/run_pipeline.py --download-nonviral --nonviral-limit 300 --nonviral-popularity-threshold 25
+
+5) Run full pipeline with Google Trends compact features
 uv run python src/run_pipeline.py --with-trends --trends-weeks 12 --trends-delay 10
 
-3c) Run trends stage with capped query count (recommended first)
+6) Run trends stage with capped query count (recommended first)
 uv run python src/run_pipeline.py --with-trends --trends-max-pairs 200 --trends-delay 5
 
-4) Extract full features manually
+7) Extract full audio features manually
 uv run python src/extract_features.py --manifest src/data/audio_manifest.csv --output src/data/audio_features.csv --feature-set full
 
-5) Build human-readable proxy features
-uv run python src/engineer_human_features.py --input src/data/audio_features.csv --output src/data/audio_features_human.csv
+8) Build high-level proxy features
+uv run python src/engineer_high_level_features.py --input src/data/audio_features.csv --output src/data/audio_features_high_level.csv
 
-6) Run dataset QC
+9) Run dataset QC
 uv run python src/qc_audio_dataset.py --manifest src/data/audio_manifest.csv --features src/data/audio_features.csv
 
-7) Build labels + train table
+10) Build labels + train table
 uv run python src/build_dataset.py
 
-8) Train model and save artifacts
+11) Train model and save artifacts
 uv run python src/train_model.py --input src/data/train_table.csv --metrics-out src/data/model_metrics.json --model-out src/data/model.joblib --region-metrics-out src/data/region_metrics.csv
 
-9) Predict one audio file
+12) Predict one audio file (direct path)
 uv run python src/predict_single_audio.py --audio src/data/songs/<track_id>.mp3 --region Singapore --model src/data/model.joblib
 
-10) Predict in interactive prompt mode
+13) Predict one audio file (interactive prompt)
 uv run python src/predict_single_audio.py
 
-11) Predict with Finder picker
+14) Predict one audio file (Finder picker)
 uv run python src/predict_single_audio.py --pick-file --region Singapore --model src/data/model.joblib
 
-12) Run benchmark across multiple seeds
-uv run python src/benchmark_models.py --seeds 42,7,123
-
-13) Generate visualization set
+15) Generate visualization set (core)
 uv run python src/make_visualizations.py --out-dir src/data/plots
 
-13c) Generate trends-focused visuals from trends-merged train table
-uv run python src/make_visualizations.py --train src/data/train_table_with_trends.csv --labels src/data/labels_appears_in_region.csv --metrics src/data/model_metrics_with_trends.json --region-metrics src/data/region_metrics.csv --error-counts src/data/error_counts_by_region.csv --test-preds src/data/test_predictions.csv --out-dir src/data/plots
+16) Generate trends-focused visuals from trends-merged table
+uv run python src/make_visualizations.py --train src/data/train_table_with_trends.csv --labels src/data/labels_appears_in_region.csv --metrics src/data/model_metrics_with_trends.json --region-metrics src/data/region_metrics_with_trends.csv --error-counts src/data/error_counts_by_region_with_trends.csv --test-preds src/data/test_predictions_with_trends.csv --model src/data/model_with_trends.joblib --out-dir src/data/plots
 
-13d) Generate trends ablation + error-reduction visuals (requires baseline and trends artifacts)
-uv run python src/make_visualizations.py --train src/data/train_table_with_trends.csv --labels src/data/labels_appears_in_region.csv --metrics src/data/model_metrics_with_trends.json --region-metrics src/data/region_metrics.csv --error-counts src/data/error_counts_by_region.csv --test-preds src/data/test_predictions.csv --baseline-metrics src/data/model_metrics.json --trends-metrics src/data/model_metrics_with_trends.json --baseline-error-counts src/data/error_counts_by_region_baseline.csv --trends-error-counts src/data/error_counts_by_region_with_trends.csv --out-dir src/data/plots
+17) Generate trends ablation + error-reduction visuals
+uv run python src/make_visualizations.py --train src/data/train_table_with_trends.csv --labels src/data/labels_appears_in_region.csv --metrics src/data/model_metrics_with_trends.json --region-metrics src/data/region_metrics_with_trends.csv --error-counts src/data/error_counts_by_region_with_trends.csv --test-preds src/data/test_predictions_with_trends.csv --model src/data/model_with_trends.joblib --baseline-metrics src/data/model_metrics_baseline.json --trends-metrics src/data/model_metrics_with_trends.json --baseline-error-counts src/data/error_counts_by_region_baseline.csv --trends-error-counts src/data/error_counts_by_region_with_trends.csv --out-dir src/data/plots
 
-14) Collect trends features standalone (without full pipeline)
+18) Collect trends features standalone (without full pipeline)
 uv run python src/google_trends_collector.py --charts src/data/charts.csv --manifest src/data/audio_manifest.csv --output src/data/trends_features.csv --weeks 12 --delay 10
 
-13b) Main region-aware high-level feature visuals
-- src/data/plots/08_region_feature_lift_heatmap.png
-- src/data/plots/09_region_probability_gap.png
+19) Run formula-set search experiment (optional)
+uv run python src/optimize_high_level_formulas.py --formula-sets A,B,C,D --seeds 42 --output-dir src/data/formula_search
 
 Notes
 - Pipeline is CSV-first.
+- Google Trends is optional and may be rate-limited.
 - Manifest path: src/data/audio_manifest.csv
 - Track catalog path: src/data/track_catalog.csv
 - Features path: src/data/audio_features.csv
-- Human features path: src/data/audio_features_human.csv
+- High-level features path: src/data/audio_features_high_level.csv
 - Songs directory: src/data/songs/

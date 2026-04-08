@@ -111,15 +111,6 @@ def _compute_formula_set(values: dict[str, float], set_id: str) -> dict[str, flo
         instrumental = 0.40 * acousticness + 0.30 * b + 0.30 * (1.0 - speech)
         valence = 0.35 * t + 0.20 * brightness + 0.20 * m1 + 0.25 * m3
     elif set_id == "C":
-        dance = 0.25 * t + 0.30 * o + 0.45 * s
-        energy = 0.30 * r + 0.35 * c + 0.35 * ro
-        brightness = 0.60 * c + 0.40 * ro
-        rhythm = s
-        acousticness = 1.0 - (0.35 * z + 0.40 * brightness + 0.25 * energy)
-        speech = 0.45 * z + 0.55 * m2
-        instrumental = 0.50 * acousticness + 0.25 * b + 0.25 * (1.0 - speech)
-        valence = 0.20 * t + 0.30 * brightness + 0.30 * m1 + 0.20 * m3
-    elif set_id == "D":
         dance = 0.30 * t + 0.40 * o + 0.30 * s
         energy = 0.50 * r + 0.20 * c + 0.30 * ro
         brightness = 0.45 * c + 0.55 * ro
@@ -128,16 +119,7 @@ def _compute_formula_set(values: dict[str, float], set_id: str) -> dict[str, flo
         speech = 0.65 * z + 0.35 * m2
         instrumental = 0.55 * acousticness + 0.20 * b + 0.25 * (1.0 - speech)
         valence = 0.25 * t + 0.20 * brightness + 0.35 * m1 + 0.20 * m3
-    elif set_id == "E":
-        dance = 0.34 * t + 0.33 * o + 0.33 * s
-        energy = 0.34 * r + 0.33 * c + 0.33 * ro
-        brightness = 0.50 * c + 0.50 * ro
-        rhythm = s
-        acousticness = 1.0 - (0.34 * z + 0.33 * brightness + 0.33 * energy)
-        speech = 0.50 * z + 0.50 * m2
-        instrumental = 0.34 * acousticness + 0.33 * b + 0.33 * (1.0 - speech)
-        valence = 0.25 * t + 0.25 * brightness + 0.25 * m1 + 0.25 * m3
-    elif set_id == "F":
+    elif set_id == "D":
         dance = ((t * o) ** 0.5) * 0.6 + s * 0.4
         energy = (r**0.5) * 0.4 + c * 0.3 + ro * 0.3
         brightness = max(c, ro)
@@ -158,11 +140,11 @@ def _compute_formula_set(values: dict[str, float], set_id: str) -> dict[str, flo
         "valence_proxy": _clip01(valence),
         "brightness_proxy": _clip01(brightness),
         "rhythmic_stability_proxy": _clip01(rhythm),
-        "human_features_version": f"formula_{set_id}",
+        "high_level_features_version": f"formula_{set_id}",
     }
 
 
-def build_human_features_for_set(
+def build_high_level_features_for_set(
     features_csv: str, output_csv: str, set_id: str
 ) -> None:
     df = pd.read_csv(features_csv)
@@ -206,19 +188,19 @@ def run_search(args) -> None:
         set_dir = output_dir / f"set_{set_id}"
         set_dir.mkdir(parents=True, exist_ok=True)
 
-        human_csv = str(set_dir / "audio_features_human.csv")
+        high_level_csv = str(set_dir / "audio_features_high_level.csv")
         labels_csv = str(set_dir / "labels_appears_in_region.csv")
         train_csv = str(set_dir / "train_table.csv")
 
-        print(f"\n=== Formula set {set_id}: build human features ===")
-        build_human_features_for_set(args.features_csv, human_csv, set_id)
+        print(f"\n=== Formula set {set_id}: build high-level features ===")
+        build_high_level_features_for_set(args.features_csv, high_level_csv, set_id)
 
         print(f"=== Formula set {set_id}: build training table ===")
         build_labels_and_train_table(
             charts_csv=args.charts_csv,
             features_csv=args.features_csv,
             track_catalog_csv=args.track_catalog_csv,
-            human_features_csv=human_csv,
+            high_level_features_csv=high_level_csv,
             labels_csv=labels_csv,
             train_csv=train_csv,
             chart_name=args.chart_name,
@@ -241,8 +223,6 @@ def run_search(args) -> None:
                 test_size=args.test_size,
                 val_size=args.val_size,
                 seed=seed,
-                tune=args.tune,
-                n_trials=args.n_trials,
                 feature_importance_out=str(run_dir / "feature_importance.csv"),
                 metadata_out=str(run_dir / "model_metadata.json"),
             )
@@ -289,7 +269,7 @@ def run_search(args) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Overnight search over human-feature formula sets"
+        description="Overnight search over high-level feature formula sets"
     )
     parser.add_argument("--features-csv", default="src/data/audio_features.csv")
     parser.add_argument("--charts-csv", default="src/data/charts.csv")
@@ -299,13 +279,11 @@ def main() -> None:
         "--nonviral-meta-csv", default="src/data/nonviral_track_ids.csv"
     )
     parser.add_argument("--chart-name", default="top200")
-    parser.add_argument("--formula-sets", default="A,E,B,C,D,F")
+    parser.add_argument("--formula-sets", default="A,B,C,D")
     parser.add_argument("--seeds", default="42")
     parser.add_argument("--output-dir", default="src/data/formula_search")
     parser.add_argument("--test-size", type=float, default=0.2)
     parser.add_argument("--val-size", type=float, default=0.2)
-    parser.add_argument("--tune", action="store_true")
-    parser.add_argument("--n-trials", type=int, default=50)
     args = parser.parse_args()
 
     run_search(args)

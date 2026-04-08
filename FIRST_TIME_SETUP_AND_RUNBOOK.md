@@ -8,7 +8,7 @@ This guide is for someone cloning the project for the first time, including larg
 - Target label: `appears_in_region`.
   - `1` if track appears at least once in that region's `top200` chart.
   - `0` otherwise.
-- Uses extracted audio features + human-readable proxy features for training.
+- Uses extracted audio features + high-level proxy features for training.
 
 ## 0) Prerequisites
 
@@ -61,6 +61,8 @@ Optional: include Google Trends compact features in the pipeline:
 uv run python src/run_pipeline.py --with-trends --trends-weeks 12 --trends-delay 10
 ```
 
+Google Trends is an optional secondary modality and may require retries due to external rate limits.
+
 Pipeline creates:
 
 1. `src/data/audio_manifest.csv`
@@ -68,7 +70,7 @@ Pipeline creates:
 3. `src/data/audio_qc_summary.json`
 4. `src/data/audio_qc_issues.csv`
 5. `src/data/audio_features.csv`
-6. `src/data/audio_features_human.csv`
+6. `src/data/audio_features_high_level.csv`
 7. `src/data/labels_appears_in_region.csv`
 8. `src/data/train_table.csv`
 9. `src/data/model_metrics.json`
@@ -96,18 +98,7 @@ Recommended:
 2. Confirm QC + extraction success + training outputs.
 3. Run full set overnight.
 
-## 5) Benchmark stability
-
-```bash
-uv run python src/benchmark_models.py --seeds 42,7,123
-```
-
-Outputs:
-
-- `src/data/benchmarks/benchmark_summary.csv`
-- `src/data/benchmarks/benchmark_aggregate.json`
-
-## 6) Predict a single audio file
+## 5) Predict a single audio file
 
 Interactive prompt:
 
@@ -127,7 +118,7 @@ Finder picker (if available):
 uv run python src/predict_single_audio.py --pick-file --region Singapore --model src/data/model.joblib
 ```
 
-## 7) Minimum done checklist
+## 6) Minimum done checklist
 
 - `uv sync` completed
 - `src/data/songs/` populated
@@ -135,3 +126,11 @@ uv run python src/predict_single_audio.py --pick-file --region Singapore --model
 - `uv run python src/run_pipeline.py` completes
 - `src/data/model_metrics.json` exists
 - single-song prediction runs successfully
+
+## 7) Optional experimentation
+
+Try alternative high-level-feature formula sets (kept separate from core runbook flow):
+
+```bash
+uv run python src/optimize_high_level_formulas.py --formula-sets A,B,C,D --seeds 42 --output-dir src/data/formula_search
+```

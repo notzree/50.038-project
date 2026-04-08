@@ -25,7 +25,7 @@ Pipeline outputs:
 - `src/data/audio_qc_summary.json`
 - `src/data/audio_qc_issues.csv`
 - `src/data/audio_features.csv`
-- `src/data/audio_features_human.csv`
+- `src/data/audio_features_high_level.csv`
 - `src/data/labels_appears_in_region.csv`
 - `src/data/train_table.csv`
 - `src/data/model_metrics.json`
@@ -64,6 +64,8 @@ Run pipeline with Google Trends compact features:
 uv run python src/run_pipeline.py --with-trends --trends-weeks 12 --trends-delay 10
 ```
 
+Note: Google Trends collection is optional and can be rate-limited by Google; use it as a secondary signal.
+
 For a quick/safe trends test, cap query count:
 ```bash
 uv run python src/run_pipeline.py --with-trends --trends-max-pairs 200 --trends-delay 5
@@ -93,9 +95,9 @@ Extract full features:
 uv run python src/extract_features.py --manifest src/data/audio_manifest.csv --output src/data/audio_features.csv --feature-set full
 ```
 
-Build human-readable proxy features:
+Build high-level proxy features:
 ```bash
-uv run python src/engineer_human_features.py --input src/data/audio_features.csv --output src/data/audio_features_human.csv
+uv run python src/engineer_high_level_features.py --input src/data/audio_features.csv --output src/data/audio_features_high_level.csv
 ```
 
 Build labels + train table:
@@ -108,23 +110,14 @@ Train model:
 uv run python src/train_model.py
 ```
 
-Run multi-seed benchmark:
-```bash
-uv run python src/benchmark_models.py --seeds 42,7,123
-```
-
-Run overnight high-level formula search:
-```bash
-uv run python src/optimize_human_formulas.py --formula-sets A,E,B,C,D,F --seeds 42
-```
-
-Outputs:
-- `src/data/formula_search/formula_search_summary.csv`
-- `src/data/formula_search/best_formula_result.json`
-
 Generate visualization set:
 ```bash
 uv run python src/make_visualizations.py
+```
+
+Optional formula-search experiment (not part of core pipeline):
+```bash
+uv run python src/optimize_high_level_formulas.py --formula-sets A,B,C,D --seeds 42 --output-dir src/data/formula_search
 ```
 
 This generates the region-aware high-level feature visuals as:
