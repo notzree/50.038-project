@@ -25,7 +25,7 @@ Pipeline outputs:
 - `src/data/audio_qc_summary.json`
 - `src/data/audio_qc_issues.csv`
 - `src/data/audio_features.csv`
-- `src/data/audio_features_human.csv`
+- `src/data/audio_features_high_level.csv`
 - `src/data/labels_appears_in_region.csv`
 - `src/data/train_table.csv`
 - `src/data/model_metrics.json`
@@ -35,6 +35,8 @@ Pipeline outputs:
 - `src/data/test_predictions.csv`
 - `src/data/error_rows.csv`
 - `src/data/error_counts_by_region.csv`
+- `src/data/trends_features.csv` (when `--with-trends` is enabled)
+- `src/data/train_table_with_trends.csv` (when `--with-trends` is enabled)
 - `src/data/plots/` visualizations
 
 Table notes:
@@ -55,6 +57,18 @@ Key visualization files:
 Run pipeline + single-song prediction in one command:
 ```bash
 uv run python src/run_pipeline.py --predict-audio "/full/path/to/song.mp3" --predict-region Singapore
+```
+
+Run pipeline with Google Trends compact features:
+```bash
+uv run python src/run_pipeline.py --with-trends --trends-weeks 12 --trends-delay 10
+```
+
+Note: Google Trends collection is optional and can be rate-limited by Google; use it as a secondary signal.
+
+For a quick/safe trends test, cap query count:
+```bash
+uv run python src/run_pipeline.py --with-trends --trends-max-pairs 200 --trends-delay 5
 ```
 
 ## Single-song prediction
@@ -81,9 +95,9 @@ Extract full features:
 uv run python src/extract_features.py --manifest src/data/audio_manifest.csv --output src/data/audio_features.csv --feature-set full
 ```
 
-Build human-readable proxy features:
+Build high-level proxy features:
 ```bash
-uv run python src/engineer_human_features.py --input src/data/audio_features.csv --output src/data/audio_features_human.csv
+uv run python src/engineer_high_level_features.py --input src/data/audio_features.csv --output src/data/audio_features_high_level.csv
 ```
 
 Build labels + train table:
@@ -96,25 +110,27 @@ Train model:
 uv run python src/train_model.py
 ```
 
-Run multi-seed benchmark:
-```bash
-uv run python src/benchmark_models.py --seeds 42,7,123
-```
-
-Run overnight high-level formula search:
-```bash
-uv run python src/optimize_human_formulas.py --formula-sets A,E,B,C,D,F --seeds 42
-```
-
-Outputs:
-- `src/data/formula_search/formula_search_summary.csv`
-- `src/data/formula_search/best_formula_result.json`
-
 Generate visualization set:
 ```bash
 uv run python src/make_visualizations.py
 ```
 
+Optional formula-search experiment (not part of core pipeline):
+```bash
+uv run python src/optimize_high_level_formulas.py --formula-sets A,B,C,D --seeds 42 --output-dir src/data/formula_search
+```
+
 This generates the region-aware high-level feature visuals as:
 - `08_region_feature_lift_heatmap.png`
 - `09_region_probability_gap.png`
+
+Trends-focused visuals (when trends columns/inputs are available):
+- `10_trends_coverage_heatmap.png`
+- `11_trends_distributions_by_label.png`
+- `12_trends_ablation_comparison.png` (requires baseline + trends metrics JSON)
+- `13_trends_error_reduction_by_region.png` (requires baseline + trends error-count CSVs)
+
+Example command with ablation/error comparison inputs:
+```bash
+uv run python src/make_visualizations.py --train src/data/train_table_with_trends.csv --labels src/data/labels_appears_in_region.csv --metrics src/data/model_metrics_with_trends.json --region-metrics src/data/region_metrics.csv --error-counts src/data/error_counts_by_region.csv --test-preds src/data/test_predictions.csv --baseline-metrics src/data/model_metrics.json --trends-metrics src/data/model_metrics_with_trends.json --baseline-error-counts src/data/error_counts_by_region_baseline.csv --trends-error-counts src/data/error_counts_by_region_with_trends.csv --out-dir src/data/plots
+```

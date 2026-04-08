@@ -2,9 +2,16 @@ import argparse
 import json
 from pathlib import Path
 
+import joblib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from sklearn.base import clone
+from sklearn.calibration import calibration_curve
+from sklearn.metrics import average_precision_score, precision_recall_curve
+from sklearn.model_selection import learning_curve
+
+from train_model import load_and_prepare_data
 
 
 def _ensure_dir(path: Path) -> None:
@@ -401,6 +408,344 @@ def plot_region_probability_gap(
     plt.close(fig)
 
 
+def plot_trends_coverage_heatmap(train_csv: Path, out_path: Path) -> None:
+    """Visualize non-zero coverage of gt_* features by region."""
+    df = pd.read_csv(train_csv)
+    gt_cols = [c for c in df.columns if c.startswith("gt_")]
+    if not gt_cols or "region" not in df.columns:
+        print("No trends columns found; skipping trends coverage heatmap")
+        return
+
+    coverage = (
+        df.groupby("region")[gt_cols]
+        .apply(lambda g: (g != 0).mean())
+        .replace([np.inf, -np.inf], np.nan)
+        .fillna(0.0)
+    )
+
+    if coverage.empty:
+        print("Trends coverage matrix empty; skipping")
+        return
+
+    # Keep most represented regions for readability
+    support = df.groupby("region").size().sort_values(ascending=False)
+    regions = support.head(25).index
+    coverage = coverage.loc[coverage.index.intersection(regions)]
+
+    fig, ax = plt.subplots(figsize=(11, 8))
+    im = ax.imshow(coverage.values, cmap="YlGnBu", vmin=0, vmax=1, aspect="auto")
+    cbar = fig.colorbar(im, ax=ax)
+    cbar.set_label("Non-zero coverage rate")
+
+    ax.set_xticks(np.arange(len(coverage.columns)))
+    ax.set_xticklabels(coverage.columns, rotation=35, ha="right")
+    ax.set_yticks(np.arange(len(coverage.index)))
+    ax.set_yticklabels(coverage.index)
+    ax.set_title("Google Trends Feature Coverage by Region")
+
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=180)
+    plt.close(fig)
+
+
+def plot_trends_distributions_by_label(train_csv: Path, out_path: Path) -> None:
+    """Show distributions of compact trends features split by label."""
+    df = pd.read_csv(train_csv)
+    gt_cols = [
+        c
+        for c in [
+            "gt_region_interest",
+            "gt_peak",
+            "gt_mean",
+            "gt_slope",
+            "gt_momentum",
+            "gt_weeks_above50",
+        ]
+        if c in df.columns
+    ]
+    if not gt_cols or "appears_in_region" not in df.columns:
+        print("No trends columns/labels found; skipping trends distributions")
+        return
+
+    class0 = df[df["appears_in_region"] == 0]
+    class1 = df[df["appears_in_region"] == 1]
+
+    fig, axes = plt.subplots(2, 3, figsize=(14, 8))
+    axes = axes.flatten()
+
+    for i, col in enumerate(gt_cols):
+        ax = axes[i]
+        ax.hist(
+            class0[col].dropna(),
+            bins=30,
+            alpha=0.6,
+            color="#90A4AE",
+            density=True,
+            label="Class 0",
+        )
+        ax.hist(
+            class1[col].dropna(),
+            bins=30,
+            alpha=0.6,
+            color="#E57373",
+            density=True,
+            label="Class 1",
+        )
+        ax.set_title(col)
+
+    for j in range(len(gt_cols), len(axes)):
+        axes[j].axis("off")
+
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.suptitle("Google Trends Compact Feature Distributions by Label", y=1.02)
+    fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False)
+    fig.tight_layout(rect=[0, 0, 1, 0.95])
+    fig.savefig(out_path, dpi=180)
+    plt.close(fig)
+
+
+def _extract_selected_test_metrics(metrics_json: Path) -> dict:
+    with open(metrics_json) as f:
+        metrics = json.load(f)
+    selected = metrics.get("selected_model")
+    if not selected:
+        return {}
+    model_block = metrics.get("models", {}).get(selected, {})
+    if "test" in model_block:
+        test_block = model_block["test"]
+    else:
+        # fallback for older schema
+        test_block = model_block
+    return {
+        "selected_model": selected,
+        "f1": float(test_block.get("f1", 0.0)),
+        "roc_auc": float(test_block.get("roc_auc", 0.0)),
+        "precision": float(test_block.get("precision", 0.0)),
+        "recall": float(test_block.get("recall", 0.0)),
+    }
+
+
+def plot_trends_ablation_comparison(
+    baseline_metrics_json: Path,
+    trends_metrics_json: Path,
+    out_path: Path,
+) -> None:
+    """Compare baseline model vs trends-enhanced model performance."""
+    if not baseline_metrics_json.exists() or not trends_metrics_json.exists():
+        print("Missing baseline/trends metrics for ablation chart; skipping")
+        return
+
+    base = _extract_selected_test_metrics(baseline_metrics_json)
+    trend = _extract_selected_test_metrics(trends_metrics_json)
+    if not base or not trend:
+        print("Could not parse metrics for ablation chart; skipping")
+        return
+
+    metric_names = ["f1", "roc_auc", "precision", "recall"]
+    x = np.arange(len(metric_names))
+    width = 0.35
+
+    base_vals = [base[m] for m in metric_names]
+    trend_vals = [trend[m] for m in metric_names]
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+    b1 = ax.bar(
+        x - width / 2,
+        base_vals,
+        width,
+        color="#5E81AC",
+        label=f"Baseline ({base['selected_model']})",
+    )
+    b2 = ax.bar(
+        x + width / 2,
+        trend_vals,
+        width,
+        color="#A3BE8C",
+        label=f"+Trends ({trend['selected_model']})",
+    )
+    ax.set_xticks(x)
+    ax.set_xticklabels([m.upper() for m in metric_names])
+    ax.set_ylim(0, 1)
+    ax.set_ylabel("Score")
+    ax.set_title("Model Ablation: Baseline vs Trends-Enhanced")
+    ax.legend(frameon=False)
+    ax.grid(axis="y", alpha=0.25)
+
+    for bars in (b1, b2):
+        for bar in bars:
+            h = bar.get_height()
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                h,
+                f"{h:.2f}",
+                ha="center",
+                va="bottom",
+                fontsize=8,
+            )
+
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=180)
+    plt.close(fig)
+
+
+def plot_trends_error_reduction_by_region(
+    baseline_error_counts_csv: Path,
+    trends_error_counts_csv: Path,
+    out_path: Path,
+    top_n: int = 20,
+) -> None:
+    """Show per-region error reduction after adding trends."""
+    if not baseline_error_counts_csv.exists() or not trends_error_counts_csv.exists():
+        print(
+            "Missing baseline/trends error count files; skipping error reduction chart"
+        )
+        return
+
+    base = pd.read_csv(baseline_error_counts_csv)
+    trend = pd.read_csv(trends_error_counts_csv)
+
+    for df in (base, trend):
+        df["total_errors"] = df["false_positives"] + df["false_negatives"]
+
+    merged = (
+        base[["region", "total_errors"]]
+        .merge(
+            trend[["region", "total_errors"]],
+            on="region",
+            how="outer",
+            suffixes=("_baseline", "_trends"),
+        )
+        .fillna(0)
+    )
+
+    merged["delta_errors"] = (
+        merged["total_errors_trends"] - merged["total_errors_baseline"]
+    )
+    merged["abs_delta"] = merged["delta_errors"].abs()
+    merged = merged.sort_values("abs_delta", ascending=False).head(top_n)
+    merged = merged.sort_values("delta_errors", ascending=True)
+
+    fig, ax = plt.subplots(figsize=(11, 7))
+    colors = ["#A3BE8C" if d < 0 else "#E07A5F" for d in merged["delta_errors"]]
+    ax.barh(merged["region"], merged["delta_errors"], color=colors)
+    ax.axvline(0, color="black", linewidth=1)
+    ax.set_xlabel("Delta total errors (trends - baseline)")
+    ax.set_title("Per-Region Error Change After Adding Trends")
+    ax.grid(axis="x", alpha=0.25)
+
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=180)
+    plt.close(fig)
+
+
+def plot_pr_curve(test_preds_csv: Path, out_path: Path) -> None:
+    df = pd.read_csv(test_preds_csv)
+    required = {"y_true", "y_prob"}
+    if not required.issubset(df.columns):
+        print("Missing y_true/y_prob for PR curve; skipping")
+        return
+
+    y_true = df["y_true"].to_numpy()
+    y_prob = df["y_prob"].to_numpy()
+    precision, recall, _ = precision_recall_curve(y_true, y_prob)
+    ap = average_precision_score(y_true, y_prob)
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+    ax.plot(recall, precision, color="#5E81AC", linewidth=2)
+    ax.set_xlabel("Recall")
+    ax.set_ylabel("Precision")
+    ax.set_title(f"Precision-Recall Curve (AP={ap:.3f})")
+    ax.grid(alpha=0.25)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=180)
+    plt.close(fig)
+
+
+def plot_calibration_curve(
+    test_preds_csv: Path, out_path: Path, n_bins: int = 10
+) -> None:
+    df = pd.read_csv(test_preds_csv)
+    required = {"y_true", "y_prob"}
+    if not required.issubset(df.columns):
+        print("Missing y_true/y_prob for calibration curve; skipping")
+        return
+
+    y_true = df["y_true"].to_numpy()
+    y_prob = df["y_prob"].to_numpy()
+    frac_pos, mean_pred = calibration_curve(
+        y_true, y_prob, n_bins=n_bins, strategy="quantile"
+    )
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+    ax.plot([0, 1], [0, 1], "k--", alpha=0.7, label="Perfectly calibrated")
+    ax.plot(mean_pred, frac_pos, marker="o", color="#A3BE8C", label="Model")
+    ax.set_xlabel("Mean predicted probability")
+    ax.set_ylabel("Observed positive rate")
+    ax.set_title("Calibration Curve")
+    ax.legend(frameon=False)
+    ax.grid(alpha=0.25)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=180)
+    plt.close(fig)
+
+
+def plot_learning_curve(
+    train_csv: Path,
+    model_path: Path,
+    out_path: Path,
+    max_samples: int = 120000,
+) -> None:
+    if not model_path.exists():
+        print(f"Model not found for learning curve ({model_path}); skipping")
+        return
+
+    X, y, _, _ = load_and_prepare_data(str(train_csv))
+    if len(y) > max_samples:
+        sample_idx = np.random.RandomState(42).choice(
+            len(y), size=max_samples, replace=False
+        )
+        X = X.iloc[sample_idx].reset_index(drop=True)
+        y = y[sample_idx]
+    estimator = clone(joblib.load(model_path))
+
+    train_sizes, train_scores, val_scores = learning_curve(
+        estimator,
+        X,
+        y,
+        cv=3,
+        scoring="f1",
+        train_sizes=np.linspace(0.1, 1.0, 6),
+        n_jobs=-1,
+    )
+
+    train_mean = train_scores.mean(axis=1)
+    train_std = train_scores.std(axis=1)
+    val_mean = val_scores.mean(axis=1)
+    val_std = val_scores.std(axis=1)
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.plot(train_sizes, train_mean, "o-", color="#5E81AC", label="Train F1")
+    ax.fill_between(
+        train_sizes,
+        train_mean - train_std,
+        train_mean + train_std,
+        alpha=0.15,
+        color="#5E81AC",
+    )
+    ax.plot(train_sizes, val_mean, "o-", color="#BF616A", label="Validation F1")
+    ax.fill_between(
+        train_sizes, val_mean - val_std, val_mean + val_std, alpha=0.15, color="#BF616A"
+    )
+    ax.set_xlabel("Training samples")
+    ax.set_ylabel("F1 score")
+    ax.set_title("Learning Curve")
+    ax.legend(frameon=False)
+    ax.grid(alpha=0.25)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=180)
+    plt.close(fig)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate project visualization set")
     parser.add_argument("--train", default="src/data/train_table.csv")
@@ -409,6 +754,11 @@ def main() -> None:
     parser.add_argument("--region-metrics", default="src/data/region_metrics.csv")
     parser.add_argument("--error-counts", default="src/data/error_counts_by_region.csv")
     parser.add_argument("--test-preds", default="src/data/test_predictions.csv")
+    parser.add_argument("--model", default="src/data/model.joblib")
+    parser.add_argument("--baseline-metrics", default=None)
+    parser.add_argument("--trends-metrics", default=None)
+    parser.add_argument("--baseline-error-counts", default=None)
+    parser.add_argument("--trends-error-counts", default=None)
     parser.add_argument("--out-dir", default="src/data/plots")
     args = parser.parse_args()
 
@@ -433,6 +783,44 @@ def main() -> None:
     )
     plot_region_probability_gap(
         Path(args.test_preds), out_dir / "09_region_probability_gap.png"
+    )
+
+    # Trends-focused visuals
+    plot_trends_coverage_heatmap(
+        Path(args.train), out_dir / "10_trends_coverage_heatmap.png"
+    )
+    plot_trends_distributions_by_label(
+        Path(args.train), out_dir / "11_trends_distributions_by_label.png"
+    )
+
+    if args.baseline_metrics and args.trends_metrics:
+        plot_trends_ablation_comparison(
+            Path(args.baseline_metrics),
+            Path(args.trends_metrics),
+            out_dir / "12_trends_ablation_comparison.png",
+        )
+    else:
+        print(
+            "Skipping trends ablation chart (provide --baseline-metrics and --trends-metrics)"
+        )
+
+    if args.baseline_error_counts and args.trends_error_counts:
+        plot_trends_error_reduction_by_region(
+            Path(args.baseline_error_counts),
+            Path(args.trends_error_counts),
+            out_dir / "13_trends_error_reduction_by_region.png",
+        )
+    else:
+        print(
+            "Skipping trends error reduction chart "
+            "(provide --baseline-error-counts and --trends-error-counts)"
+        )
+
+    # Core diagnostics
+    plot_pr_curve(Path(args.test_preds), out_dir / "14_pr_curve.png")
+    plot_calibration_curve(Path(args.test_preds), out_dir / "15_calibration_curve.png")
+    plot_learning_curve(
+        Path(args.train), Path(args.model), out_dir / "16_learning_curve.png"
     )
 
     print(f"Wrote visualizations to: {out_dir}")

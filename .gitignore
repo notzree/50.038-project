@@ -3,3 +3,5 @@ src/data/*
 __pycache__/
 .DS_Store
 src/app/countries.geojson
+.venv/
+venv/

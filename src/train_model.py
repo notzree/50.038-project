@@ -214,78 +214,6 @@ def cross_validate_models(
 
 
 # ---------------------------------------------------------------------------
-# Hyperparameter tuning (Optuna)
-# ---------------------------------------------------------------------------
-
-# Search spaces per model type (param_name -> (suggest_method, *args))
-_SEARCH_SPACES = {
-    "logistic_regression": {
-        "C": ("float", 1e-3, 10.0, {"log": True}),
-    },
-    "random_forest": {
-        "n_estimators": ("int", 100, 500, {"step": 50}),
-        "max_depth": ("int", 5, 30, {}),
-        "min_samples_split": ("int", 2, 20, {}),
-    },
-}
-
-
-def _suggest_params(trial, name: str) -> dict:
-    """Sample hyperparameters from Optuna trial for a given model."""
-    space = _SEARCH_SPACES.get(name, {})
-    params = {}
-    for param_name, (method, *args) in space.items():
-        kwargs = args[-1] if isinstance(args[-1], dict) else {}
-        bounds = args[:-1] if isinstance(args[-1], dict) else args
-        if method == "float":
-            params[param_name] = trial.suggest_float(param_name, *bounds, **kwargs)
-        elif method == "int":
-            params[param_name] = trial.suggest_int(param_name, *bounds, **kwargs)
-    return params
-
-
-def tune_hyperparameters(
-    model_names: list[str],
-    preprocessor: ColumnTransformer,
-    X_train: pd.DataFrame,
-    y_train: np.ndarray,
-    n_trials: int = 50,
-    k: int = 5,
-    seed: int = 42,
-) -> dict[str, dict]:
-    """Use Optuna to tune hyperparameters for given models."""
-    import optuna
-
-    optuna.logging.set_verbosity(optuna.logging.WARNING)
-
-    cv = StratifiedKFold(n_splits=k, shuffle=True, random_state=seed)
-    tuned = {}
-
-    for name in model_names:
-        print(f"  Tuning {name} ({n_trials} trials)...")
-
-        def objective(trial, _name=name):
-            params = _suggest_params(trial, _name)
-            clf = _make_model(_name, seed, **params)
-            pipe = Pipeline(steps=[("preprocessor", preprocessor), ("model", clf)])
-            scores = cross_val_score(
-                pipe, X_train, y_train, cv=cv, scoring="f1", n_jobs=-1
-            )
-            return float(np.mean(scores))
-
-        study = optuna.create_study(direction="maximize")
-        study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
-
-        tuned[name] = {
-            "best_params": study.best_params,
-            "best_f1": study.best_value,
-        }
-        print(f"    Best F1={study.best_value:.4f}, params={study.best_params}")
-
-    return tuned
-
-
-# ---------------------------------------------------------------------------
 # Evaluation helpers
 # ---------------------------------------------------------------------------
 
@@ -616,8 +544,6 @@ def train_and_evaluate(
     test_size: float,
     seed: int,
     val_size: float = 0.2,
-    tune: bool = False,
-    n_trials: int = 50,
     feature_importance_out: str | None = None,
     metadata_out: str | None = None,
 ) -> dict:
@@ -654,36 +580,12 @@ def train_and_evaluate(
         candidates, preprocessor, splits["X_train"], splits["y_train"], seed=seed
     )
 
-    # 5. Optional Optuna tuning on top models
-    tuned_params = None
-    if tune:
-        # Tune top 3 models by CV F1
-        ranked = sorted(
-            cv_results, key=lambda n: cv_results[n]["f1_mean"], reverse=True
-        )
-        top_models = ranked[:3]
-        print(f"Tuning top {len(top_models)} models: {top_models}")
-        tuned_results = tune_hyperparameters(
-            top_models,
-            preprocessor,
-            splits["X_train"],
-            splits["y_train"],
-            n_trials=n_trials,
-            seed=seed,
-        )
-        tuned_params = tuned_results
-
-        # Rebuild candidates with tuned hyperparameters
-        for name, result in tuned_results.items():
-            candidates[name] = _make_model(name, seed, **result["best_params"])
-            cv_results[name]["f1_mean"] = result["best_f1"]
-
-    # 6. Select best, evaluate on val + test
+    # 5. Select best, evaluate on val + test
     best_name, best_clf, metrics = select_and_evaluate(
         candidates, cv_results, preprocessor, splits
     )
 
-    # 7. Save everything
+    # 6. Save everything
     return save_artifacts(
         best_name,
         best_clf,
@@ -698,7 +600,7 @@ def train_and_evaluate(
         feature_importance_out=feature_importance_out,
         metadata_out=metadata_out,
         dataset_info=dataset_info,
-        tuned_params=tuned_params,
+        tuned_params=None,
     )
 
 
@@ -764,17 +666,6 @@ def main() -> None:
         default=42,
         help="Random seed",
     )
-    parser.add_argument(
-        "--tune",
-        action="store_true",
-        help="Enable Optuna hyperparameter tuning",
-    )
-    parser.add_argument(
-        "--n-trials",
-        type=int,
-        default=50,
-        help="Number of Optuna trials per model (requires --tune)",
-    )
     args = parser.parse_args()
 
     train_and_evaluate(
@@ -787,8 +678,6 @@ def main() -> None:
         test_size=args.test_size,
         seed=args.seed,
         val_size=args.val_size,
-        tune=args.tune,
-        n_trials=args.n_trials,
         feature_importance_out=args.feature_importance_out,
         metadata_out=args.metadata_out,
     )

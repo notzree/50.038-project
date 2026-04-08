@@ -178,9 +178,11 @@ def main() -> None:
         help="Audio features CSV output path",
     )
     parser.add_argument(
+        "--high-level-features-out",
         "--human-features-out",
-        default="src/data/audio_features_human.csv",
-        help="Human-readable feature proxy CSV output path",
+        dest="high_level_features_out",
+        default="src/data/audio_features_high_level.csv",
+        help="High-level feature proxy CSV output path",
     )
     parser.add_argument(
         "--feature-set",
@@ -277,17 +279,6 @@ def main() -> None:
         help="Path to nonviral_track_ids.csv. Auto-detected if src/data/nonviral_track_ids.csv exists.",
     )
     parser.add_argument(
-        "--tune",
-        action="store_true",
-        help="Enable Optuna hyperparameter tuning during training",
-    )
-    parser.add_argument(
-        "--n-trials",
-        type=int,
-        default=50,
-        help="Number of Optuna trials per model (requires --tune)",
-    )
-    parser.add_argument(
         "--predict-audio",
         default=None,
         help="Optional audio path for single-song prediction after training",
@@ -301,6 +292,34 @@ def main() -> None:
         "--predict-output-json",
         default=None,
         help="Optional JSON output path for single-song prediction",
+    )
+    parser.add_argument(
+        "--with-trends",
+        action="store_true",
+        help="Collect and merge Google Trends compact features into training table",
+    )
+    parser.add_argument(
+        "--trends-output",
+        default="src/data/trends_features.csv",
+        help="Output path for trends feature CSV",
+    )
+    parser.add_argument(
+        "--trends-weeks",
+        type=int,
+        default=12,
+        help="Trailing weeks per trends query",
+    )
+    parser.add_argument(
+        "--trends-delay",
+        type=float,
+        default=10.0,
+        help="Delay between trends requests in seconds",
+    )
+    parser.add_argument(
+        "--trends-max-pairs",
+        type=int,
+        default=None,
+        help="Optional cap on number of artist-level trends queries",
     )
     args = parser.parse_args()
 
@@ -317,9 +336,10 @@ def main() -> None:
     charts = _resolve(args.charts)
     labels_out = _resolve(args.labels_out)
     train_out = _resolve(args.train_out)
+    trends_out = _resolve(args.trends_output)
     qc_summary_out = _resolve(args.qc_summary_out)
     qc_issues_out = _resolve(args.qc_issues_out)
-    human_features_out = _resolve(args.human_features_out)
+    high_level_features_out = _resolve(args.high_level_features_out)
     metrics_out = _resolve(args.metrics_out)
     model_out = _resolve(args.model_out)
     region_metrics_out = _resolve(args.region_metrics_out)
@@ -413,13 +433,13 @@ def main() -> None:
         issues_out=qc_issues_out,
     )
 
-    # --- Step 3c: Build human-readable proxy features ---
-    print("\n=== Build human-readable feature proxies ===")
-    from engineer_human_features import build_human_features
+    # --- Step 3c: Build high-level proxy features ---
+    print("\n=== Build high-level feature proxies ===")
+    from engineer_high_level_features import build_high_level_features
 
-    build_human_features(
+    build_high_level_features(
         input_csv=features_out,
-        output_csv=human_features_out,
+        output_csv=high_level_features_out,
     )
 
     # --- Step 4: Build labels and train table ---
@@ -438,13 +458,42 @@ def main() -> None:
         charts_csv=charts,
         features_csv=features_out,
         track_catalog_csv=str(catalog_path),
-        human_features_csv=human_features_out,
+        high_level_features_csv=high_level_features_out,
         labels_csv=labels_out,
         train_csv=train_out,
         chart_name=args.chart_name,
         genres_csv=genres_path,
         nonviral_meta_csv=nonviral_meta_path,
     )
+
+    # --- Step 4b: Optional trends feature collection + merge ---
+    if args.with_trends:
+        print("\n=== Collect and merge Google Trends features ===")
+        from google_trends_collector import (
+            build_trends_features,
+            merge_trends_into_train_table,
+        )
+
+        build_trends_features(
+            charts_path=Path(charts),
+            manifest_path=Path(manifest_path),
+            output_path=Path(trends_out),
+            trailing_weeks=args.trends_weeks,
+            delay=args.trends_delay,
+            max_pairs=args.trends_max_pairs,
+        )
+
+        merged_train_out = str(Path(train_out).with_name("train_table_with_trends.csv"))
+        merge_trends_into_train_table(
+            train_table_path=Path(train_out),
+            trends_path=Path(trends_out),
+            output_path=Path(merged_train_out),
+        )
+        train_out = merged_train_out
+        print(f"Using trends-merged train table: {train_out}")
+    else:
+        print("\n=== Google Trends features ===")
+        print("Skipping trends stage (use --with-trends to enable)")
 
     # --- Step 5: Train and evaluate ---
     print("\n=== Train and evaluate models ===")
@@ -459,8 +508,6 @@ def main() -> None:
         errors_out=errors_out,
         test_size=0.2,
         seed=42,
-        tune=args.tune,
-        n_trials=args.n_trials,
     )
 
     # --- Step 6: Visualizations ---
@@ -520,7 +567,7 @@ def main() -> None:
 
     print("\nPipeline complete")
     print(f"Features: {features_out}")
-    print(f"Human features: {human_features_out}")
+    print(f"High-level features: {high_level_features_out}")
     print(f"QC summary: {qc_summary_out}")
     print(f"Labels: {labels_out}")
     print(f"Train table: {train_out}")

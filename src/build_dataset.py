@@ -7,7 +7,7 @@ def build_labels_and_train_table(
     charts_csv: str,
     features_csv: str,
     track_catalog_csv: str | None,
-    human_features_csv: str | None,
+    high_level_features_csv: str | None,
     labels_csv: str,
     train_csv: str,
     chart_name: str,
@@ -19,8 +19,8 @@ def build_labels_and_train_table(
     print(f"Features CSV: {features_csv}")
     if track_catalog_csv:
         print(f"Track catalog CSV: {track_catalog_csv}")
-    if human_features_csv:
-        print(f"Human features CSV: {human_features_csv}")
+    if high_level_features_csv:
+        print(f"High-level features CSV: {high_level_features_csv}")
     if genres_csv:
         print(f"Genres CSV: {genres_csv}")
     if nonviral_meta_csv:
@@ -84,23 +84,27 @@ def build_labels_and_train_table(
         except Exception as e:
             print(f"Warning: could not merge track catalog metadata: {e}")
 
-    if human_features_csv:
+    if high_level_features_csv:
         try:
-            human = pd.read_csv(human_features_csv)
-            human = human.drop_duplicates(subset=["track_id"], keep="first")
+            high_level = pd.read_csv(high_level_features_csv)
+            high_level = high_level.drop_duplicates(subset=["track_id"], keep="first")
             before = len(features_clean)
-            features_clean = features_clean.merge(human, on="track_id", how="left")
+            features_clean = features_clean.merge(high_level, on="track_id", how="left")
             n_missing = int(
                 features_clean.filter(regex="_proxy$").isna().all(axis=1).sum()
             )
             print(
-                f"Merged human features: {before} rows, "
+                f"Merged high-level features: {before} rows, "
                 f"tracks missing proxy features={n_missing}"
             )
-            if "human_features_version" in features_clean.columns:
-                features_clean = features_clean.drop(columns=["human_features_version"])
+            for version_col in [
+                "high_level_features_version",
+                "human_features_version",
+            ]:
+                if version_col in features_clean.columns:
+                    features_clean = features_clean.drop(columns=[version_col])
         except Exception as e:
-            print(f"Warning: could not merge human features: {e}")
+            print(f"Warning: could not merge high-level features: {e}")
 
     train = labels.merge(features_clean, on="track_id", how="inner")
 
@@ -170,9 +174,14 @@ def main() -> None:
         help="Path to features CSV",
     )
     parser.add_argument(
+        "--high-level-features",
+        default="src/data/audio_features_high_level.csv",
+        help="Optional path to high-level features CSV",
+    )
+    parser.add_argument(
         "--human-features",
-        default="src/data/audio_features_human.csv",
-        help="Optional path to human features CSV",
+        default=None,
+        help="Deprecated alias for --high-level-features",
     )
     parser.add_argument(
         "--track-catalog",
@@ -210,7 +219,7 @@ def main() -> None:
         charts_csv=args.charts,
         features_csv=args.features,
         track_catalog_csv=args.track_catalog,
-        human_features_csv=args.human_features,
+        high_level_features_csv=args.high_level_features or args.human_features,
         labels_csv=args.labels_out,
         train_csv=args.train_out,
         chart_name=args.chart_name,
