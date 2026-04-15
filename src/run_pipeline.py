@@ -197,6 +197,12 @@ def main() -> None:
         help="Number of parallel workers for feature extraction",
     )
     parser.add_argument(
+        "--feature-max-tasks-per-child",
+        type=int,
+        default=100,
+        help="Restart each extraction worker after N tracks to reduce memory pressure",
+    )
+    parser.add_argument(
         "--charts",
         default="src/data/charts.csv",
         help="Charts CSV path",
@@ -422,6 +428,7 @@ def main() -> None:
         output_csv=features_out,
         feature_set=args.feature_set,
         workers=args.feature_workers,
+        max_tasks_per_child=args.feature_max_tasks_per_child,
     )
 
     # --- Step 3b: QC with extraction status ---
