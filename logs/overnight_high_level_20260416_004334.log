@@ -1,0 +1,1830 @@
+
+[2026-04-16 00:43:34] === Run configuration ===
+FEATURE_WORKERS=2
+MAX_TASKS_PER_CHILD=50
+CHECKPOINT_INTERVAL=100
+FORMULA_SETS=A,B,C,D
+SEEDS=42
+LOG_FILE=logs/overnight_high_level_20260416_004334.log
+MONITOR_DIR=logs/monitor_20260416_004334
+
+[2026-04-16 00:43:34] === System snapshot ===
+--- date ---
+Thu Apr 16 12:43:34 AM UTC 2026
+--- uname ---
+Linux atlas1 6.8.0-107-generic #107-Ubuntu SMP PREEMPT_DYNAMIC Fri Mar 13 19:51:50 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+--- os-release ---
+PRETTY_NAME="Ubuntu 24.04.3 LTS"
+NAME="Ubuntu"
+VERSION_ID="24.04"
+VERSION="24.04.3 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=noble
+LOGO=ubuntu-logo
+--- lsb_release ---
+Distributor ID:	Ubuntu
+Description:	Ubuntu 24.04.3 LTS
+Release:	24.04
+Codename:	noble
+--- memory free -h ---
+               total        used        free      shared  buff/cache   available
+Mem:            30Gi       2.2Gi        26Gi        45Mi       2.1Gi        28Gi
+Swap:          8.0Gi          0B       8.0Gi
+--- top (Linux) ---
+top - 00:43:34 up 13:52,  2 users,  load average: 0.20, 0.07, 0.07
+Tasks: 311 total,   1 running, 310 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us,  0.0 sy,  0.0 ni,100.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st 
+MiB Mem :  31166.5 total,  27247.7 free,   2234.9 used,   2135.2 buff/cache     
+MiB Swap:   8192.0 total,   8192.0 free,      0.0 used.  28931.6 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+      1 root      20   0   22728  14016   9580 S   0.0   0.0   0:04.07 systemd
+      2 root      20   0       0      0      0 S   0.0   0.0   0:00.00 kthreadd
+      3 root      20   0       0      0      0 S   0.0   0.0   0:00.00 pool_wo+
+      4 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+      5 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+      6 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+      7 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+      8 root      20   0       0      0      0 I   0.0   0.0   0:01.02 kworker+
+     10 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     12 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     13 root      20   0       0      0      0 I   0.0   0.0   0:00.00 rcu_tas+
+     14 root      20   0       0      0      0 I   0.0   0.0   0:00.00 rcu_tas+
+     15 root      20   0       0      0      0 I   0.0   0.0   0:00.00 rcu_tas+
+     16 root      20   0       0      0      0 S   0.0   0.0   0:00.04 ksoftir+
+     17 root      20   0       0      0      0 I   0.0   0.0   0:04.07 rcu_pre+
+     18 root      rt   0       0      0      0 S   0.0   0.0   0:00.66 migrati+
+     19 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     20 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/0
+     21 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/1
+     22 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     23 root      rt   0       0      0      0 S   0.0   0.0   0:01.79 migrati+
+     24 root      20   0       0      0      0 S   0.0   0.0   0:00.03 ksoftir+
+     26 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     27 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/2
+     28 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     29 root      rt   0       0      0      0 S   0.0   0.0   0:00.42 migrati+
+     30 root      20   0       0      0      0 S   0.0   0.0   0:00.15 ksoftir+
+     32 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     33 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/3
+     34 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     35 root      rt   0       0      0      0 S   0.0   0.0   0:02.45 migrati+
+     36 root      20   0       0      0      0 S   0.0   0.0   0:00.05 ksoftir+
+     38 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     39 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/4
+     40 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     41 root      rt   0       0      0      0 S   0.0   0.0   0:00.39 migrati+
+     42 root      20   0       0      0      0 S   0.0   0.0   0:00.11 ksoftir+
+     44 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     45 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/5
+     46 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     47 root      rt   0       0      0      0 S   0.0   0.0   0:01.30 migrati+
+     48 root      20   0       0      0      0 S   0.0   0.0   0:00.02 ksoftir+
+     50 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     51 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/6
+     52 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     53 root      rt   0       0      0      0 S   0.0   0.0   0:00.79 migrati+
+     54 root      20   0       0      0      0 S   0.0   0.0   0:00.02 ksoftir+
+     56 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     57 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/7
+     58 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     59 root      rt   0       0      0      0 S   0.0   0.0   0:00.64 migrati+
+     60 root      20   0       0      0      0 S   0.0   0.0   0:00.02 ksoftir+
+     62 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     63 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/8
+     64 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     65 root      rt   0       0      0      0 S   0.0   0.0   0:00.61 migrati+
+     66 root      20   0       0      0      0 S   0.0   0.0   0:00.03 ksoftir+
+     68 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     69 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/9
+     70 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     71 root      rt   0       0      0      0 S   0.0   0.0   0:00.51 migrati+
+     72 root      20   0       0      0      0 S   0.0   0.0   0:00.01 ksoftir+
+     74 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     75 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/10
+     76 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     77 root      rt   0       0      0      0 S   0.0   0.0   0:00.35 migrati+
+     78 root      20   0       0      0      0 S   0.0   0.0   0:00.05 ksoftir+
+     80 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     81 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/11
+     82 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     83 root      rt   0       0      0      0 S   0.0   0.0   0:00.58 migrati+
+     84 root      20   0       0      0      0 S   0.0   0.0   0:00.03 ksoftir+
+     86 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     87 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/12
+     88 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     89 root      rt   0       0      0      0 S   0.0   0.0   0:00.35 migrati+
+     90 root      20   0       0      0      0 S   0.0   0.0   0:00.10 ksoftir+
+     92 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     93 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/13
+     94 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     95 root      rt   0       0      0      0 S   0.0   0.0   0:00.95 migrati+
+     96 root      20   0       0      0      0 S   0.0   0.0   0:00.04 ksoftir+
+     98 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     99 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/14
+    100 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+    101 root      rt   0       0      0      0 S   0.0   0.0   0:00.84 migrati+
+    102 root      20   0       0      0      0 S   0.0   0.0   0:00.04 ksoftir+
+    104 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    105 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/15
+    106 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+    107 root      rt   0       0      0      0 S   0.0   0.0   0:00.64 migrati+
+    108 root      20   0       0      0      0 S   0.0   0.0   0:00.03 ksoftir+
+    110 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    111 root      20   0       0      0      0 S   0.0   0.0   0:00.00 kdevtmp+
+    112 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    113 root      20   0       0      0      0 S   0.0   0.0   0:00.00 kauditd
+    114 root      20   0       0      0      0 S   0.0   0.0   0:00.04 khungta+
+    116 root      20   0       0      0      0 S   0.0   0.0   0:00.00 oom_rea+
+    117 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    118 root      20   0       0      0      0 S   0.0   0.0   0:01.66 kcompac+
+    119 root      25   5       0      0      0 S   0.0   0.0   1:25.20 ksmd
+    120 root      39  19       0      0      0 S   0.0   0.0   0:00.35 khugepa+
+    121 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    122 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    123 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    125 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 irq/9-a+
+    127 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    128 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    129 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    130 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    131 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    132 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    133 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 watchdo+
+    135 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    136 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    138 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 irq/26-+
+    139 root      20   0       0      0      0 S   0.0   0.0   0:00.00 kswapd0
+    140 root      20   0       0      0      0 S   0.0   0.0   0:00.00 ecryptf+
+    141 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    143 root      20   0       0      0      0 I   0.0   0.0   0:03.96 kworker+
+    154 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    155 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    156 root       0 -20       0      0      0 I   0.0   0.0   0:00.03 kworker+
+    157 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    164 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    166 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    171 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    182 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    183 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 irq/27-+
+    184 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 irq/28-+
+    185 root      20   0       0      0      0 I   0.0   0.0   0:01.93 kworker+
+    212 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    216 root       0 -20       0      0      0 I   0.0   0.0   0:00.07 kworker+
+    217 root       0 -20       0      0      0 I   0.0   0.0   0:00.12 kworker+
+    232 root       0 -20       0      0      0 I   0.0   0.0   0:00.01 kworker+
+    247 root       0 -20       0      0      0 I   0.0   0.0   0:00.03 kworker+
+    248 root       0 -20       0      0      0 I   0.0   0.0   0:00.02 kworker+
+    249 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    250 root       0 -20       0      0      0 I   0.0   0.0   0:00.01 kworker+
+    251 root       0 -20       0      0      0 I   0.0   0.0   0:00.01 kworker+
+    252 root       0 -20       0      0      0 I   0.0   0.0   0:00.02 kworker+
+    253 root       0 -20       0      0      0 I   0.0   0.0   0:00.09 kworker+
+    254 root       0 -20       0      0      0 I   0.0   0.0   0:00.04 kworker+
+    255 root       0 -20       0      0      0 I   0.0   0.0   0:00.08 kworker+
+    256 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    280 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    281 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    282 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    283 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    298 root      20   0       0      0      0 S   0.0   0.0   0:00.00 scsi_eh+
+    299 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    302 root      20   0       0      0      0 S   0.0   0.0   0:00.00 scsi_eh+
+    303 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    304 root      20   0       0      0      0 S   0.0   0.0   0:00.00 scsi_eh+
+    305 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    306 root      20   0       0      0      0 S   0.0   0.0   0:00.00 scsi_eh+
+    307 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    308 root      20   0       0      0      0 S   0.0   0.0   0:00.00 scsi_eh+
+    309 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    310 root      20   0       0      0      0 S   0.0   0.0   0:00.00 scsi_eh+
+    311 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    322 root      20   0       0      0      0 I   0.0   0.0   0:02.19 kworker+
+    356 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    415 root      20   0       0      0      0 S   0.0   0.0   0:01.26 jbd2/nv+
+    416 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    479 root      -2   0       0      0      0 S   0.0   0.0   0:00.00 psimon
+    484 root      19  -1   59040  20616  19332 S   0.0   0.1   0:00.39 systemd+
+    508 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    509 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    534 root      20   0       0      0      0 I   0.0   0.0   0:00.62 kworker+
+    540 root      rt   0  288952  27292   8760 S   0.0   0.1   0:02.56 multipa+
+    562 root      20   0   29828   8700   5152 S   0.0   0.0   0:00.11 systemd+
+    567 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    577 root      -2   0       0      0      0 S   0.0   0.0   0:00.00 psimon
+    660 root      20   0       0      0      0 I   0.0   0.0   0:00.27 kworker+
+    714 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    770 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    920 systemd+  20   0   21704  13272  10800 S   0.0   0.0   0:00.09 systemd+
+    921 systemd+  20   0   91376   8360   7368 S   0.0   0.0   0:00.15 systemd+
+    922 root      20   0       0      0      0 S   0.0   0.0   0:03.84 napi/ph+
+    923 root      20   0       0      0      0 S   0.0   0.0   0:00.97 napi/ph+
+    924 root      20   0       0      0      0 S   0.0   0.0   0:03.99 napi/ph+
+    938 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    940 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    955 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    956 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    957 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    958 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    959 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    960 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    961 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 card1-c+
+    962 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 card1-c+
+    963 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 card1-c+
+    964 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 card1-c+
+    990 message+  20   0   10360   6096   4788 S   0.0   0.0   0:16.61 dbus-da+
+    999 polkitd   20   0  308164   8172   7272 S   0.0   0.0   0:00.84 polkitd
+   1013 root      20   0 2884820  40712  26136 S   0.0   0.1   0:01.70 snapd
+   1023 root      20   0   18340   9120   7972 S   0.0   0.0   0:09.11 systemd+
+   1025 root      20   0   17560   8040   7068 S   0.0   0.0   0:00.07 systemd+
+   1036 root      20   0  469124  13964  11640 S   0.0   0.0   0:00.74 udisksd
+   1042 root      20   0   71296  15164  13304 S   0.0   0.0   0:00.00 virtloc+
+   1045 root      20   0   71300  15260  13400 S   0.0   0.0   0:00.01 virtlogd
+   1065 root      20   0   17384   6400   5524 S   0.0   0.0   0:00.16 wpa_sup+
+   1119 systemd+  20   0   22140  10124   8840 S   0.0   0.0   0:00.08 systemd+
+   1126 root      20   0 1357376  52712  25860 S   0.0   0.2   0:26.48 tailsca+
+   1131 syslog    20   0  222508   6852   4672 S   0.0   0.0   0:00.06 rsyslogd
+   1135 root      -2   0       0      0      0 S   0.0   0.0   0:00.92 mt76-tx+
+   1187 root      20   0  318376  13088  11000 S   0.0   0.0   0:00.02 ModemMa+
+   1203 root      20   0   18276  11416   9768 S   0.0   0.0   0:00.23 wpa_sup+
+   1214 root      20   0  109640  23292  13832 S   0.0   0.1   0:00.03 unatten+
+   1220 root      20   0 2689852  54284  35384 S   0.0   0.2   0:43.33 contain+
+   1441 root      20   0 3081348  80640  53764 S   0.0   0.3   0:15.39 dockerd
+   1442 netdata   20   0 1531964 180564  29056 S   0.0   0.6  13:39.28 netdata
+   1444 root      20   0    6824   3040   2792 S   0.0   0.0   0:00.05 cron
+   1448 root      20   0   50384  10728   9612 S   0.0   0.0   0:00.47 systemd+
+   1465 root      20   0    6104   2108   1968 S   0.0   0.0   0:00.00 agetty
+   1728 libvirt+  20   0   11484   2300   1760 S   0.0   0.0   0:07.00 dnsmasq
+   1729 root      20   0   11484   1300    760 S   0.0   0.0   0:00.00 dnsmasq
+   1762 netdata   20   0   65488  14720   2704 S   0.0   0.0   0:03.37 spawn-p+
+   2521 root      20   0 1238384  14696  10768 S   0.0   0.0   0:01.95 contain+
+   2526 root      20   0 1238384  15452  10740 S   0.0   0.0   0:05.07 contain+
+   2564 root      20   0    1056    732    684 S   0.0   0.0   0:01.21 docker-+
+   2565 root      20   0    2480   1264   1172 S   0.0   0.0   0:01.22 tini
+   2615 netdata   20   0 1461288 107124  62780 S   0.0   0.3   1:29.74 go.d.pl+
+   2630 root      20   0   77080  14728   6596 S   0.0   0.0   0:15.92 ebpf.pl+
+   2632 netdata   20   0  203872   7028   5808 S   0.0   0.0   0:28.84 sd-jrnl+
+   2640 netdata   20   0 1597704   6900   5884 S   0.0   0.0   0:00.30 otel-si+
+   2641 netdata   20   0   39304   5796   4932 S   0.0   0.0   0:11.24 sd-unit+
+   2642 netdata   20   0   52812   7936   6308 S   0.0   0.0   0:04.00 otel-pl+
+   2644 netdata   20   0  129188   5860   4948 S   0.0   0.0   0:11.32 NETWORK+
+   2647 netdata   20   0   87984   6188   5152 S   0.0   0.0   0:55.47 debugfs+
+   2649 netdata   20   0  100692  10156   5664 S   0.0   0.0   4:27.90 apps.pl+
+   2650 root      20   0   14136   5452   4660 S   0.0   0.0   0:04.03 nfacct.+
+   2651 netdata   20   0 1274320  18128  10248 S   0.0   0.1   0:25.38 scripts+
+   2726 netdata   20   0   14476   2200   1424 S   0.0   0.0   0:03.03 spawn-s+
+   2905 root      20   0 1597636   4416   3564 S   0.0   0.0   0:00.04 docker-+
+   2911 root      20   0 1818832   4584   3560 S   0.0   0.0   0:00.03 docker-+
+   2926 5984      20   0 4640232 133956  34580 S   0.0   0.4   9:41.37 beam.smp
+   2936 root      20   0 1745100   4464   3564 S   0.0   0.0   0:00.03 docker-+
+   3039 root      20   0  730088  17552  12524 S   0.0   0.1   0:01.92 registry
+   3068 5984      20   0    2472   1488   1388 S   0.0   0.0   0:00.00 erl_chi+
+   3153 5984      20   0    2584   1696   1588 S   0.0   0.0   0:00.00 sh
+   3155 5984      20   0    2336   1480   1384 S   0.0   0.0   0:00.02 memsup
+   3156 5984      20   0    2468   1352   1256 S   0.0   0.0   0:00.00 cpu_sup
+   3157 5984      20   0    3404   1612   1500 S   0.0   0.0   0:00.00 inet_ge+
+   3158 5984      20   0    3404   1732   1604 S   0.0   0.0   0:00.00 inet_ge+
+   5848 root      20   0  614496  46208  38780 S   0.0   0.1   0:02.06 fwupd
+   5855 root      20   0  314492   9648   7612 S   0.0   0.0   0:00.01 upowerd
+   5862 root      20   0       0      0      0 I   0.0   0.0   0:03.10 kworker+
+   6183 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  13094 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  15864 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  19747 root      20   0       0      0      0 I   0.0   0.0   0:00.29 kworker+
+  24427 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  24993 guest     20   0   20596  11812   9420 S   0.0   0.0   0:00.05 systemd
+  24994 guest     20   0   21160   3648   1916 S   0.0   0.0   0:00.00 (sd-pam)
+  24999 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  25549 guest     20   0   14296   6756   3712 S   0.0   0.0   0:00.02 tmux: s+
+  25550 guest     20   0    8772   5716   3984 S   0.0   0.0   0:00.00 bash
+  25551 guest     20   0    9292   5132   4692 S   0.0   0.0   0:00.00 dbus-da+
+  25607 guest     20   0    7472   3948   3504 S   0.0   0.0   0:00.00 bash
+  25613 guest     20   0    5692   2120   2004 S   0.0   0.0   0:00.00 tee
+  25846 guest     20   0    9456   3560   3212 S   0.0   0.0   0:00.96 vmstat
+  25850 guest     20   0    5732   2420   2276 S   0.0   0.0   0:02.13 iostat
+  25853 guest     20   0   13200   6852   4640 S   0.0   0.0   0:07.57 top
+  25892 guest     20   0  243504  39472  29464 S   0.0   0.1   0:00.03 uv
+  25924 guest     20   0 2110568 731632  54956 S   0.0   2.3   0:05.39 python3
+  25926 guest     20   0   19660  12820   7080 S   0.0   0.0   0:00.01 python3
+  33837 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  35064 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  35556 root      20   0       0      0      0 I   0.0   0.0   0:00.44 kworker+
+  36089 root      20   0       0      0      0 I   0.0   0.0   0:00.09 kworker+
+  38329 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  40365 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  43586 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  44259 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  44705 root      20   0       0      0      0 I   0.0   0.0   0:00.04 kworker+
+  45238 root      20   0       0      0      0 I   0.0   0.0   0:00.08 kworker+
+  45762 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  45793 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  46824 root      20   0       0      0      0 I   0.0   0.0   0:00.03 kworker+
+  46916 netdata   20   0    4588   3560   3060 S   0.0   0.0   0:00.89 bash
+  47229 root      20   0       0      0      0 I   0.0   0.0   0:00.83 kworker+
+  47950 root      20   0       0      0      0 I   0.0   0.0   0:00.07 kworker+
+  48075 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  48077 root      20   0       0      0      0 I   0.0   0.0   0:00.01 kworker+
+  48084 root      20   0       0      0      0 I   0.0   0.0   0:00.06 kworker+
+  48104 root      20   0       0      0      0 I   0.0   0.0   0:00.79 kworker+
+  48390 root      20   0       0      0      0 I   0.0   0.0   0:00.79 kworker+
+  48497 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  49024 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  49281 root      20   0       0      0      0 I   0.0   0.0   0:00.27 kworker+
+  49348 root      20   0    9688   4892   4100 S   0.0   0.0   0:00.00 login
+  49433 notzree   20   0   20596  11800   9416 S   0.0   0.0   0:00.05 systemd
+  49434 notzree   20   0   21156   3648   1916 S   0.0   0.0   0:00.00 (sd-pam)
+  49439 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  49446 notzree   20   0    8780   5736   3952 S   0.0   0.0   0:00.03 bash
+  49625 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  49644 root      20   0       0      0      0 I   0.0   0.0   0:00.06 kworker+
+  49742 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  49879 notzree   20   0   17284   9772   3708 S   0.0   0.0   0:00.02 tmux: s+
+  49880 notzree   20   0    8776   5736   3944 S   0.0   0.0   0:00.00 bash
+  49881 notzree   20   0    9292   5200   4756 S   0.0   0.0   0:00.00 dbus-da+
+  49969 notzree   20   0   11888   5380   4680 S   0.0   0.0   0:00.00 tmux: c+
+  49970 notzree   20   0    8776   5748   3956 S   0.0   0.0   0:00.00 bash
+  50207 notzree   20   0    9456   3576   3228 S   0.0   0.0   0:00.00 vmstat
+  50337 root      20   0   16780   7520   6284 S   0.0   0.0   0:00.00 sudo
+  50338 root      20   0   16780   2640   1404 S   0.0   0.0   0:00.00 sudo
+  50339 root      20   0    7472   3960   3536 S   0.0   0.0   0:00.00 bash
+  50345 root      20   0    5692   2124   2004 S   0.0   0.0   0:00.00 tee
+  50371 root      20   0   13200   6528   4332 R   0.0   0.0   0:00.00 top
+--- cpuinfo ---
+processor	: 0
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 3295.560
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 0
+cpu cores	: 8
+apicid		: 0
+initial apicid	: 0
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 1
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 2990.221
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 1
+cpu cores	: 8
+apicid		: 2
+initial apicid	: 2
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 2
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 5563.072
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 2
+cpu cores	: 8
+apicid		: 4
+initial apicid	: 4
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 3
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 2782.780
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 3
+cpu cores	: 8
+apicid		: 6
+initial apicid	: 6
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 4
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 3026.614
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 4
+cpu cores	: 8
+apicid		: 8
+initial apicid	: 8
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 5
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 600.000
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 5
+cpu cores	: 8
+apicid		: 10
+initial apicid	: 10
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 6
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 2878.536
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 6
+cpu cores	: 8
+apicid		: 12
+initial apicid	: 12
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 7
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 2774.592
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 7
+cpu cores	: 8
+apicid		: 14
+initial apicid	: 14
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 8
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 600.000
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 0
+cpu cores	: 8
+apicid		: 1
+initial apicid	: 1
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 9
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 600.000
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 1
+cpu cores	: 8
+apicid		: 3
+initial apicid	: 3
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 10
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 5012.236
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 2
+cpu cores	: 8
+apicid		: 5
+initial apicid	: 5
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 11
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 600.000
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 3
+cpu cores	: 8
+apicid		: 7
+initial apicid	: 7
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 12
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 3730.198
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 4
+cpu cores	: 8
+apicid		: 9
+initial apicid	: 9
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 13
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 2929.109
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 5
+cpu cores	: 8
+apicid		: 11
+initial apicid	: 11
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 14
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 600.000
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 6
+cpu cores	: 8
+apicid		: 13
+initial apicid	: 13
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 15
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 600.000
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 7
+cpu cores	: 8
+apicid		: 15
+initial apicid	: 15
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+--- sysctl kernel.ostype ---
+kernel.ostype = Linux
+--- sysctl kernel.osrelease ---
+kernel.osrelease = 6.8.0-107-generic
+--- nproc ---
+16
+--- ulimit ---
+time(seconds)        unlimited
+file(blocks)         unlimited
+data(kbytes)         unlimited
+stack(kbytes)        8192
+coredump(blocks)     0
+memory(kbytes)       unlimited
+locked memory(kbytes) 3989312
+process              124339
+nofiles              1024
+vmemory(kbytes)      unlimited
+locks                unlimited
+rtprio               0
+--- disk usage ---
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p4  288G  168G  106G  62% /
+
+[2026-04-16 00:43:34] === Environment diagnostics ===
+--- pwd ---
+/home/guest/sutd/50.038-project
+--- git branch ---
+## daniel/script-logging...origin/daniel/script-logging
+?? logs/
+--- uv version ---
+uv 0.11.1 (a6042f67f 2026-03-24 x86_64-unknown-linux-gnu)
+--- python3 version ---
+Python 3.12.3
+--- ffmpeg version ---
+ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers
+built with gcc 13 (Ubuntu 13.2.0-23ubuntu3)
+configuration: --prefix=/usr --extra-version=3ubuntu5 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --disable-libmfx --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libjack --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-pocketsphinx --enable-librsvg --enable-libjxl --enable-shared
+libavutil      58. 29.100 / 58. 29.100
+libavcodec     60. 31.102 / 60. 31.102
+libavformat    60. 16.100 / 60. 16.100
+libavdevice    60.  3.100 / 60.  3.100
+libavfilter     9. 12.100 /  9. 12.100
+libswscale      7.  5.100 /  7.  5.100
+libswresample   4. 12.100 /  4. 12.100
+libpostproc    57.  3.100 / 57.  3.100
+--- ffprobe version ---
+ffprobe version 6.1.1-3ubuntu5 Copyright (c) 2007-2023 the FFmpeg developers
+built with gcc 13 (Ubuntu 13.2.0-23ubuntu3)
+configuration: --prefix=/usr --extra-version=3ubuntu5 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --disable-libmfx --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libjack --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-pocketsphinx --enable-librsvg --enable-libjxl --enable-shared
+libavutil      58. 29.100 / 58. 29.100
+libavcodec     60. 31.102 / 60. 31.102
+libavformat    60. 16.100 / 60. 16.100
+libavdevice    60.  3.100 / 60.  3.100
+libavfilter     9. 12.100 /  9. 12.100
+libswscale      7.  5.100 /  7.  5.100
+libswresample   4. 12.100 /  4. 12.100
+libpostproc    57.  3.100 / 57.  3.100
+--- threading env vars ---
+--- python package diagnostics (uv environment) ---
+python_executable: /home/guest/sutd/50.038-project/.venv/bin/python3
+python_version: 3.12.3 (main, Mar  3 2026, 12:15:18) [GCC 13.3.0]
+platform: Linux-6.8.0-107-generic-x86_64-with-glibc2.39
+system: Linux
+release: 6.8.0-107-generic
+machine: x86_64
+processor: x86_64
+librosa_version: 0.11.0
+numpy_version: 2.4.4
+scipy_version: 1.17.1
+pandas_version: 3.0.2
+sklearn_version: 1.8.0
+soundfile_version: 0.13.1
+audioread_version: unknown
+soundfile_info: 1.2.2
+--- sample of manifest paths (first 5) ---
+manifest_rows: 123752
+              track_id                                                                 file_path
+0006pNcm2SyVexlePGlRD9 /home/guest/sutd/50.038-project/src/data/songs/0006pNcm2SyVexlePGlRD9.mp3
+000Iz0K615UepwSJ5z2RE5 /home/guest/sutd/50.038-project/src/data/songs/000Iz0K615UepwSJ5z2RE5.mp3
+000RW47rhEkSqjgTrZx7YX /home/guest/sutd/50.038-project/src/data/songs/000RW47rhEkSqjgTrZx7YX.mp3
+000qpdoc97IMTBvF8gwcpy /home/guest/sutd/50.038-project/src/data/songs/000qpdoc97IMTBvF8gwcpy.mp3
+000xQL6tZNLJzIrtIgxqSl /home/guest/sutd/50.038-project/src/data/songs/000xQL6tZNLJzIrtIgxqSl.mp3
+
+[2026-04-16 00:43:35] === Kernel history ===
+--- journalctl previous boot kernel ---
+Apr 09 10:17:53 atlas1 kernel: [drm] DSC precompute is not needed.
+Apr 09 10:17:53 atlas1 kernel: mt7921e 0000:08:00.0 wlp8s0: renamed from wlan0
+Apr 09 10:17:54 atlas1 kernel: NET: Registered PF_QIPCRTR protocol family
+Apr 09 10:17:54 atlas1 kernel: RTL8226B_RTL8221B 2.5Gbps PHY r8169-0-900:00: attached PHY driver (mii_bus:phy_addr=r8169-0-900:00, irq=MAC)
+Apr 09 10:17:54 atlas1 kernel: r8169 0000:09:00.0 enp9s0: Link is Down
+Apr 09 10:17:55 atlas1 kernel: loop12: detected capacity change from 0 to 8
+Apr 09 10:17:56 atlas1 kernel: wlp8s0: authenticate with 7a:8d:af:1c:e0:e2 (local address=d8:b3:2f:0e:49:d5)
+Apr 09 10:17:57 atlas1 kernel: wlp8s0: send auth to 7a:8d:af:1c:e0:e2 (try 1/3)
+Apr 09 10:17:57 atlas1 kernel: wlp8s0: authenticated
+Apr 09 10:17:57 atlas1 kernel: wlp8s0: associate with 7a:8d:af:1c:e0:e2 (try 1/3)
+Apr 09 10:17:57 atlas1 kernel: wlp8s0: RX AssocResp from 7a:8d:af:1c:e0:e2 (capab=0x1011 status=0 aid=27)
+Apr 09 10:17:57 atlas1 kernel: wlp8s0: associated
+Apr 09 10:17:57 atlas1 kernel: r8169 0000:09:00.0 enp9s0: Link is Up - 1Gbps/Full - flow control rx/tx
+Apr 09 10:17:57 atlas1 kernel: wlp8s0: Limiting TX power to 24 (24 - 0) dBm as advertised by 7a:8d:af:1c:e0:e2
+Apr 09 10:18:08 atlas1 kernel: bridge: filtering via arp/ip/ip6tables is no longer available by default. Update your scripts to load br_netfilter if you need this.
+Apr 09 10:18:08 atlas1 kernel: kauditd_printk_skb: 125 callbacks suppressed
+Apr 09 10:18:08 atlas1 kernel: audit: type=1400 audit(1775729888.106:137): apparmor="STATUS" operation="profile_load" profile="unconfined" name="docker-default" pid=1774 comm="apparmor_parser"
+Apr 09 10:18:08 atlas1 kernel: r8169 0000:09:00.0: invalid VPD tag 0x00 (size 0) at offset 0; assume missing optional EEPROM
+Apr 09 10:18:08 atlas1 kernel: evm: overlay not supported
+Apr 09 10:18:08 atlas1 kernel: xhci_hcd 0000:0b:00.0: xHC error in resume, USBSTS 0x401, Reinit
+Apr 09 10:18:08 atlas1 kernel: usb usb1: root hub lost power or was reset
+Apr 09 10:18:08 atlas1 kernel: usb usb2: root hub lost power or was reset
+Apr 09 10:18:08 atlas1 kernel: Initializing XFRM netlink socket
+Apr 09 10:18:08 atlas1 kernel: usb 1-12: reset high-speed USB device number 2 using xhci_hcd
+Apr 09 10:18:08 atlas1 kernel: br-6f8e920d52e8: port 1(veth73e3064) entered blocking state
+Apr 09 10:18:08 atlas1 kernel: br-6f8e920d52e8: port 1(veth73e3064) entered disabled state
+Apr 09 10:18:08 atlas1 kernel: veth73e3064: entered allmulticast mode
+Apr 09 10:18:08 atlas1 kernel: veth73e3064: entered promiscuous mode
+Apr 09 10:18:08 atlas1 kernel: eth0: renamed from veth11d308f
+Apr 09 10:18:08 atlas1 kernel: br-6f8e920d52e8: port 1(veth73e3064) entered blocking state
+Apr 09 10:18:08 atlas1 kernel: br-6f8e920d52e8: port 1(veth73e3064) entered forwarding state
+Apr 09 10:18:08 atlas1 kernel: docker0: port 1(vethedaafbb) entered blocking state
+Apr 09 10:18:08 atlas1 kernel: docker0: port 1(vethedaafbb) entered disabled state
+Apr 09 10:18:08 atlas1 kernel: vethedaafbb: entered allmulticast mode
+Apr 09 10:18:08 atlas1 kernel: vethedaafbb: entered promiscuous mode
+Apr 09 10:18:08 atlas1 kernel: eth0: renamed from veth436d3ac
+Apr 09 10:18:08 atlas1 kernel: docker0: port 1(vethedaafbb) entered blocking state
+Apr 09 10:18:08 atlas1 kernel: docker0: port 1(vethedaafbb) entered forwarding state
+Apr 09 10:18:08 atlas1 kernel: br-dc9497bea247: port 1(vethff37c45) entered blocking state
+Apr 09 10:18:08 atlas1 kernel: br-dc9497bea247: port 1(vethff37c45) entered disabled state
+Apr 09 10:18:08 atlas1 kernel: vethff37c45: entered allmulticast mode
+Apr 09 10:18:08 atlas1 kernel: vethff37c45: entered promiscuous mode
+Apr 09 10:18:08 atlas1 kernel: eth1: renamed from vethc517cc2
+Apr 09 10:18:08 atlas1 kernel: br-dc9497bea247: port 1(vethff37c45) entered blocking state
+Apr 09 10:18:08 atlas1 kernel: br-dc9497bea247: port 1(vethff37c45) entered forwarding state
+Apr 09 10:18:09 atlas1 kernel: warning: `P[proc]' uses wireless extensions which will stop working for Wi-Fi 7 hardware; use nl80211
+Apr 09 10:18:12 atlas1 kernel: wireguard: WireGuard 1.0.0 loaded. See www.wireguard.com for information.
+Apr 09 10:18:12 atlas1 kernel: wireguard: Copyright (C) 2015-2019 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.
+Apr 09 10:18:40 atlas1 kernel: usb 5-2: USB disconnect, device number 2
+Apr 09 10:18:40 atlas1 kernel: usb 5-2.1: USB disconnect, device number 3
+Apr 09 10:18:40 atlas1 kernel: usb 5-2.2: USB disconnect, device number 4
+Apr 09 10:18:40 atlas1 kernel: usb 6-2: USB disconnect, device number 2
+Apr 09 10:18:40 atlas1 kernel: usb 6-2.1: USB disconnect, device number 3
+Apr 09 10:18:40 atlas1 kernel: r8152-cfgselector 6-2.1.2: USB disconnect, device number 4
+Apr 09 10:18:40 atlas1 kernel: usb 5-2.3: USB disconnect, device number 5
+Apr 09 10:18:40 atlas1 kernel: usb 5-2.4: USB disconnect, device number 6
+Apr 09 10:18:40 atlas1 kernel: usb 5-2.5: USB disconnect, device number 7
+Apr 09 10:25:54 atlas1 kernel: wlp8s0: deauthenticated from 7a:8d:af:1c:e0:e2 (Reason: 1=UNSPECIFIED)
+Apr 09 10:25:57 atlas1 kernel: wlp8s0: authenticate with 78:8d:af:1c:e0:e0 (local address=d8:b3:2f:0e:49:d5)
+Apr 09 10:25:57 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 1/3)
+Apr 09 10:25:57 atlas1 kernel: wlp8s0: authenticated
+Apr 09 10:25:57 atlas1 kernel: wlp8s0: associate with 78:8d:af:1c:e0:e0 (try 1/3)
+Apr 09 10:25:57 atlas1 kernel: wlp8s0: RX AssocResp from 78:8d:af:1c:e0:e0 (capab=0x1411 status=0 aid=25)
+Apr 09 10:25:57 atlas1 kernel: wlp8s0: associated
+Apr 09 10:25:57 atlas1 kernel: wlp8s0: Limiting TX power to 30 (30 - 0) dBm as advertised by 78:8d:af:1c:e0:e0
+Apr 09 10:35:01 atlas1 kernel: wlp8s0: disconnect from AP 78:8d:af:1c:e0:e0 for new auth to 7a:8d:af:1c:e0:e2
+Apr 09 10:35:01 atlas1 kernel: wlp8s0: authenticate with 7a:8d:af:1c:e0:e2 (local address=d8:b3:2f:0e:49:d5)
+Apr 09 10:35:01 atlas1 kernel: wlp8s0: send auth to 7a:8d:af:1c:e0:e2 (try 1/3)
+Apr 09 10:35:01 atlas1 kernel: wlp8s0: authenticated
+Apr 09 10:35:01 atlas1 kernel: wlp8s0: associate with 7a:8d:af:1c:e0:e2 (try 1/3)
+Apr 09 10:35:01 atlas1 kernel: wlp8s0: RX ReassocResp from 7a:8d:af:1c:e0:e2 (capab=0x1011 status=0 aid=13)
+Apr 09 10:35:02 atlas1 kernel: wlp8s0: associated
+Apr 09 10:35:02 atlas1 kernel: wlp8s0: Limiting TX power to 24 (24 - 0) dBm as advertised by 7a:8d:af:1c:e0:e2
+Apr 09 14:00:49 atlas1 kernel: audit: type=1400 audit(1775743249.206:138): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.128556370949936" pid=15649 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 09 14:00:49 atlas1 kernel: audit: type=1400 audit(1775743249.209:139): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/apt.cpython-312.pyc.128556371123696" pid=15649 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 09 14:00:49 atlas1 kernel: audit: type=1400 audit(1775743249.210:140): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.124330304753072" pid=15650 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 09 14:00:49 atlas1 kernel: audit: type=1400 audit(1775743249.211:141): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/log.cpython-312.pyc.124330306304384" pid=15650 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 09 14:00:49 atlas1 kernel: audit: type=1400 audit(1775743249.215:142): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/defaults.cpython-312.pyc.124330303641648" pid=15650 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 09 14:00:49 atlas1 kernel: audit: type=1400 audit(1775743249.215:143): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/secret_manager.cpython-312.pyc.124330303641648" pid=15650 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 09 14:00:49 atlas1 kernel: audit: type=1400 audit(1775743249.218:144): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/system.cpython-312.pyc.124330303643696" pid=15650 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 09 14:00:49 atlas1 kernel: audit: type=1400 audit(1775743249.223:145): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/exceptions.cpython-312.pyc.124330304073264" pid=15650 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 09 14:00:49 atlas1 kernel: audit: type=1400 audit(1775743249.227:146): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/__init__.cpython-312.pyc.124330302864688" pid=15650 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 09 14:00:49 atlas1 kernel: audit: type=1400 audit(1775743249.228:147): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/urls.cpython-312.pyc.124330302864688" pid=15650 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 05:44:49 atlas1 kernel: kauditd_printk_skb: 93 callbacks suppressed
+Apr 10 05:44:49 atlas1 kernel: audit: type=1400 audit(1775799889.195:241): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.129438502270768" pid=66864 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 05:44:49 atlas1 kernel: audit: type=1400 audit(1775799889.197:242): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/apt.cpython-312.pyc.129438502444528" pid=66864 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 05:44:49 atlas1 kernel: audit: type=1400 audit(1775799889.201:243): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.127645402926512" pid=66865 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 05:44:49 atlas1 kernel: audit: type=1400 audit(1775799889.202:244): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/log.cpython-312.pyc.127645404477824" pid=66865 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 05:44:49 atlas1 kernel: audit: type=1400 audit(1775799889.205:245): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/defaults.cpython-312.pyc.127645401815088" pid=66865 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 05:44:49 atlas1 kernel: audit: type=1400 audit(1775799889.205:246): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/secret_manager.cpython-312.pyc.127645401815088" pid=66865 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 05:44:49 atlas1 kernel: audit: type=1400 audit(1775799889.208:247): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/system.cpython-312.pyc.127645401817136" pid=66865 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 05:44:49 atlas1 kernel: audit: type=1400 audit(1775799889.213:248): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/exceptions.cpython-312.pyc.127645402279472" pid=66865 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 05:44:49 atlas1 kernel: audit: type=1400 audit(1775799889.216:249): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/__init__.cpython-312.pyc.127645401038128" pid=66865 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 05:44:49 atlas1 kernel: audit: type=1400 audit(1775799889.216:250): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/urls.cpython-312.pyc.127645401038128" pid=66865 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 06:37:01 atlas1 systemd[1]: systemd 255.4-1ubuntu8.14 running in system mode (+PAM +AUDIT +SELINUX +APPARMOR +IMA +SMACK +SECCOMP +GCRYPT -GNUTLS +OPENSSL +ACL +BLKID +CURL +ELFUTILS +FIDO2 +IDN2 -IDN +IPTC +KMOD +LIBCRYPTSETUP +LIBFDISK +PCRE2 -PWQUALITY +P11KIT +QRENCODE +TPM2 +BZIP2 +LZ4 +XZ +ZLIB +ZSTD -BPF_FRAMEWORK -XKBCOMMON +UTMP +SYSVINIT default-hierarchy=unified)
+Apr 10 06:37:01 atlas1 systemd[1]: Detected architecture x86-64.
+Apr 10 06:37:01 atlas1 kernel: wlp8s0: deauthenticating from 7a:8d:af:1c:e0:e2 by local choice (Reason: 3=DEAUTH_LEAVING)
+Apr 10 06:37:01 atlas1 systemd-journald[469]: Received SIGTERM from PID 1 (systemd).
+Apr 10 06:37:01 atlas1 systemd[1]: Stopping systemd-journald.service - Journal Service...
+Apr 10 06:37:01 atlas1 systemd[1]: Stopping systemd-journald@netdata.service - Journal Service for Namespace netdata...
+Apr 10 06:37:01 atlas1 systemd[1]: Stopping systemd-machined.service - Virtual Machine and Container Registration Service...
+Apr 10 06:37:01 atlas1 systemd[1]: netplan-ovs-cleanup.service - OpenVSwitch configuration for cleanup was skipped because of an unmet condition check (ConditionFileIsExecutable=/usr/bin/ovs-vsctl).
+Apr 10 06:37:01 atlas1 systemd[1]: systemd-networkd-wait-online.service: Deactivated successfully.
+Apr 10 06:37:01 atlas1 systemd[1]: Stopped systemd-networkd-wait-online.service - Wait for Network to be Configured.
+Apr 10 06:37:01 atlas1 systemd[1]: Stopping systemd-networkd-wait-online.service - Wait for Network to be Configured...
+Apr 10 06:37:01 atlas1 systemd[1]: Stopping systemd-networkd.service - Network Configuration...
+Apr 10 06:37:01 atlas1 systemd[1]: Stopping systemd-resolved.service - Network Name Resolution...
+Apr 10 06:37:01 atlas1 systemd[1]: Stopping systemd-timesyncd.service - Network Time Synchronization...
+Apr 10 06:37:01 atlas1 systemd[1]: Stopping udisks2.service - Disk Manager...
+Apr 10 06:37:01 atlas1 systemd[1]: Stopping upower.service - Daemon for power management...
+Apr 10 06:37:01 atlas1 systemd[1]: upower.service: Deactivated successfully.
+Apr 10 06:37:01 atlas1 systemd[1]: Stopped upower.service - Daemon for power management.
+Apr 10 06:37:01 atlas1 systemd[1]: Starting upower.service - Daemon for power management...
+Apr 10 06:37:01 atlas1 systemd[1]: systemd-machined.service: Deactivated successfully.
+Apr 10 06:37:01 atlas1 systemd[1]: Stopped systemd-machined.service - Virtual Machine and Container Registration Service.
+Apr 10 06:37:01 atlas1 systemd[1]: udisks2.service: Deactivated successfully.
+Apr 10 06:37:01 atlas1 systemd[1]: Stopped udisks2.service - Disk Manager.
+Apr 10 06:37:01 atlas1 systemd[1]: udisks2.service: Consumed 1.095s CPU time, 10.5M memory peak, 0B memory swap peak.
+Apr 10 06:37:01 atlas1 systemd[1]: systemd-resolved.service: Deactivated successfully.
+Apr 10 06:37:01 atlas1 systemd[1]: Stopped systemd-resolved.service - Network Name Resolution.
+Apr 10 06:37:01 atlas1 systemd[1]: fwupd.service: Deactivated successfully.
+Apr 10 06:37:01 atlas1 systemd[1]: Stopped fwupd.service - Firmware update daemon.
+Apr 10 06:37:01 atlas1 systemd[1]: fwupd.service: Consumed 2.929s CPU time, 192.3M memory peak, 0B memory swap peak.
+Apr 10 06:37:01 atlas1 systemd[1]: systemd-timesyncd.service: Deactivated successfully.
+Apr 10 06:37:01 atlas1 systemd[1]: Stopped systemd-timesyncd.service - Network Time Synchronization.
+Apr 10 06:37:01 atlas1 systemd[1]: packagekit.service: Deactivated successfully.
+Apr 10 06:37:01 atlas1 systemd[1]: Stopped packagekit.service - PackageKit Daemon.
+Apr 10 06:37:01 atlas1 systemd[1]: var-lib-machines.mount - Virtual Machine and Container Storage (Compatibility) was skipped because of an unmet condition check (ConditionPathExists=/var/lib/machines.raw).
+Apr 10 06:37:01 atlas1 systemd[1]: Starting fwupd.service - Firmware update daemon...
+Apr 10 06:37:01 atlas1 systemd[1]: Starting packagekit.service - PackageKit Daemon...
+Apr 10 06:37:01 atlas1 systemd[1]: Starting systemd-machined.service - Virtual Machine and Container Registration Service...
+Apr 10 06:37:01 atlas1 systemd[1]: Starting systemd-resolved.service - Network Name Resolution...
+Apr 10 06:37:01 atlas1 systemd[1]: Starting systemd-timesyncd.service - Network Time Synchronization...
+Apr 10 06:37:01 atlas1 systemd[1]: Starting udisks2.service - Disk Manager...
+Apr 10 06:37:01 atlas1 systemd[1]: Started systemd-machined.service - Virtual Machine and Container Registration Service.
+Apr 10 06:37:01 atlas1 systemd[1]: systemd-journald.service: Deactivated successfully.
+Apr 10 06:37:01 atlas1 systemd[1]: Stopped systemd-journald.service - Journal Service.
+Apr 10 06:37:01 atlas1 systemd[1]: systemd-journald@netdata.service: Deactivated successfully.
+Apr 10 06:37:01 atlas1 systemd[1]: Stopped systemd-journald@netdata.service - Journal Service for Namespace netdata.
+Apr 10 06:37:01 atlas1 systemd[1]: Starting systemd-journald.service - Journal Service...
+Apr 10 06:37:01 atlas1 systemd[1]: Starting systemd-journald@netdata.service - Journal Service for Namespace netdata...
+Apr 10 06:37:01 atlas1 systemd-journald[71241]: Collecting audit messages is disabled.
+Apr 10 06:37:01 atlas1 systemd[1]: Started upower.service - Daemon for power management.
+Apr 10 06:37:01 atlas1 systemd[1]: Started systemd-timesyncd.service - Network Time Synchronization.
+Apr 10 06:37:01 atlas1 systemd[1]: Started udisks2.service - Disk Manager.
+Apr 10 06:37:01 atlas1 systemd[1]: Started systemd-journald@netdata.service - Journal Service for Namespace netdata.
+Apr 10 06:37:01 atlas1 systemd[1]: Started systemd-journald.service - Journal Service.
+Apr 10 06:37:04 atlas1 kernel: wlp8s0: authenticate with 78:8d:af:1c:e0:e0 (local address=d8:b3:2f:0e:49:d5)
+Apr 10 06:37:05 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 1/3)
+Apr 10 06:37:05 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 2/3)
+Apr 10 06:37:05 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 3/3)
+Apr 10 06:37:05 atlas1 kernel: wlp8s0: authentication with 78:8d:af:1c:e0:e0 timed out
+Apr 10 06:37:08 atlas1 kernel: wlp8s0: authenticate with 78:8d:af:1c:e0:e0 (local address=d8:b3:2f:0e:49:d5)
+Apr 10 06:37:08 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 1/3)
+Apr 10 06:37:08 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 2/3)
+Apr 10 06:37:08 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 3/3)
+Apr 10 06:37:09 atlas1 kernel: wlp8s0: authentication with 78:8d:af:1c:e0:e0 timed out
+Apr 10 06:37:12 atlas1 kernel: wlp8s0: authenticate with 78:8d:af:1c:e0:e0 (local address=d8:b3:2f:0e:49:d5)
+Apr 10 06:37:12 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 1/3)
+Apr 10 06:37:12 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 2/3)
+Apr 10 06:37:12 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 3/3)
+Apr 10 06:37:12 atlas1 kernel: wlp8s0: authentication with 78:8d:af:1c:e0:e0 timed out
+Apr 10 06:37:16 atlas1 kernel: wlp8s0: authenticate with 78:8d:af:1c:e0:e0 (local address=d8:b3:2f:0e:49:d5)
+Apr 10 06:37:16 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 1/3)
+Apr 10 06:37:16 atlas1 kernel: wlp8s0: authenticated
+Apr 10 06:37:16 atlas1 kernel: wlp8s0: associate with 78:8d:af:1c:e0:e0 (try 1/3)
+Apr 10 06:37:16 atlas1 kernel: wlp8s0: RX AssocResp from 78:8d:af:1c:e0:e0 (capab=0x1411 status=0 aid=8)
+Apr 10 06:37:16 atlas1 kernel: wlp8s0: associated
+Apr 10 06:37:16 atlas1 kernel: wlp8s0: Limiting TX power to 30 (30 - 0) dBm as advertised by 78:8d:af:1c:e0:e0
+Apr 10 06:38:53 atlas1 kernel: kauditd_printk_skb: 93 callbacks suppressed
+Apr 10 06:38:53 atlas1 kernel: audit: type=1400 audit(1775803133.118:344): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.136970161534768" pid=72453 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 06:38:53 atlas1 kernel: audit: type=1400 audit(1775803133.120:345): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/apt.cpython-312.pyc.136970161708528" pid=72453 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 06:38:53 atlas1 kernel: audit: type=1400 audit(1775803133.124:346): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.129487729986992" pid=72454 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 06:38:53 atlas1 kernel: audit: type=1400 audit(1775803133.124:347): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/log.cpython-312.pyc.129487731538304" pid=72454 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 06:38:53 atlas1 kernel: audit: type=1400 audit(1775803133.128:348): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/defaults.cpython-312.pyc.129487728875568" pid=72454 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 06:38:53 atlas1 kernel: audit: type=1400 audit(1775803133.128:349): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/secret_manager.cpython-312.pyc.129487728875568" pid=72454 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 06:38:53 atlas1 kernel: audit: type=1400 audit(1775803133.130:350): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/system.cpython-312.pyc.129487728877616" pid=72454 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 06:38:53 atlas1 kernel: audit: type=1400 audit(1775803133.135:351): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/exceptions.cpython-312.pyc.129487729339952" pid=72454 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 06:38:53 atlas1 kernel: audit: type=1400 audit(1775803133.138:352): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/__init__.cpython-312.pyc.129487728098608" pid=72454 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 06:38:53 atlas1 kernel: audit: type=1400 audit(1775803133.139:353): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/urls.cpython-312.pyc.129487728098608" pid=72454 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 10 10:28:27 atlas1 kernel: wlp8s0: deauthenticated from 78:8d:af:1c:e0:e0 (Reason: 1=UNSPECIFIED)
+Apr 10 10:28:30 atlas1 kernel: wlp8s0: authenticate with 7a:8d:af:1c:e0:e2 (local address=d8:b3:2f:0e:49:d5)
+Apr 10 10:28:30 atlas1 kernel: wlp8s0: send auth to 7a:8d:af:1c:e0:e2 (try 1/3)
+Apr 10 10:28:30 atlas1 kernel: wlp8s0: authenticated
+Apr 10 10:28:30 atlas1 kernel: wlp8s0: associate with 7a:8d:af:1c:e0:e2 (try 1/3)
+Apr 10 10:28:30 atlas1 kernel: wlp8s0: RX AssocResp from 7a:8d:af:1c:e0:e2 (capab=0x1011 status=0 aid=21)
+Apr 10 10:28:30 atlas1 kernel: wlp8s0: associated
+Apr 10 10:28:30 atlas1 kernel: wlp8s0: Limiting TX power to 24 (24 - 0) dBm as advertised by 7a:8d:af:1c:e0:e2
+Apr 11 00:04:51 atlas1 kernel: kauditd_printk_skb: 196 callbacks suppressed
+Apr 11 00:04:51 atlas1 kernel: audit: type=1400 audit(1775865891.199:550): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.134403562075952" pid=131171 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 00:04:51 atlas1 kernel: audit: type=1400 audit(1775865891.201:551): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/apt.cpython-312.pyc.134403562249712" pid=131171 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 00:04:51 atlas1 kernel: audit: type=1400 audit(1775865891.205:552): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.138625918848432" pid=131172 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 00:04:51 atlas1 kernel: audit: type=1400 audit(1775865891.205:553): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/log.cpython-312.pyc.138625920399744" pid=131172 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 00:04:51 atlas1 kernel: audit: type=1400 audit(1775865891.209:554): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/defaults.cpython-312.pyc.138625917737008" pid=131172 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 00:04:51 atlas1 kernel: audit: type=1400 audit(1775865891.209:555): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/secret_manager.cpython-312.pyc.138625917737008" pid=131172 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 00:04:51 atlas1 kernel: audit: type=1400 audit(1775865891.211:556): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/system.cpython-312.pyc.138625917739056" pid=131172 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 00:04:51 atlas1 kernel: audit: type=1400 audit(1775865891.216:557): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/exceptions.cpython-312.pyc.138625918168624" pid=131172 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 00:04:51 atlas1 kernel: audit: type=1400 audit(1775865891.219:558): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/__init__.cpython-312.pyc.138625916960048" pid=131172 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 00:04:51 atlas1 kernel: audit: type=1400 audit(1775865891.220:559): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/urls.cpython-312.pyc.138625916960048" pid=131172 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 06:25:17 atlas1 kernel: kauditd_printk_skb: 93 callbacks suppressed
+Apr 11 06:25:17 atlas1 kernel: audit: type=1400 audit(1775888717.882:653): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.135475949123376" pid=152209 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 06:25:17 atlas1 kernel: audit: type=1400 audit(1775888717.885:654): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/apt.cpython-312.pyc.135475949297136" pid=152209 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 06:25:17 atlas1 kernel: audit: type=1400 audit(1775888717.888:655): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.123617177636272" pid=152210 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 06:25:17 atlas1 kernel: audit: type=1400 audit(1775888717.888:656): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/log.cpython-312.pyc.123617182333312" pid=152210 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 06:25:17 atlas1 kernel: audit: type=1400 audit(1775888717.892:657): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/defaults.cpython-312.pyc.123617176524848" pid=152210 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 06:25:17 atlas1 kernel: audit: type=1400 audit(1775888717.892:658): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/secret_manager.cpython-312.pyc.123617176524848" pid=152210 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 06:25:17 atlas1 kernel: audit: type=1400 audit(1775888717.895:659): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/system.cpython-312.pyc.123617176526896" pid=152210 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 06:25:17 atlas1 kernel: audit: type=1400 audit(1775888717.899:660): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/exceptions.cpython-312.pyc.123617176989232" pid=152210 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 06:25:17 atlas1 kernel: audit: type=1400 audit(1775888717.902:661): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/__init__.cpython-312.pyc.123617175747888" pid=152210 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 06:25:17 atlas1 kernel: audit: type=1400 audit(1775888717.903:662): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/urls.cpython-312.pyc.123617175747888" pid=152210 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 06:25:23 atlas1 kernel: kauditd_printk_skb: 93 callbacks suppressed
+Apr 11 06:25:23 atlas1 kernel: audit: type=1400 audit(1775888723.510:756): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.125916863969072" pid=152608 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 06:25:23 atlas1 kernel: audit: type=1400 audit(1775888723.513:757): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/apt.cpython-312.pyc.125916864142832" pid=152608 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 06:25:23 atlas1 kernel: audit: type=1400 audit(1775888723.516:758): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.124352299666864" pid=152609 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 06:25:23 atlas1 kernel: audit: type=1400 audit(1775888723.516:759): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/log.cpython-312.pyc.124352301218176" pid=152609 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 06:25:23 atlas1 kernel: audit: type=1400 audit(1775888723.520:760): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/defaults.cpython-312.pyc.124352298555440" pid=152609 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 06:25:23 atlas1 kernel: audit: type=1400 audit(1775888723.520:761): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/secret_manager.cpython-312.pyc.124352298555440" pid=152609 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 06:25:23 atlas1 kernel: audit: type=1400 audit(1775888723.522:762): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/system.cpython-312.pyc.124352298557488" pid=152609 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 06:25:23 atlas1 kernel: audit: type=1400 audit(1775888723.527:763): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/exceptions.cpython-312.pyc.124352299019824" pid=152609 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 06:25:23 atlas1 kernel: audit: type=1400 audit(1775888723.530:764): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/__init__.cpython-312.pyc.124352297778480" pid=152609 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 11 06:25:23 atlas1 kernel: audit: type=1400 audit(1775888723.531:765): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/urls.cpython-312.pyc.124352297778480" pid=152609 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 12 00:12:19 atlas1 kernel: kauditd_printk_skb: 93 callbacks suppressed
+Apr 12 00:12:19 atlas1 kernel: audit: type=1400 audit(1775952739.202:859): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.134683466708784" pid=212335 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 12 00:12:19 atlas1 kernel: audit: type=1400 audit(1775952739.205:860): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/apt.cpython-312.pyc.134683466882544" pid=212335 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 12 00:12:19 atlas1 kernel: audit: type=1400 audit(1775952739.208:861): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.131794024664496" pid=212336 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 12 00:12:19 atlas1 kernel: audit: type=1400 audit(1775952739.208:862): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/log.cpython-312.pyc.131794026215808" pid=212336 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 12 00:12:19 atlas1 kernel: audit: type=1400 audit(1775952739.212:863): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/defaults.cpython-312.pyc.131794023553072" pid=212336 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 12 00:12:19 atlas1 kernel: audit: type=1400 audit(1775952739.212:864): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/secret_manager.cpython-312.pyc.131794023553072" pid=212336 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 12 00:12:19 atlas1 kernel: audit: type=1400 audit(1775952739.214:865): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/system.cpython-312.pyc.131794023555120" pid=212336 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 12 00:12:19 atlas1 kernel: audit: type=1400 audit(1775952739.220:866): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/exceptions.cpython-312.pyc.131794024017456" pid=212336 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 12 00:12:19 atlas1 kernel: audit: type=1400 audit(1775952739.223:867): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/__init__.cpython-312.pyc.131794022776112" pid=212336 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 12 00:12:19 atlas1 kernel: audit: type=1400 audit(1775952739.223:868): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/urls.cpython-312.pyc.131794022776112" pid=212336 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 12 07:11:40 atlas1 kernel: kauditd_printk_skb: 93 callbacks suppressed
+Apr 12 07:11:40 atlas1 kernel: audit: type=1400 audit(1775977900.708:962): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.131585103017776" pid=235625 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 12 07:11:40 atlas1 kernel: audit: type=1400 audit(1775977900.711:963): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/apt.cpython-312.pyc.131585103191536" pid=235625 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 12 07:11:40 atlas1 kernel: audit: type=1400 audit(1775977900.714:964): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.140518333238704" pid=235626 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 12 07:11:40 atlas1 kernel: audit: type=1400 audit(1775977900.714:965): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/log.cpython-312.pyc.140518337935744" pid=235626 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 12 07:11:40 atlas1 kernel: audit: type=1400 audit(1775977900.718:966): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/defaults.cpython-312.pyc.140518332127280" pid=235626 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 12 07:11:40 atlas1 kernel: audit: type=1400 audit(1775977900.718:967): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/secret_manager.cpython-312.pyc.140518332127280" pid=235626 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 12 07:11:40 atlas1 kernel: audit: type=1400 audit(1775977900.720:968): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/system.cpython-312.pyc.140518332129328" pid=235626 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 12 07:11:40 atlas1 kernel: audit: type=1400 audit(1775977900.725:969): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/exceptions.cpython-312.pyc.140518332558896" pid=235626 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 12 07:11:40 atlas1 kernel: audit: type=1400 audit(1775977900.728:970): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/__init__.cpython-312.pyc.140518331350320" pid=235626 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 12 07:11:40 atlas1 kernel: audit: type=1400 audit(1775977900.729:971): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/urls.cpython-312.pyc.140518331350320" pid=235626 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 13 03:01:41 atlas1 kernel: kauditd_printk_skb: 196 callbacks suppressed
+Apr 13 03:01:41 atlas1 kernel: audit: type=1400 audit(1776049301.982:1168): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.130087451277104" pid=302107 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 13 03:01:41 atlas1 kernel: audit: type=1400 audit(1776049301.985:1169): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/apt.cpython-312.pyc.130087451450864" pid=302107 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 13 03:01:41 atlas1 kernel: audit: type=1400 audit(1776049301.988:1170): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.130922058223024" pid=302108 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 13 03:01:41 atlas1 kernel: audit: type=1400 audit(1776049301.988:1171): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/log.cpython-312.pyc.130922059774336" pid=302108 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 13 03:01:41 atlas1 kernel: audit: type=1400 audit(1776049301.992:1172): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/defaults.cpython-312.pyc.130922057111600" pid=302108 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 13 03:01:41 atlas1 kernel: audit: type=1400 audit(1776049301.992:1173): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/secret_manager.cpython-312.pyc.130922057111600" pid=302108 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 13 03:01:41 atlas1 kernel: audit: type=1400 audit(1776049301.995:1174): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/system.cpython-312.pyc.130922057113648" pid=302108 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 13 03:01:42 atlas1 kernel: audit: type=1400 audit(1776049301.999:1175): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/exceptions.cpython-312.pyc.130922057575984" pid=302108 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 13 03:01:42 atlas1 kernel: audit: type=1400 audit(1776049302.002:1176): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/__init__.cpython-312.pyc.130922056334640" pid=302108 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 13 03:01:42 atlas1 kernel: audit: type=1400 audit(1776049302.003:1177): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/urls.cpython-312.pyc.130922056334640" pid=302108 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 13 06:41:11 atlas1 kernel: kauditd_printk_skb: 93 callbacks suppressed
+Apr 13 06:41:11 atlas1 kernel: audit: type=1400 audit(1776062471.775:1271): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.133629618616112" pid=314677 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 13 06:41:11 atlas1 kernel: audit: type=1400 audit(1776062471.778:1272): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/apt.cpython-312.pyc.133629618789872" pid=314677 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 13 06:41:11 atlas1 kernel: audit: type=1400 audit(1776062471.781:1273): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.125588458589616" pid=314678 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 13 06:41:11 atlas1 kernel: audit: type=1400 audit(1776062471.781:1274): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/log.cpython-312.pyc.125588463286656" pid=314678 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 13 06:41:11 atlas1 kernel: audit: type=1400 audit(1776062471.785:1275): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/defaults.cpython-312.pyc.125588457478192" pid=314678 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 13 06:41:11 atlas1 kernel: audit: type=1400 audit(1776062471.785:1276): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/secret_manager.cpython-312.pyc.125588457478192" pid=314678 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 13 06:41:11 atlas1 kernel: audit: type=1400 audit(1776062471.788:1277): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/system.cpython-312.pyc.125588457480240" pid=314678 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 13 06:41:11 atlas1 kernel: audit: type=1400 audit(1776062471.793:1278): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/exceptions.cpython-312.pyc.125588457909808" pid=314678 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 13 06:41:11 atlas1 kernel: audit: type=1400 audit(1776062471.796:1279): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/__init__.cpython-312.pyc.125588456701232" pid=314678 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 13 06:41:11 atlas1 kernel: audit: type=1400 audit(1776062471.796:1280): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/urls.cpython-312.pyc.125588456701232" pid=314678 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 05:10:18 atlas1 kernel: kauditd_printk_skb: 196 callbacks suppressed
+Apr 14 05:10:18 atlas1 kernel: audit: type=1400 audit(1776143418.215:1477): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.139828577630000" pid=389745 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 05:10:18 atlas1 kernel: audit: type=1400 audit(1776143418.218:1478): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/apt.cpython-312.pyc.139828577803760" pid=389745 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 05:10:18 atlas1 kernel: audit: type=1400 audit(1776143418.221:1479): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.128010387082672" pid=389746 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 05:10:18 atlas1 kernel: audit: type=1400 audit(1776143418.221:1480): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/log.cpython-312.pyc.128010388633984" pid=389746 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 05:10:18 atlas1 kernel: audit: type=1400 audit(1776143418.225:1481): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/defaults.cpython-312.pyc.128010385971248" pid=389746 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 05:10:18 atlas1 kernel: audit: type=1400 audit(1776143418.225:1482): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/secret_manager.cpython-312.pyc.128010385971248" pid=389746 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 05:10:18 atlas1 kernel: audit: type=1400 audit(1776143418.227:1483): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/system.cpython-312.pyc.128010385973296" pid=389746 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 05:10:18 atlas1 kernel: audit: type=1400 audit(1776143418.232:1484): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/exceptions.cpython-312.pyc.128010386402864" pid=389746 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 05:10:18 atlas1 kernel: audit: type=1400 audit(1776143418.235:1485): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/__init__.cpython-312.pyc.128010385194288" pid=389746 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 05:10:18 atlas1 kernel: audit: type=1400 audit(1776143418.236:1486): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/urls.cpython-312.pyc.128010385194288" pid=389746 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 06:25:32 atlas1 kernel: kauditd_printk_skb: 93 callbacks suppressed
+Apr 14 06:25:32 atlas1 kernel: audit: type=1400 audit(1776147932.965:1580): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.140597850732336" pid=394370 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 06:25:32 atlas1 kernel: audit: type=1400 audit(1776147932.968:1581): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/apt.cpython-312.pyc.140597850906096" pid=394370 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 06:25:32 atlas1 kernel: audit: type=1400 audit(1776147932.971:1582): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.129096747077040" pid=394371 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 06:25:32 atlas1 kernel: audit: type=1400 audit(1776147932.972:1583): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/log.cpython-312.pyc.129096748611968" pid=394371 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 06:25:32 atlas1 kernel: audit: type=1400 audit(1776147932.976:1584): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/defaults.cpython-312.pyc.129096745982000" pid=394371 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 06:25:32 atlas1 kernel: audit: type=1400 audit(1776147932.976:1585): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/secret_manager.cpython-312.pyc.129096745982000" pid=394371 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 06:25:32 atlas1 kernel: audit: type=1400 audit(1776147932.978:1586): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/system.cpython-312.pyc.129096745984048" pid=394371 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 06:25:32 atlas1 kernel: audit: type=1400 audit(1776147932.983:1587): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/exceptions.cpython-312.pyc.129096746397232" pid=394371 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 06:25:32 atlas1 kernel: audit: type=1400 audit(1776147932.986:1588): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/__init__.cpython-312.pyc.129096745221424" pid=394371 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 06:25:32 atlas1 kernel: audit: type=1400 audit(1776147932.987:1589): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/urls.cpython-312.pyc.129096745221424" pid=394371 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 06:25:37 atlas1 kernel: kauditd_printk_skb: 117 callbacks suppressed
+Apr 14 06:25:37 atlas1 kernel: audit: type=1400 audit(1776147937.966:1707): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/system.cpython-312.pyc.140613795903408" pid=394771 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 06:25:37 atlas1 kernel: audit: type=1400 audit(1776147937.966:1708): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/event_logger.cpython-312.pyc.127682855121456" pid=394772 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 06:25:37 atlas1 kernel: audit: type=1400 audit(1776147937.966:1709): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/yaml.cpython-312.pyc.127682843536432" pid=394772 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 06:25:37 atlas1 kernel: audit: type=1400 audit(1776147937.967:1710): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/files/__pycache__/__init__.cpython-312.pyc.140613796177072" pid=394771 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 06:25:37 atlas1 kernel: audit: type=1400 audit(1776147937.967:1711): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/files/__pycache__/data_types.cpython-312.pyc.140613796177072" pid=394771 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 06:25:37 atlas1 kernel: audit: type=1400 audit(1776147937.969:1712): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/data_types.cpython-312.pyc.140613796177072" pid=394771 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 06:25:37 atlas1 kernel: audit: type=1400 audit(1776147937.969:1713): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/files/__pycache__/files.cpython-312.pyc.140613796181296" pid=394771 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 06:25:37 atlas1 kernel: audit: type=1400 audit(1776147937.970:1714): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/files/__pycache__/machine_token.cpython-312.pyc.140613796178096" pid=394771 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 06:25:37 atlas1 kernel: audit: type=1400 audit(1776147937.971:1715): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/gpg.cpython-312.pyc.127682835293872" pid=394772 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 06:25:37 atlas1 kernel: audit: type=1400 audit(1776147937.971:1716): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/files/__pycache__/__init__.cpython-312.pyc.127682843867312" pid=394772 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 14 15:42:54 atlas1 systemd-journald[71241]: /var/log/journal/68dbb9c47c634af1ae594fe894b8af6b/user-1000.journal: Journal file uses a different sequence number ID, rotating.
+Apr 14 15:42:54 atlas1 systemd-journald[71241]: Failed to read journal file /var/log/journal/68dbb9c47c634af1ae594fe894b8af6b/user-1001.journal for rotation, trying to move it out of the way: Device or resource busy
+--- journalctl current boot kernel ---
+Apr 15 10:50:56 atlas1 systemd[1]: Starting keyboard-setup.service - Set the console keyboard layout...
+Apr 15 10:50:56 atlas1 systemd[1]: Starting kmod-static-nodes.service - Create List of Static Device Nodes...
+Apr 15 10:50:56 atlas1 systemd[1]: Starting lvm2-monitor.service - Monitoring of LVM2 mirrors, snapshots etc. using dmeventd or progress polling...
+Apr 15 10:50:56 atlas1 systemd-journald[484]: Collecting audit messages is disabled.
+Apr 15 10:50:56 atlas1 systemd[1]: Starting modprobe@configfs.service - Load Kernel Module configfs...
+Apr 15 10:50:56 atlas1 systemd[1]: Starting modprobe@dm_mod.service - Load Kernel Module dm_mod...
+Apr 15 10:50:56 atlas1 systemd[1]: Starting modprobe@drm.service - Load Kernel Module drm...
+Apr 15 10:50:56 atlas1 systemd[1]: Starting modprobe@efi_pstore.service - Load Kernel Module efi_pstore...
+Apr 15 10:50:56 atlas1 systemd[1]: Starting modprobe@fuse.service - Load Kernel Module fuse...
+Apr 15 10:50:56 atlas1 kernel: pstore: Using crash dump compression: deflate
+Apr 15 10:50:56 atlas1 systemd[1]: Starting modprobe@loop.service - Load Kernel Module loop...
+Apr 15 10:50:56 atlas1 systemd[1]: netplan-ovs-cleanup.service - OpenVSwitch configuration for cleanup was skipped because of an unmet condition check (ConditionFileIsExecutable=/usr/bin/ovs-vsctl).
+Apr 15 10:50:56 atlas1 kernel: pstore: Registered efi_pstore as persistent store backend
+Apr 15 10:50:56 atlas1 systemd[1]: systemd-fsck-root.service - File System Check on Root Device was skipped because of an unmet condition check (ConditionPathExists=!/run/initramfs/fsck-root).
+Apr 15 10:50:56 atlas1 systemd[1]: Starting systemd-modules-load.service - Load Kernel Modules...
+Apr 15 10:50:56 atlas1 systemd[1]: systemd-pcrmachine.service - TPM2 PCR Machine ID Measurement was skipped because of an unmet condition check (ConditionSecurity=measured-uki).
+Apr 15 10:50:56 atlas1 systemd[1]: Starting systemd-remount-fs.service - Remount Root and Kernel File Systems...
+Apr 15 10:50:56 atlas1 systemd[1]: systemd-tpm2-setup-early.service - TPM2 SRK Setup (Early) was skipped because of an unmet condition check (ConditionSecurity=measured-uki).
+Apr 15 10:50:56 atlas1 systemd[1]: Starting systemd-udev-trigger.service - Coldplug All udev Devices...
+Apr 15 10:50:56 atlas1 systemd[1]: Started systemd-journald.service - Journal Service.
+Apr 15 10:50:56 atlas1 kernel: NET: Registered PF_VSOCK protocol family
+Apr 15 10:50:56 atlas1 kernel: EXT4-fs (nvme0n1p4): re-mounted fd8d90bb-53b7-4829-bb31-af67c20ded87 r/w.
+Apr 15 10:50:56 atlas1 kernel: Adding 8388604k swap on /swap.img.  Priority:-2 extents:52 across:260874240k SS
+Apr 15 10:50:56 atlas1 systemd-journald[484]: Received client request to flush runtime journal.
+Apr 15 10:50:56 atlas1 systemd-journald[484]: File /var/log/journal/68dbb9c47c634af1ae594fe894b8af6b/system.journal corrupted or uncleanly shut down, renaming and replacing.
+Apr 15 10:50:56 atlas1 kernel: loop0: detected capacity change from 0 to 42344
+Apr 15 10:50:56 atlas1 kernel: loop1: detected capacity change from 0 to 43696
+Apr 15 10:50:56 atlas1 kernel: loop2: detected capacity change from 0 to 130608
+Apr 15 10:50:56 atlas1 kernel: loop3: detected capacity change from 0 to 130616
+Apr 15 10:50:56 atlas1 kernel: loop4: detected capacity change from 0 to 136872
+Apr 15 10:50:56 atlas1 kernel: loop5: detected capacity change from 0 to 136904
+Apr 15 10:50:56 atlas1 kernel: loop6: detected capacity change from 0 to 3888
+Apr 15 10:50:56 atlas1 kernel: loop7: detected capacity change from 0 to 4064
+Apr 15 10:50:56 atlas1 kernel: loop8: detected capacity change from 0 to 27648
+Apr 15 10:50:56 atlas1 kernel: loop9: detected capacity change from 0 to 27648
+Apr 15 10:50:56 atlas1 kernel: loop10: detected capacity change from 0 to 98480
+Apr 15 10:50:56 atlas1 kernel: loop11: detected capacity change from 0 to 99056
+Apr 15 10:50:56 atlas1 kernel: ccp 0000:0d:00.2: enabling device (0000 -> 0002)
+Apr 15 10:50:56 atlas1 kernel: ccp 0000:0d:00.2: tee enabled
+Apr 15 10:50:56 atlas1 kernel: ccp 0000:0d:00.2: psp enabled
+Apr 15 10:50:56 atlas1 kernel: piix4_smbus 0000:00:14.0: SMBus Host Controller at 0xb00, revision 0
+Apr 15 10:50:56 atlas1 kernel: piix4_smbus 0000:00:14.0: Using register 0x02 for SMBus port selection
+Apr 15 10:50:56 atlas1 kernel: piix4_smbus 0000:00:14.0: Auxiliary SMBus Host Controller at 0xb20
+Apr 15 10:50:56 atlas1 kernel: RAPL PMU: API unit is 2^-32 Joules, 1 fixed counters, 163840 ms ovfl timer
+Apr 15 10:50:56 atlas1 kernel: RAPL PMU: hw unit of domain package 2^-16 Joules
+Apr 15 10:50:56 atlas1 kernel: mc: Linux media interface: v0.10
+Apr 15 10:50:56 atlas1 kernel: cfg80211: Loading compiled-in X.509 certificates for regulatory database
+Apr 15 10:50:56 atlas1 kernel: Loaded X.509 cert 'sforshee: 00b28ddf47aef9cea7'
+Apr 15 10:50:56 atlas1 kernel: Loaded X.509 cert 'wens: 61c038651aabdcf94bd0ac7ff06c7248db18c600'
+Apr 15 10:50:56 atlas1 kernel: Bluetooth: Core ver 2.22
+Apr 15 10:50:56 atlas1 kernel: NET: Registered PF_BLUETOOTH protocol family
+Apr 15 10:50:56 atlas1 kernel: Bluetooth: HCI device and connection manager initialized
+Apr 15 10:50:56 atlas1 kernel: Bluetooth: HCI socket layer initialized
+Apr 15 10:50:56 atlas1 kernel: Bluetooth: L2CAP socket layer initialized
+Apr 15 10:50:56 atlas1 kernel: Bluetooth: SCO socket layer initialized
+Apr 15 10:50:56 atlas1 kernel: snd_hda_intel 0000:01:00.1: enabling device (0000 -> 0002)
+Apr 15 10:50:56 atlas1 kernel: snd_hda_intel 0000:01:00.1: Disabling MSI
+Apr 15 10:50:56 atlas1 kernel: snd_hda_intel 0000:01:00.1: Handle vga_switcheroo audio client
+Apr 15 10:50:56 atlas1 kernel: snd_hda_intel 0000:0d:00.1: enabling device (0000 -> 0002)
+Apr 15 10:50:56 atlas1 kernel: snd_hda_intel 0000:0d:00.1: Handle vga_switcheroo audio client
+Apr 15 10:50:56 atlas1 kernel: snd_hda_intel 0000:0d:00.6: enabling device (0000 -> 0002)
+Apr 15 10:50:56 atlas1 kernel: kvm_amd: TSC scaling supported
+Apr 15 10:50:56 atlas1 kernel: kvm_amd: Nested Virtualization enabled
+Apr 15 10:50:56 atlas1 kernel: kvm_amd: Nested Paging enabled
+Apr 15 10:50:56 atlas1 kernel: kvm_amd: LBR virtualization supported
+Apr 15 10:50:56 atlas1 kernel: kvm_amd: Virtual VMLOAD VMSAVE supported
+Apr 15 10:50:56 atlas1 kernel: kvm_amd: Virtual GIF supported
+Apr 15 10:50:56 atlas1 kernel: kvm_amd: Virtual NMI enabled
+Apr 15 10:50:56 atlas1 kernel: MCE: In-kernel MCE decoding enabled.
+Apr 15 10:50:56 atlas1 kernel: mt7921e 0000:08:00.0: enabling device (0000 -> 0002)
+Apr 15 10:50:56 atlas1 kernel: snd_hda_codec_realtek hdaudioC3D0: autoconfig for ALC897: line_outs=1 (0x14/0x0/0x0/0x0/0x0) type:line
+Apr 15 10:50:56 atlas1 kernel: snd_hda_codec_realtek hdaudioC3D0:    speaker_outs=0 (0x0/0x0/0x0/0x0/0x0)
+Apr 15 10:50:56 atlas1 kernel: snd_hda_codec_realtek hdaudioC3D0:    hp_outs=1 (0x1b/0x0/0x0/0x0/0x0)
+Apr 15 10:50:56 atlas1 kernel: snd_hda_codec_realtek hdaudioC3D0:    mono: mono_out=0x0
+Apr 15 10:50:56 atlas1 kernel: snd_hda_codec_realtek hdaudioC3D0:    inputs:
+Apr 15 10:50:56 atlas1 kernel: snd_hda_codec_realtek hdaudioC3D0:      Rear Mic=0x18
+Apr 15 10:50:56 atlas1 kernel: snd_hda_codec_realtek hdaudioC3D0:      Front Mic=0x19
+Apr 15 10:50:56 atlas1 kernel: snd_hda_codec_realtek hdaudioC3D0:      Line=0x1a
+Apr 15 10:50:56 atlas1 kernel: mt7921e 0000:08:00.0: ASIC revision: 79220010
+Apr 15 10:50:56 atlas1 kernel: usbcore: registered new interface driver btusb
+Apr 15 10:50:56 atlas1 kernel: Bluetooth: hci0: HW/SW Version: 0x008a008a, Build Time: 20250523103438
+Apr 15 10:50:56 atlas1 kernel: audit: type=1400 audit(1776250256.531:2): apparmor="STATUS" operation="profile_load" profile="unconfined" name="element-desktop" pid=807 comm="apparmor_parser"
+Apr 15 10:50:56 atlas1 kernel: audit: type=1400 audit(1776250256.531:3): apparmor="STATUS" operation="profile_load" profile="unconfined" name="crun" pid=805 comm="apparmor_parser"
+Apr 15 10:50:56 atlas1 kernel: audit: type=1400 audit(1776250256.531:4): apparmor="STATUS" operation="profile_load" profile="unconfined" name="1password" pid=790 comm="apparmor_parser"
+Apr 15 10:50:56 atlas1 kernel: audit: type=1400 audit(1776250256.531:5): apparmor="STATUS" operation="profile_load" profile="unconfined" name="QtWebEngineProcess" pid=794 comm="apparmor_parser"
+Apr 15 10:50:56 atlas1 kernel: audit: type=1400 audit(1776250256.531:6): apparmor="STATUS" operation="profile_load" profile="unconfined" name="Discord" pid=791 comm="apparmor_parser"
+Apr 15 10:50:56 atlas1 kernel: audit: type=1400 audit(1776250256.531:7): apparmor="STATUS" operation="profile_load" profile="unconfined" name="brave" pid=796 comm="apparmor_parser"
+Apr 15 10:50:56 atlas1 kernel: audit: type=1400 audit(1776250256.531:8): apparmor="STATUS" operation="profile_load" profile="unconfined" name="buildah" pid=798 comm="apparmor_parser"
+Apr 15 10:50:56 atlas1 kernel: audit: type=1400 audit(1776250256.531:9): apparmor="STATUS" operation="profile_load" profile="unconfined" name=4D6F6E676F444220436F6D70617373 pid=792 comm="apparmor_parser"
+Apr 15 10:50:56 atlas1 kernel: audit: type=1400 audit(1776250256.531:10): apparmor="STATUS" operation="profile_load" profile="unconfined" name="busybox" pid=799 comm="apparmor_parser"
+Apr 15 10:50:56 atlas1 kernel: input: HD-Audio Generic Rear Mic as /devices/pci0000:00/0000:00:08.1/0000:0d:00.6/sound/card3/input22
+Apr 15 10:50:56 atlas1 kernel: input: HD-Audio Generic Front Mic as /devices/pci0000:00/0000:00:08.1/0000:0d:00.6/sound/card3/input23
+Apr 15 10:50:56 atlas1 kernel: nouveau 0000:01:00.0: unknown chipset (1b3000a1)
+Apr 15 10:50:56 atlas1 kernel: input: HD-Audio Generic Line as /devices/pci0000:00/0000:00:08.1/0000:0d:00.6/sound/card3/input24
+Apr 15 10:50:56 atlas1 kernel: mt7921e 0000:08:00.0: HW/SW Version: 0x8a108a10, Build Time: 20250523103150a
+Apr 15 10:50:56 atlas1 kernel: input: HD-Audio Generic Line Out as /devices/pci0000:00/0000:00:08.1/0000:0d:00.6/sound/card3/input25
+Apr 15 10:50:56 atlas1 kernel: input: HD-Audio Generic Front Headphone as /devices/pci0000:00/0000:00:08.1/0000:0d:00.6/sound/card3/input26
+Apr 15 10:50:56 atlas1 kernel: input: HD-Audio Generic HDMI/DP,pcm=3 as /devices/pci0000:00/0000:00:08.1/0000:0d:00.1/sound/card2/input14
+Apr 15 10:50:56 atlas1 kernel: input: HD-Audio Generic HDMI/DP,pcm=7 as /devices/pci0000:00/0000:00:08.1/0000:0d:00.1/sound/card2/input15
+Apr 15 10:50:56 atlas1 kernel: input: HD-Audio Generic HDMI/DP,pcm=8 as /devices/pci0000:00/0000:00:08.1/0000:0d:00.1/sound/card2/input16
+Apr 15 10:50:56 atlas1 kernel: input: HDA NVidia HDMI/DP,pcm=3 as /devices/pci0000:00/0000:00:01.1/0000:01:00.1/sound/card1/input18
+Apr 15 10:50:56 atlas1 kernel: input: HD-Audio Generic HDMI/DP,pcm=9 as /devices/pci0000:00/0000:00:08.1/0000:0d:00.1/sound/card2/input17
+Apr 15 10:50:56 atlas1 kernel: input: HDA NVidia HDMI/DP,pcm=7 as /devices/pci0000:00/0000:00:01.1/0000:01:00.1/sound/card1/input19
+Apr 15 10:50:56 atlas1 kernel: input: HDA NVidia HDMI/DP,pcm=8 as /devices/pci0000:00/0000:00:01.1/0000:01:00.1/sound/card1/input20
+Apr 15 10:50:56 atlas1 kernel: input: HDA NVidia HDMI/DP,pcm=9 as /devices/pci0000:00/0000:00:01.1/0000:01:00.1/sound/card1/input21
+Apr 15 10:50:56 atlas1 kernel: mt7921e 0000:08:00.0: WM Firmware Version: ____000000, Build Time: 20250523103234
+Apr 15 10:50:56 atlas1 kernel: Bluetooth: hci0: Device setup in 160183 usecs
+Apr 15 10:50:56 atlas1 kernel: Bluetooth: hci0: HCI Enhanced Setup Synchronous Connection command is advertised, but not supported.
+Apr 15 10:50:56 atlas1 kernel: usbcore: registered new interface driver snd-usb-audio
+Apr 15 10:50:56 atlas1 kernel: Bluetooth: hci0: AOSP extensions version v1.00
+Apr 15 10:50:56 atlas1 kernel: Bluetooth: hci0: AOSP quality report is supported
+Apr 15 10:50:57 atlas1 kernel: usb 5-2: USB disconnect, device number 2
+Apr 15 10:50:57 atlas1 kernel: usb 5-2.1: USB disconnect, device number 3
+Apr 15 10:50:57 atlas1 kernel: usb 5-2.2: USB disconnect, device number 4
+Apr 15 10:50:57 atlas1 kernel: usb 6-2: USB disconnect, device number 2
+Apr 15 10:50:57 atlas1 kernel: usb 6-2.1: USB disconnect, device number 3
+Apr 15 10:50:57 atlas1 kernel: r8152-cfgselector 6-2.1.2: USB disconnect, device number 4
+Apr 15 10:50:57 atlas1 kernel: [drm] amdgpu kernel modesetting enabled.
+Apr 15 10:50:57 atlas1 kernel: amdgpu: vga_switcheroo: detected switching method \_SB_.PCI0.GP17.VGA_.ATPX handle
+Apr 15 10:50:57 atlas1 kernel: amdgpu: ATPX version 1, functions 0x00000000
+Apr 15 10:50:57 atlas1 kernel: intel_rapl_common: Found RAPL domain package
+Apr 15 10:50:57 atlas1 kernel: intel_rapl_common: Found RAPL domain core
+Apr 15 10:50:57 atlas1 kernel: amdgpu: Virtual CRAT table created for CPU
+Apr 15 10:50:57 atlas1 kernel: amdgpu: Topology: Add CPU node
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: enabling device (0006 -> 0007)
+Apr 15 10:50:57 atlas1 kernel: [drm] initializing kernel modesetting (IP DISCOVERY 0x1002:0x13C0 0x1849:0x364E 0xC5).
+Apr 15 10:50:57 atlas1 kernel: [drm] register mmio base: 0xF4700000
+Apr 15 10:50:57 atlas1 kernel: [drm] register mmio size: 524288
+Apr 15 10:50:57 atlas1 kernel: [drm] add ip block number 0 <nv_common>
+Apr 15 10:50:57 atlas1 kernel: [drm] add ip block number 1 <gmc_v10_0>
+Apr 15 10:50:57 atlas1 kernel: [drm] add ip block number 2 <navi10_ih>
+Apr 15 10:50:57 atlas1 kernel: [drm] add ip block number 3 <psp>
+Apr 15 10:50:57 atlas1 kernel: [drm] add ip block number 4 <smu>
+Apr 15 10:50:57 atlas1 kernel: [drm] add ip block number 5 <dm>
+Apr 15 10:50:57 atlas1 kernel: [drm] add ip block number 6 <gfx_v10_0>
+Apr 15 10:50:57 atlas1 kernel: [drm] add ip block number 7 <sdma_v5_2>
+Apr 15 10:50:57 atlas1 kernel: [drm] add ip block number 8 <vcn_v3_0>
+Apr 15 10:50:57 atlas1 kernel: [drm] add ip block number 9 <jpeg_v3_0>
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: Fetched VBIOS from VFCT
+Apr 15 10:50:57 atlas1 kernel: amdgpu: ATOM BIOS: 102-RAPHAEL-008
+Apr 15 10:50:57 atlas1 kernel: [drm] VCN(0) decode is enabled in VM mode
+Apr 15 10:50:57 atlas1 kernel: [drm] VCN(0) encode is enabled in VM mode
+Apr 15 10:50:57 atlas1 kernel: [drm] JPEG decode is enabled in VM mode
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: Trusted Memory Zone (TMZ) feature disabled as experimental (default)
+Apr 15 10:50:57 atlas1 kernel: [drm] vm size is 262144 GB, 4 levels, block size is 9-bit, fragment size is 9-bit
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: VRAM: 512M 0x000000F400000000 - 0x000000F41FFFFFFF (512M used)
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: GART: 1024M 0x0000000000000000 - 0x000000003FFFFFFF
+Apr 15 10:50:57 atlas1 kernel: [drm] Detected VRAM RAM=512M, BAR=512M
+Apr 15 10:50:57 atlas1 kernel: [drm] RAM width 128bits DDR5
+Apr 15 10:50:57 atlas1 kernel: [drm] amdgpu: 512M of VRAM memory ready
+Apr 15 10:50:57 atlas1 kernel: [drm] amdgpu: 15583M of GTT memory ready.
+Apr 15 10:50:57 atlas1 kernel: [drm] GART: num cpu pages 262144, num gpu pages 262144
+Apr 15 10:50:57 atlas1 kernel: [drm] PCIE GART of 1024M enabled (table at 0x000000F41FC00000).
+Apr 15 10:50:57 atlas1 kernel: [drm] Loading DMUB firmware via PSP: version=0x05000F00
+Apr 15 10:50:57 atlas1 kernel: [drm] use_doorbell being set to: [true]
+Apr 15 10:50:57 atlas1 kernel: [drm] Found VCN firmware Version ENC: 1.30 DEC: 3 VEP: 0 Revision: 4
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: Will use PSP to load VCN firmware
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: reserve 0xa00000 from 0xf41e000000 for PSP TMR
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: RAS: optional ras ta ucode is not available
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: RAP: optional rap ta ucode is not available
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: SECUREDISPLAY: securedisplay ta ucode is not available
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: SMU is initialized successfully!
+Apr 15 10:50:57 atlas1 kernel: [drm] Seamless boot condition check passed
+Apr 15 10:50:57 atlas1 kernel: [drm] Display Core v3.2.266 initialized on DCN 3.1.5
+Apr 15 10:50:57 atlas1 kernel: [drm] DP-HDMI FRL PCON supported
+Apr 15 10:50:57 atlas1 kernel: [drm] DMUB hardware initialized: version=0x05000F00
+Apr 15 10:50:57 atlas1 kernel: snd_hda_intel 0000:0d:00.1: bound 0000:0d:00.0 (ops amdgpu_dm_audio_component_bind_ops [amdgpu])
+Apr 15 10:50:57 atlas1 kernel: [drm] kiq ring mec 2 pipe 1 q 0
+Apr 15 10:50:57 atlas1 kernel: [drm] VCN decode and encode initialized successfully(under DPG Mode).
+Apr 15 10:50:57 atlas1 kernel: [drm] JPEG decode initialized successfully.
+Apr 15 10:50:57 atlas1 kernel: kfd kfd: amdgpu: Allocated 3969056 bytes on gart
+Apr 15 10:50:57 atlas1 kernel: kfd kfd: amdgpu: Total number of KFD nodes to be created: 1
+Apr 15 10:50:57 atlas1 kernel: amdgpu: Virtual CRAT table created for GPU
+Apr 15 10:50:57 atlas1 kernel: amdgpu: Topology: Add dGPU node [0x13c0:0x1002]
+Apr 15 10:50:57 atlas1 kernel: kfd kfd: amdgpu: added device 1002:13c0
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: SE 1, SH per SE 1, CU per SH 2, active_cu_number 2
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: ring gfx_0.0.0 uses VM inv eng 0 on hub 0
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: ring comp_1.0.0 uses VM inv eng 1 on hub 0
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: ring comp_1.1.0 uses VM inv eng 4 on hub 0
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: ring comp_1.2.0 uses VM inv eng 5 on hub 0
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: ring comp_1.3.0 uses VM inv eng 6 on hub 0
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: ring comp_1.0.1 uses VM inv eng 7 on hub 0
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: ring comp_1.1.1 uses VM inv eng 8 on hub 0
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: ring comp_1.2.1 uses VM inv eng 9 on hub 0
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: ring comp_1.3.1 uses VM inv eng 10 on hub 0
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: ring kiq_0.2.1.0 uses VM inv eng 11 on hub 0
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: ring sdma0 uses VM inv eng 12 on hub 0
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: ring vcn_dec_0 uses VM inv eng 0 on hub 8
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: ring vcn_enc_0.0 uses VM inv eng 1 on hub 8
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: ring vcn_enc_0.1 uses VM inv eng 4 on hub 8
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: amdgpu: ring jpeg_dec uses VM inv eng 5 on hub 8
+Apr 15 10:50:57 atlas1 kernel: [drm] Initialized amdgpu 3.57.0 20150101 for 0000:0d:00.0 on minor 1
+Apr 15 10:50:57 atlas1 kernel: amdgpu 0000:0d:00.0: [drm] Cannot find any crtc or sizes
+Apr 15 10:50:57 atlas1 kernel: [drm] DSC precompute is not needed.
+Apr 15 10:50:57 atlas1 kernel: kauditd_printk_skb: 114 callbacks suppressed
+Apr 15 10:50:57 atlas1 kernel: audit: type=1400 audit(1776250257.621:125): apparmor="STATUS" operation="profile_load" profile="unconfined" name="snap.astral-uv.uvx" pid=978 comm="apparmor_parser"
+Apr 15 10:50:57 atlas1 kernel: audit: type=1400 audit(1776250257.622:126): apparmor="STATUS" operation="profile_load" profile="unconfined" name="snap.astral-uv.uv" pid=977 comm="apparmor_parser"
+Apr 15 10:50:57 atlas1 kernel: audit: type=1400 audit(1776250257.622:127): apparmor="STATUS" operation="profile_load" profile="unconfined" name="snap.just.just" pid=979 comm="apparmor_parser"
+Apr 15 10:50:57 atlas1 kernel: audit: type=1400 audit(1776250257.622:128): apparmor="STATUS" operation="profile_load" profile="unconfined" name="snap.kubectl.kubectl" pid=980 comm="apparmor_parser"
+Apr 15 10:50:57 atlas1 kernel: audit: type=1400 audit(1776250257.622:129): apparmor="STATUS" operation="profile_load" profile="unconfined" name="snap-update-ns.kubectl" pid=976 comm="apparmor_parser"
+Apr 15 10:50:57 atlas1 kernel: audit: type=1400 audit(1776250257.622:130): apparmor="STATUS" operation="profile_load" profile="unconfined" name="snap-update-ns.just" pid=975 comm="apparmor_parser"
+Apr 15 10:50:57 atlas1 kernel: audit: type=1400 audit(1776250257.622:131): apparmor="STATUS" operation="profile_load" profile="unconfined" name="snap-update-ns.astral-uv" pid=974 comm="apparmor_parser"
+Apr 15 10:50:57 atlas1 kernel: audit: type=1400 audit(1776250257.623:132): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/snap/snapd/26382/usr/lib/snapd/snap-confine" pid=973 comm="apparmor_parser"
+Apr 15 10:50:57 atlas1 kernel: audit: type=1400 audit(1776250257.623:133): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/snap/snapd/26382/usr/lib/snapd/snap-confine//mount-namespace-capture-helper" pid=973 comm="apparmor_parser"
+Apr 15 10:50:57 atlas1 kernel: audit: type=1400 audit(1776250257.623:134): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/snap/snapd/25935/usr/lib/snapd/snap-confine" pid=972 comm="apparmor_parser"
+Apr 15 10:50:57 atlas1 kernel: mt7921e 0000:08:00.0 wlp8s0: renamed from wlan0
+Apr 15 10:50:57 atlas1 kernel: usb 5-2.3: USB disconnect, device number 5
+Apr 15 10:50:57 atlas1 kernel: RTL8226B_RTL8221B 2.5Gbps PHY r8169-0-900:00: attached PHY driver (mii_bus:phy_addr=r8169-0-900:00, irq=MAC)
+Apr 15 10:50:57 atlas1 kernel: NET: Registered PF_QIPCRTR protocol family
+Apr 15 10:50:57 atlas1 kernel: r8169 0000:09:00.0 enp9s0: Link is Down
+Apr 15 10:50:58 atlas1 kernel: usb 5-2.4: USB disconnect, device number 6
+Apr 15 10:50:58 atlas1 kernel: usb 5-2.5: USB disconnect, device number 7
+Apr 15 10:50:58 atlas1 kernel: loop12: detected capacity change from 0 to 8
+Apr 15 10:51:00 atlas1 kernel: wlp8s0: authenticate with 7a:8d:af:1c:e0:e2 (local address=d8:b3:2f:0e:49:d5)
+Apr 15 10:51:00 atlas1 kernel: r8169 0000:09:00.0 enp9s0: Link is Up - 1Gbps/Full - flow control rx/tx
+Apr 15 10:51:01 atlas1 kernel: wlp8s0: send auth to 7a:8d:af:1c:e0:e2 (try 1/3)
+Apr 15 10:51:01 atlas1 kernel: wlp8s0: authenticated
+Apr 15 10:51:01 atlas1 kernel: wlp8s0: associate with 7a:8d:af:1c:e0:e2 (try 1/3)
+Apr 15 10:51:01 atlas1 kernel: wlp8s0: RX AssocResp from 7a:8d:af:1c:e0:e2 (capab=0x1011 status=0 aid=24)
+Apr 15 10:51:01 atlas1 kernel: wlp8s0: associated
+Apr 15 10:51:01 atlas1 kernel: wlp8s0: Limiting TX power to 24 (24 - 0) dBm as advertised by 7a:8d:af:1c:e0:e2
+Apr 15 10:51:06 atlas1 kernel: bridge: filtering via arp/ip/ip6tables is no longer available by default. Update your scripts to load br_netfilter if you need this.
+Apr 15 10:51:06 atlas1 kernel: kauditd_printk_skb: 2 callbacks suppressed
+Apr 15 10:51:06 atlas1 kernel: audit: type=1400 audit(1776250266.451:137): apparmor="STATUS" operation="profile_load" profile="unconfined" name="docker-default" pid=1751 comm="apparmor_parser"
+Apr 15 10:51:06 atlas1 kernel: r8169 0000:09:00.0: invalid VPD tag 0x00 (size 0) at offset 0; assume missing optional EEPROM
+Apr 15 10:51:06 atlas1 kernel: evm: overlay not supported
+Apr 15 10:51:06 atlas1 kernel: xhci_hcd 0000:0b:00.0: xHC error in resume, USBSTS 0x401, Reinit
+Apr 15 10:51:06 atlas1 kernel: usb usb1: root hub lost power or was reset
+Apr 15 10:51:06 atlas1 kernel: usb usb2: root hub lost power or was reset
+Apr 15 10:51:06 atlas1 kernel: Initializing XFRM netlink socket
+Apr 15 10:51:06 atlas1 kernel: usb 1-12: reset high-speed USB device number 2 using xhci_hcd
+Apr 15 10:51:07 atlas1 kernel: br-6f8e920d52e8: port 1(veth4934f75) entered blocking state
+Apr 15 10:51:07 atlas1 kernel: br-6f8e920d52e8: port 1(veth4934f75) entered disabled state
+Apr 15 10:51:07 atlas1 kernel: veth4934f75: entered allmulticast mode
+Apr 15 10:51:07 atlas1 kernel: veth4934f75: entered promiscuous mode
+Apr 15 10:51:07 atlas1 kernel: eth0: renamed from veth550b6c4
+Apr 15 10:51:07 atlas1 kernel: br-6f8e920d52e8: port 1(veth4934f75) entered blocking state
+Apr 15 10:51:07 atlas1 kernel: br-6f8e920d52e8: port 1(veth4934f75) entered forwarding state
+Apr 15 10:51:07 atlas1 kernel: docker0: port 1(veth9091233) entered blocking state
+Apr 15 10:51:07 atlas1 kernel: docker0: port 1(veth9091233) entered disabled state
+Apr 15 10:51:07 atlas1 kernel: veth9091233: entered allmulticast mode
+Apr 15 10:51:07 atlas1 kernel: veth9091233: entered promiscuous mode
+Apr 15 10:51:07 atlas1 kernel: eth0: renamed from veth962f161
+Apr 15 10:51:07 atlas1 kernel: docker0: port 1(veth9091233) entered blocking state
+Apr 15 10:51:07 atlas1 kernel: docker0: port 1(veth9091233) entered forwarding state
+Apr 15 10:51:07 atlas1 kernel: br-dc9497bea247: port 1(vethbd8bfbd) entered blocking state
+Apr 15 10:51:07 atlas1 kernel: br-dc9497bea247: port 1(vethbd8bfbd) entered disabled state
+Apr 15 10:51:07 atlas1 kernel: vethbd8bfbd: entered allmulticast mode
+Apr 15 10:51:07 atlas1 kernel: vethbd8bfbd: entered promiscuous mode
+Apr 15 10:51:07 atlas1 kernel: eth1: renamed from vethe99ae02
+Apr 15 10:51:07 atlas1 kernel: br-dc9497bea247: port 1(vethbd8bfbd) entered blocking state
+Apr 15 10:51:07 atlas1 kernel: br-dc9497bea247: port 1(vethbd8bfbd) entered forwarding state
+Apr 15 10:51:08 atlas1 kernel: warning: `P[proc]' uses wireless extensions which will stop working for Wi-Fi 7 hardware; use nl80211
+Apr 15 10:51:07 atlas1 systemd-journald[484]: Time jumped backwards, rotating.
+Apr 15 10:51:07 atlas1 systemd-journald[484]: Failed to read journal file /var/log/journal/68dbb9c47c634af1ae594fe894b8af6b/user-1001.journal for rotation, trying to move it out of the way: Device or resource busy
+Apr 15 10:51:10 atlas1 kernel: wireguard: WireGuard 1.0.0 loaded. See www.wireguard.com for information.
+Apr 15 10:51:10 atlas1 kernel: wireguard: Copyright (C) 2015-2019 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.
+Apr 15 10:59:35 atlas1 kernel: wlp8s0: deauthenticated from 7a:8d:af:1c:e0:e2 (Reason: 1=UNSPECIFIED)
+Apr 15 10:59:38 atlas1 kernel: wlp8s0: authenticate with 78:8d:af:1c:e0:e0 (local address=d8:b3:2f:0e:49:d5)
+Apr 15 10:59:38 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 1/3)
+Apr 15 10:59:38 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 2/3)
+Apr 15 10:59:38 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 3/3)
+Apr 15 10:59:38 atlas1 kernel: wlp8s0: authentication with 78:8d:af:1c:e0:e0 timed out
+Apr 15 10:59:41 atlas1 kernel: wlp8s0: authenticate with 78:8d:af:1c:e0:e0 (local address=d8:b3:2f:0e:49:d5)
+Apr 15 10:59:41 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 1/3)
+Apr 15 10:59:42 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 2/3)
+Apr 15 10:59:42 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 3/3)
+Apr 15 10:59:42 atlas1 kernel: wlp8s0: authentication with 78:8d:af:1c:e0:e0 timed out
+Apr 15 10:59:45 atlas1 kernel: wlp8s0: authenticate with 78:8d:af:1c:e0:e0 (local address=d8:b3:2f:0e:49:d5)
+Apr 15 10:59:45 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 1/3)
+Apr 15 10:59:45 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 2/3)
+Apr 15 10:59:46 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 3/3)
+Apr 15 10:59:46 atlas1 kernel: wlp8s0: authentication with 78:8d:af:1c:e0:e0 timed out
+Apr 15 10:59:55 atlas1 kernel: wlp8s0: authenticate with 78:8d:af:1c:e0:e0 (local address=d8:b3:2f:0e:49:d5)
+Apr 15 10:59:55 atlas1 kernel: wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 1/3)
+Apr 15 10:59:55 atlas1 kernel: wlp8s0: authenticated
+Apr 15 10:59:55 atlas1 kernel: wlp8s0: associate with 78:8d:af:1c:e0:e0 (try 1/3)
+Apr 15 10:59:55 atlas1 kernel: wlp8s0: RX AssocResp from 78:8d:af:1c:e0:e0 (capab=0x1411 status=0 aid=18)
+Apr 15 10:59:55 atlas1 kernel: wlp8s0: associated
+Apr 15 10:59:56 atlas1 kernel: wlp8s0: Limiting TX power to 30 (30 - 0) dBm as advertised by 78:8d:af:1c:e0:e0
+Apr 15 20:03:37 atlas1 kernel: audit: type=1400 audit(1776283417.214:138): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.127243138545456" pid=34166 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 15 20:03:37 atlas1 kernel: audit: type=1400 audit(1776283417.218:139): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/apt.cpython-312.pyc.127243138719216" pid=34166 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 15 20:03:37 atlas1 kernel: audit: type=1400 audit(1776283417.221:140): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.131869536832944" pid=34167 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 15 20:03:37 atlas1 kernel: audit: type=1400 audit(1776283417.222:141): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/log.cpython-312.pyc.131869538384256" pid=34167 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 15 20:03:37 atlas1 kernel: audit: type=1400 audit(1776283417.226:142): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/defaults.cpython-312.pyc.131869535721520" pid=34167 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 15 20:03:37 atlas1 kernel: audit: type=1400 audit(1776283417.226:143): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/secret_manager.cpython-312.pyc.131869535721520" pid=34167 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 15 20:03:37 atlas1 kernel: audit: type=1400 audit(1776283417.229:144): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/system.cpython-312.pyc.131869535723568" pid=34167 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 15 20:03:37 atlas1 kernel: audit: type=1400 audit(1776283417.233:145): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/exceptions.cpython-312.pyc.131869536153136" pid=34167 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 15 20:03:37 atlas1 kernel: audit: type=1400 audit(1776283417.237:146): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/__init__.cpython-312.pyc.131869534944560" pid=34167 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 15 20:03:37 atlas1 kernel: audit: type=1400 audit(1776283417.238:147): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/event_logger.cpython-312.pyc.127243136898736" pid=34166 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+Apr 15 23:01:33 atlas1 kernel: wlp8s0: cannot understand ECSA IE operating class, 12, ignoring
+Apr 15 23:01:33 atlas1 kernel: wlp8s0: driver doesn't support chan-switch with channel contexts
+Apr 15 23:01:36 atlas1 kernel: wlp8s0: AP is in CSA process, reject auth
+Apr 15 23:01:39 atlas1 kernel: wlp8s0: authenticate with 7a:8d:af:1c:e0:e2 (local address=d8:b3:2f:0e:49:d5)
+Apr 15 23:01:39 atlas1 kernel: wlp8s0: send auth to 7a:8d:af:1c:e0:e2 (try 1/3)
+Apr 15 23:01:39 atlas1 kernel: wlp8s0: authenticated
+Apr 15 23:01:39 atlas1 kernel: wlp8s0: associate with 7a:8d:af:1c:e0:e2 (try 1/3)
+Apr 15 23:01:39 atlas1 kernel: wlp8s0: RX AssocResp from 7a:8d:af:1c:e0:e2 (capab=0x1011 status=0 aid=25)
+Apr 15 23:01:39 atlas1 kernel: wlp8s0: associated
+Apr 15 23:01:39 atlas1 kernel: wlp8s0: Limiting TX power to 24 (24 - 0) dBm as advertised by 7a:8d:af:1c:e0:e2
+--- dmesg tail ---
+[Wed Apr 15 10:50:55 2026] systemd[1]: Starting kmod-static-nodes.service - Create List of Static Device Nodes...
+[Wed Apr 15 10:50:55 2026] systemd[1]: Starting lvm2-monitor.service - Monitoring of LVM2 mirrors, snapshots etc. using dmeventd or progress polling...
+[Wed Apr 15 10:50:55 2026] systemd-journald[484]: Collecting audit messages is disabled.
+[Wed Apr 15 10:50:55 2026] systemd[1]: Starting modprobe@configfs.service - Load Kernel Module configfs...
+[Wed Apr 15 10:50:55 2026] systemd[1]: Starting modprobe@dm_mod.service - Load Kernel Module dm_mod...
+[Wed Apr 15 10:50:55 2026] systemd[1]: Starting modprobe@drm.service - Load Kernel Module drm...
+[Wed Apr 15 10:50:55 2026] systemd[1]: Starting modprobe@efi_pstore.service - Load Kernel Module efi_pstore...
+[Wed Apr 15 10:50:55 2026] systemd[1]: Starting modprobe@fuse.service - Load Kernel Module fuse...
+[Wed Apr 15 10:50:55 2026] pstore: Using crash dump compression: deflate
+[Wed Apr 15 10:50:55 2026] systemd[1]: Starting modprobe@loop.service - Load Kernel Module loop...
+[Wed Apr 15 10:50:55 2026] systemd[1]: netplan-ovs-cleanup.service - OpenVSwitch configuration for cleanup was skipped because of an unmet condition check (ConditionFileIsExecutable=/usr/bin/ovs-vsctl).
+[Wed Apr 15 10:50:55 2026] pstore: Registered efi_pstore as persistent store backend
+[Wed Apr 15 10:50:55 2026] systemd[1]: systemd-fsck-root.service - File System Check on Root Device was skipped because of an unmet condition check (ConditionPathExists=!/run/initramfs/fsck-root).
+[Wed Apr 15 10:50:55 2026] systemd[1]: Starting systemd-modules-load.service - Load Kernel Modules...
+[Wed Apr 15 10:50:55 2026] systemd[1]: systemd-pcrmachine.service - TPM2 PCR Machine ID Measurement was skipped because of an unmet condition check (ConditionSecurity=measured-uki).
+[Wed Apr 15 10:50:55 2026] systemd[1]: Starting systemd-remount-fs.service - Remount Root and Kernel File Systems...
+[Wed Apr 15 10:50:55 2026] systemd[1]: systemd-tpm2-setup-early.service - TPM2 SRK Setup (Early) was skipped because of an unmet condition check (ConditionSecurity=measured-uki).
+[Wed Apr 15 10:50:55 2026] systemd[1]: Starting systemd-udev-trigger.service - Coldplug All udev Devices...
+[Wed Apr 15 10:50:55 2026] systemd[1]: Started systemd-journald.service - Journal Service.
+[Wed Apr 15 10:50:55 2026] NET: Registered PF_VSOCK protocol family
+[Wed Apr 15 10:50:55 2026] EXT4-fs (nvme0n1p4): re-mounted fd8d90bb-53b7-4829-bb31-af67c20ded87 r/w.
+[Wed Apr 15 10:50:55 2026] Adding 8388604k swap on /swap.img.  Priority:-2 extents:52 across:260874240k SS
+[Wed Apr 15 10:50:55 2026] systemd-journald[484]: Received client request to flush runtime journal.
+[Wed Apr 15 10:50:55 2026] systemd-journald[484]: File /var/log/journal/68dbb9c47c634af1ae594fe894b8af6b/system.journal corrupted or uncleanly shut down, renaming and replacing.
+[Wed Apr 15 10:50:55 2026] loop0: detected capacity change from 0 to 42344
+[Wed Apr 15 10:50:55 2026] loop1: detected capacity change from 0 to 43696
+[Wed Apr 15 10:50:55 2026] loop2: detected capacity change from 0 to 130608
+[Wed Apr 15 10:50:55 2026] loop3: detected capacity change from 0 to 130616
+[Wed Apr 15 10:50:55 2026] loop4: detected capacity change from 0 to 136872
+[Wed Apr 15 10:50:55 2026] loop5: detected capacity change from 0 to 136904
+[Wed Apr 15 10:50:55 2026] loop6: detected capacity change from 0 to 3888
+[Wed Apr 15 10:50:55 2026] loop7: detected capacity change from 0 to 4064
+[Wed Apr 15 10:50:55 2026] loop8: detected capacity change from 0 to 27648
+[Wed Apr 15 10:50:55 2026] loop9: detected capacity change from 0 to 27648
+[Wed Apr 15 10:50:55 2026] loop10: detected capacity change from 0 to 98480
+[Wed Apr 15 10:50:55 2026] loop11: detected capacity change from 0 to 99056
+[Wed Apr 15 10:50:55 2026] ccp 0000:0d:00.2: enabling device (0000 -> 0002)
+[Wed Apr 15 10:50:55 2026] ccp 0000:0d:00.2: tee enabled
+[Wed Apr 15 10:50:55 2026] ccp 0000:0d:00.2: psp enabled
+[Wed Apr 15 10:50:55 2026] piix4_smbus 0000:00:14.0: SMBus Host Controller at 0xb00, revision 0
+[Wed Apr 15 10:50:55 2026] piix4_smbus 0000:00:14.0: Using register 0x02 for SMBus port selection
+[Wed Apr 15 10:50:55 2026] piix4_smbus 0000:00:14.0: Auxiliary SMBus Host Controller at 0xb20
+[Wed Apr 15 10:50:55 2026] RAPL PMU: API unit is 2^-32 Joules, 1 fixed counters, 163840 ms ovfl timer
+[Wed Apr 15 10:50:55 2026] RAPL PMU: hw unit of domain package 2^-16 Joules
+[Wed Apr 15 10:50:55 2026] mc: Linux media interface: v0.10
+[Wed Apr 15 10:50:55 2026] cfg80211: Loading compiled-in X.509 certificates for regulatory database
+[Wed Apr 15 10:50:55 2026] Loaded X.509 cert 'sforshee: 00b28ddf47aef9cea7'
+[Wed Apr 15 10:50:55 2026] Loaded X.509 cert 'wens: 61c038651aabdcf94bd0ac7ff06c7248db18c600'
+[Wed Apr 15 10:50:55 2026] Bluetooth: Core ver 2.22
+[Wed Apr 15 10:50:55 2026] NET: Registered PF_BLUETOOTH protocol family
+[Wed Apr 15 10:50:55 2026] Bluetooth: HCI device and connection manager initialized
+[Wed Apr 15 10:50:55 2026] Bluetooth: HCI socket layer initialized
+[Wed Apr 15 10:50:55 2026] Bluetooth: L2CAP socket layer initialized
+[Wed Apr 15 10:50:55 2026] Bluetooth: SCO socket layer initialized
+[Wed Apr 15 10:50:55 2026] snd_hda_intel 0000:01:00.1: enabling device (0000 -> 0002)
+[Wed Apr 15 10:50:55 2026] snd_hda_intel 0000:01:00.1: Disabling MSI
+[Wed Apr 15 10:50:55 2026] snd_hda_intel 0000:01:00.1: Handle vga_switcheroo audio client
+[Wed Apr 15 10:50:55 2026] snd_hda_intel 0000:0d:00.1: enabling device (0000 -> 0002)
+[Wed Apr 15 10:50:55 2026] snd_hda_intel 0000:0d:00.1: Handle vga_switcheroo audio client
+[Wed Apr 15 10:50:55 2026] snd_hda_intel 0000:0d:00.6: enabling device (0000 -> 0002)
+[Wed Apr 15 10:50:55 2026] kvm_amd: TSC scaling supported
+[Wed Apr 15 10:50:55 2026] kvm_amd: Nested Virtualization enabled
+[Wed Apr 15 10:50:55 2026] kvm_amd: Nested Paging enabled
+[Wed Apr 15 10:50:55 2026] kvm_amd: LBR virtualization supported
+[Wed Apr 15 10:50:55 2026] kvm_amd: Virtual VMLOAD VMSAVE supported
+[Wed Apr 15 10:50:55 2026] kvm_amd: Virtual GIF supported
+[Wed Apr 15 10:50:55 2026] kvm_amd: Virtual NMI enabled
+[Wed Apr 15 10:50:55 2026] MCE: In-kernel MCE decoding enabled.
+[Wed Apr 15 10:50:55 2026] mt7921e 0000:08:00.0: enabling device (0000 -> 0002)
+[Wed Apr 15 10:50:55 2026] snd_hda_codec_realtek hdaudioC3D0: autoconfig for ALC897: line_outs=1 (0x14/0x0/0x0/0x0/0x0) type:line
+[Wed Apr 15 10:50:55 2026] snd_hda_codec_realtek hdaudioC3D0:    speaker_outs=0 (0x0/0x0/0x0/0x0/0x0)
+[Wed Apr 15 10:50:55 2026] snd_hda_codec_realtek hdaudioC3D0:    hp_outs=1 (0x1b/0x0/0x0/0x0/0x0)
+[Wed Apr 15 10:50:55 2026] snd_hda_codec_realtek hdaudioC3D0:    mono: mono_out=0x0
+[Wed Apr 15 10:50:55 2026] snd_hda_codec_realtek hdaudioC3D0:    inputs:
+[Wed Apr 15 10:50:55 2026] snd_hda_codec_realtek hdaudioC3D0:      Rear Mic=0x18
+[Wed Apr 15 10:50:55 2026] snd_hda_codec_realtek hdaudioC3D0:      Front Mic=0x19
+[Wed Apr 15 10:50:55 2026] snd_hda_codec_realtek hdaudioC3D0:      Line=0x1a
+[Wed Apr 15 10:50:55 2026] mt7921e 0000:08:00.0: ASIC revision: 79220010
+[Wed Apr 15 10:50:55 2026] usbcore: registered new interface driver btusb
+[Wed Apr 15 10:50:55 2026] Bluetooth: hci0: HW/SW Version: 0x008a008a, Build Time: 20250523103438
+[Wed Apr 15 10:50:55 2026] audit: type=1400 audit(1776250256.531:2): apparmor="STATUS" operation="profile_load" profile="unconfined" name="element-desktop" pid=807 comm="apparmor_parser"
+[Wed Apr 15 10:50:55 2026] audit: type=1400 audit(1776250256.531:3): apparmor="STATUS" operation="profile_load" profile="unconfined" name="crun" pid=805 comm="apparmor_parser"
+[Wed Apr 15 10:50:55 2026] audit: type=1400 audit(1776250256.531:4): apparmor="STATUS" operation="profile_load" profile="unconfined" name="1password" pid=790 comm="apparmor_parser"
+[Wed Apr 15 10:50:55 2026] audit: type=1400 audit(1776250256.531:5): apparmor="STATUS" operation="profile_load" profile="unconfined" name="QtWebEngineProcess" pid=794 comm="apparmor_parser"
+[Wed Apr 15 10:50:55 2026] audit: type=1400 audit(1776250256.531:6): apparmor="STATUS" operation="profile_load" profile="unconfined" name="Discord" pid=791 comm="apparmor_parser"
+[Wed Apr 15 10:50:55 2026] audit: type=1400 audit(1776250256.531:7): apparmor="STATUS" operation="profile_load" profile="unconfined" name="brave" pid=796 comm="apparmor_parser"
+[Wed Apr 15 10:50:55 2026] audit: type=1400 audit(1776250256.531:8): apparmor="STATUS" operation="profile_load" profile="unconfined" name="buildah" pid=798 comm="apparmor_parser"
+[Wed Apr 15 10:50:55 2026] audit: type=1400 audit(1776250256.531:9): apparmor="STATUS" operation="profile_load" profile="unconfined" name=4D6F6E676F444220436F6D70617373 pid=792 comm="apparmor_parser"
+[Wed Apr 15 10:50:55 2026] audit: type=1400 audit(1776250256.531:10): apparmor="STATUS" operation="profile_load" profile="unconfined" name="busybox" pid=799 comm="apparmor_parser"
+[Wed Apr 15 10:50:55 2026] input: HD-Audio Generic Rear Mic as /devices/pci0000:00/0000:00:08.1/0000:0d:00.6/sound/card3/input22
+[Wed Apr 15 10:50:55 2026] input: HD-Audio Generic Front Mic as /devices/pci0000:00/0000:00:08.1/0000:0d:00.6/sound/card3/input23
+[Wed Apr 15 10:50:55 2026] nouveau 0000:01:00.0: unknown chipset (1b3000a1)
+[Wed Apr 15 10:50:55 2026] input: HD-Audio Generic Line as /devices/pci0000:00/0000:00:08.1/0000:0d:00.6/sound/card3/input24
+[Wed Apr 15 10:50:55 2026] mt7921e 0000:08:00.0: HW/SW Version: 0x8a108a10, Build Time: 20250523103150a
+
+[Wed Apr 15 10:50:55 2026] input: HD-Audio Generic Line Out as /devices/pci0000:00/0000:00:08.1/0000:0d:00.6/sound/card3/input25
+[Wed Apr 15 10:50:55 2026] input: HD-Audio Generic Front Headphone as /devices/pci0000:00/0000:00:08.1/0000:0d:00.6/sound/card3/input26
+[Wed Apr 15 10:50:55 2026] input: HD-Audio Generic HDMI/DP,pcm=3 as /devices/pci0000:00/0000:00:08.1/0000:0d:00.1/sound/card2/input14
+[Wed Apr 15 10:50:55 2026] input: HD-Audio Generic HDMI/DP,pcm=7 as /devices/pci0000:00/0000:00:08.1/0000:0d:00.1/sound/card2/input15
+[Wed Apr 15 10:50:55 2026] input: HD-Audio Generic HDMI/DP,pcm=8 as /devices/pci0000:00/0000:00:08.1/0000:0d:00.1/sound/card2/input16
+[Wed Apr 15 10:50:55 2026] input: HDA NVidia HDMI/DP,pcm=3 as /devices/pci0000:00/0000:00:01.1/0000:01:00.1/sound/card1/input18
+[Wed Apr 15 10:50:55 2026] input: HD-Audio Generic HDMI/DP,pcm=9 as /devices/pci0000:00/0000:00:08.1/0000:0d:00.1/sound/card2/input17
+[Wed Apr 15 10:50:55 2026] input: HDA NVidia HDMI/DP,pcm=7 as /devices/pci0000:00/0000:00:01.1/0000:01:00.1/sound/card1/input19
+[Wed Apr 15 10:50:55 2026] input: HDA NVidia HDMI/DP,pcm=8 as /devices/pci0000:00/0000:00:01.1/0000:01:00.1/sound/card1/input20
+[Wed Apr 15 10:50:55 2026] input: HDA NVidia HDMI/DP,pcm=9 as /devices/pci0000:00/0000:00:01.1/0000:01:00.1/sound/card1/input21
+[Wed Apr 15 10:50:56 2026] mt7921e 0000:08:00.0: WM Firmware Version: ____000000, Build Time: 20250523103234
+[Wed Apr 15 10:50:56 2026] Bluetooth: hci0: Device setup in 160183 usecs
+[Wed Apr 15 10:50:56 2026] Bluetooth: hci0: HCI Enhanced Setup Synchronous Connection command is advertised, but not supported.
+[Wed Apr 15 10:50:56 2026] usbcore: registered new interface driver snd-usb-audio
+[Wed Apr 15 10:50:56 2026] Bluetooth: hci0: AOSP extensions version v1.00
+[Wed Apr 15 10:50:56 2026] Bluetooth: hci0: AOSP quality report is supported
+[Wed Apr 15 10:50:56 2026] usb 5-2: USB disconnect, device number 2
+[Wed Apr 15 10:50:56 2026] usb 5-2.1: USB disconnect, device number 3
+[Wed Apr 15 10:50:56 2026] usb 5-2.2: USB disconnect, device number 4
+[Wed Apr 15 10:50:56 2026] usb 6-2: USB disconnect, device number 2
+[Wed Apr 15 10:50:56 2026] usb 6-2.1: USB disconnect, device number 3
+[Wed Apr 15 10:50:56 2026] r8152-cfgselector 6-2.1.2: USB disconnect, device number 4
+[Wed Apr 15 10:50:56 2026] [drm] amdgpu kernel modesetting enabled.
+[Wed Apr 15 10:50:56 2026] amdgpu: vga_switcheroo: detected switching method \_SB_.PCI0.GP17.VGA_.ATPX handle
+[Wed Apr 15 10:50:56 2026] amdgpu: ATPX version 1, functions 0x00000000
+[Wed Apr 15 10:50:56 2026] intel_rapl_common: Found RAPL domain package
+[Wed Apr 15 10:50:56 2026] intel_rapl_common: Found RAPL domain core
+[Wed Apr 15 10:50:56 2026] amdgpu: Virtual CRAT table created for CPU
+[Wed Apr 15 10:50:56 2026] amdgpu: Topology: Add CPU node
+[Wed Apr 15 10:50:56 2026] amdgpu 0000:0d:00.0: enabling device (0006 -> 0007)
+[Wed Apr 15 10:50:56 2026] [drm] initializing kernel modesetting (IP DISCOVERY 0x1002:0x13C0 0x1849:0x364E 0xC5).
+[Wed Apr 15 10:50:56 2026] [drm] register mmio base: 0xF4700000
+[Wed Apr 15 10:50:56 2026] [drm] register mmio size: 524288
+[Wed Apr 15 10:50:56 2026] [drm] add ip block number 0 <nv_common>
+[Wed Apr 15 10:50:56 2026] [drm] add ip block number 1 <gmc_v10_0>
+[Wed Apr 15 10:50:56 2026] [drm] add ip block number 2 <navi10_ih>
+[Wed Apr 15 10:50:56 2026] [drm] add ip block number 3 <psp>
+[Wed Apr 15 10:50:56 2026] [drm] add ip block number 4 <smu>
+[Wed Apr 15 10:50:56 2026] [drm] add ip block number 5 <dm>
+[Wed Apr 15 10:50:56 2026] [drm] add ip block number 6 <gfx_v10_0>
+[Wed Apr 15 10:50:56 2026] [drm] add ip block number 7 <sdma_v5_2>
+[Wed Apr 15 10:50:56 2026] [drm] add ip block number 8 <vcn_v3_0>
+[Wed Apr 15 10:50:56 2026] [drm] add ip block number 9 <jpeg_v3_0>
+[Wed Apr 15 10:50:56 2026] amdgpu 0000:0d:00.0: amdgpu: Fetched VBIOS from VFCT
+[Wed Apr 15 10:50:56 2026] amdgpu: ATOM BIOS: 102-RAPHAEL-008
+[Wed Apr 15 10:50:56 2026] [drm] VCN(0) decode is enabled in VM mode
+[Wed Apr 15 10:50:56 2026] [drm] VCN(0) encode is enabled in VM mode
+[Wed Apr 15 10:50:56 2026] [drm] JPEG decode is enabled in VM mode
+[Wed Apr 15 10:50:56 2026] amdgpu 0000:0d:00.0: amdgpu: Trusted Memory Zone (TMZ) feature disabled as experimental (default)
+[Wed Apr 15 10:50:56 2026] [drm] vm size is 262144 GB, 4 levels, block size is 9-bit, fragment size is 9-bit
+[Wed Apr 15 10:50:56 2026] amdgpu 0000:0d:00.0: amdgpu: VRAM: 512M 0x000000F400000000 - 0x000000F41FFFFFFF (512M used)
+[Wed Apr 15 10:50:56 2026] amdgpu 0000:0d:00.0: amdgpu: GART: 1024M 0x0000000000000000 - 0x000000003FFFFFFF
+[Wed Apr 15 10:50:56 2026] [drm] Detected VRAM RAM=512M, BAR=512M
+[Wed Apr 15 10:50:56 2026] [drm] RAM width 128bits DDR5
+[Wed Apr 15 10:50:56 2026] [drm] amdgpu: 512M of VRAM memory ready
+[Wed Apr 15 10:50:56 2026] [drm] amdgpu: 15583M of GTT memory ready.
+[Wed Apr 15 10:50:56 2026] [drm] GART: num cpu pages 262144, num gpu pages 262144
+[Wed Apr 15 10:50:56 2026] [drm] PCIE GART of 1024M enabled (table at 0x000000F41FC00000).
+[Wed Apr 15 10:50:56 2026] [drm] Loading DMUB firmware via PSP: version=0x05000F00
+[Wed Apr 15 10:50:56 2026] [drm] use_doorbell being set to: [true]
+[Wed Apr 15 10:50:56 2026] [drm] Found VCN firmware Version ENC: 1.30 DEC: 3 VEP: 0 Revision: 4
+[Wed Apr 15 10:50:56 2026] amdgpu 0000:0d:00.0: amdgpu: Will use PSP to load VCN firmware
+[Wed Apr 15 10:50:56 2026] amdgpu 0000:0d:00.0: amdgpu: reserve 0xa00000 from 0xf41e000000 for PSP TMR
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: amdgpu: RAS: optional ras ta ucode is not available
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: amdgpu: RAP: optional rap ta ucode is not available
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: amdgpu: SECUREDISPLAY: securedisplay ta ucode is not available
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: amdgpu: SMU is initialized successfully!
+[Wed Apr 15 10:50:57 2026] [drm] Seamless boot condition check passed
+[Wed Apr 15 10:50:57 2026] [drm] Display Core v3.2.266 initialized on DCN 3.1.5
+[Wed Apr 15 10:50:57 2026] [drm] DP-HDMI FRL PCON supported
+[Wed Apr 15 10:50:57 2026] [drm] DMUB hardware initialized: version=0x05000F00
+[Wed Apr 15 10:50:57 2026] snd_hda_intel 0000:0d:00.1: bound 0000:0d:00.0 (ops amdgpu_dm_audio_component_bind_ops [amdgpu])
+[Wed Apr 15 10:50:57 2026] [drm] kiq ring mec 2 pipe 1 q 0
+[Wed Apr 15 10:50:57 2026] [drm] VCN decode and encode initialized successfully(under DPG Mode).
+[Wed Apr 15 10:50:57 2026] [drm] JPEG decode initialized successfully.
+[Wed Apr 15 10:50:57 2026] kfd kfd: amdgpu: Allocated 3969056 bytes on gart
+[Wed Apr 15 10:50:57 2026] kfd kfd: amdgpu: Total number of KFD nodes to be created: 1
+[Wed Apr 15 10:50:57 2026] amdgpu: Virtual CRAT table created for GPU
+[Wed Apr 15 10:50:57 2026] amdgpu: Topology: Add dGPU node [0x13c0:0x1002]
+[Wed Apr 15 10:50:57 2026] kfd kfd: amdgpu: added device 1002:13c0
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: amdgpu: SE 1, SH per SE 1, CU per SH 2, active_cu_number 2
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: amdgpu: ring gfx_0.0.0 uses VM inv eng 0 on hub 0
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: amdgpu: ring comp_1.0.0 uses VM inv eng 1 on hub 0
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: amdgpu: ring comp_1.1.0 uses VM inv eng 4 on hub 0
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: amdgpu: ring comp_1.2.0 uses VM inv eng 5 on hub 0
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: amdgpu: ring comp_1.3.0 uses VM inv eng 6 on hub 0
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: amdgpu: ring comp_1.0.1 uses VM inv eng 7 on hub 0
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: amdgpu: ring comp_1.1.1 uses VM inv eng 8 on hub 0
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: amdgpu: ring comp_1.2.1 uses VM inv eng 9 on hub 0
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: amdgpu: ring comp_1.3.1 uses VM inv eng 10 on hub 0
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: amdgpu: ring kiq_0.2.1.0 uses VM inv eng 11 on hub 0
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: amdgpu: ring sdma0 uses VM inv eng 12 on hub 0
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: amdgpu: ring vcn_dec_0 uses VM inv eng 0 on hub 8
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: amdgpu: ring vcn_enc_0.0 uses VM inv eng 1 on hub 8
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: amdgpu: ring vcn_enc_0.1 uses VM inv eng 4 on hub 8
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: amdgpu: ring jpeg_dec uses VM inv eng 5 on hub 8
+[Wed Apr 15 10:50:57 2026] [drm] Initialized amdgpu 3.57.0 20150101 for 0000:0d:00.0 on minor 1
+[Wed Apr 15 10:50:57 2026] amdgpu 0000:0d:00.0: [drm] Cannot find any crtc or sizes
+[Wed Apr 15 10:50:57 2026] [drm] DSC precompute is not needed.
+[Wed Apr 15 10:50:57 2026] kauditd_printk_skb: 114 callbacks suppressed
+[Wed Apr 15 10:50:57 2026] audit: type=1400 audit(1776250257.621:125): apparmor="STATUS" operation="profile_load" profile="unconfined" name="snap.astral-uv.uvx" pid=978 comm="apparmor_parser"
+[Wed Apr 15 10:50:57 2026] audit: type=1400 audit(1776250257.622:126): apparmor="STATUS" operation="profile_load" profile="unconfined" name="snap.astral-uv.uv" pid=977 comm="apparmor_parser"
+[Wed Apr 15 10:50:57 2026] audit: type=1400 audit(1776250257.622:127): apparmor="STATUS" operation="profile_load" profile="unconfined" name="snap.just.just" pid=979 comm="apparmor_parser"
+[Wed Apr 15 10:50:57 2026] audit: type=1400 audit(1776250257.622:128): apparmor="STATUS" operation="profile_load" profile="unconfined" name="snap.kubectl.kubectl" pid=980 comm="apparmor_parser"
+[Wed Apr 15 10:50:57 2026] audit: type=1400 audit(1776250257.622:129): apparmor="STATUS" operation="profile_load" profile="unconfined" name="snap-update-ns.kubectl" pid=976 comm="apparmor_parser"
+[Wed Apr 15 10:50:57 2026] audit: type=1400 audit(1776250257.622:130): apparmor="STATUS" operation="profile_load" profile="unconfined" name="snap-update-ns.just" pid=975 comm="apparmor_parser"
+[Wed Apr 15 10:50:57 2026] audit: type=1400 audit(1776250257.622:131): apparmor="STATUS" operation="profile_load" profile="unconfined" name="snap-update-ns.astral-uv" pid=974 comm="apparmor_parser"
+[Wed Apr 15 10:50:57 2026] audit: type=1400 audit(1776250257.623:132): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/snap/snapd/26382/usr/lib/snapd/snap-confine" pid=973 comm="apparmor_parser"
+[Wed Apr 15 10:50:57 2026] audit: type=1400 audit(1776250257.623:133): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/snap/snapd/26382/usr/lib/snapd/snap-confine//mount-namespace-capture-helper" pid=973 comm="apparmor_parser"
+[Wed Apr 15 10:50:57 2026] audit: type=1400 audit(1776250257.623:134): apparmor="STATUS" operation="profile_load" profile="unconfined" name="/snap/snapd/25935/usr/lib/snapd/snap-confine" pid=972 comm="apparmor_parser"
+[Wed Apr 15 10:50:57 2026] mt7921e 0000:08:00.0 wlp8s0: renamed from wlan0
+[Wed Apr 15 10:50:57 2026] usb 5-2.3: USB disconnect, device number 5
+[Wed Apr 15 10:50:57 2026] RTL8226B_RTL8221B 2.5Gbps PHY r8169-0-900:00: attached PHY driver (mii_bus:phy_addr=r8169-0-900:00, irq=MAC)
+[Wed Apr 15 10:50:57 2026] NET: Registered PF_QIPCRTR protocol family
+[Wed Apr 15 10:50:57 2026] r8169 0000:09:00.0 enp9s0: Link is Down
+[Wed Apr 15 10:50:57 2026] usb 5-2.4: USB disconnect, device number 6
+[Wed Apr 15 10:50:57 2026] usb 5-2.5: USB disconnect, device number 7
+[Wed Apr 15 10:50:58 2026] loop12: detected capacity change from 0 to 8
+[Wed Apr 15 10:51:00 2026] wlp8s0: authenticate with 7a:8d:af:1c:e0:e2 (local address=d8:b3:2f:0e:49:d5)
+[Wed Apr 15 10:51:00 2026] r8169 0000:09:00.0 enp9s0: Link is Up - 1Gbps/Full - flow control rx/tx
+[Wed Apr 15 10:51:00 2026] wlp8s0: send auth to 7a:8d:af:1c:e0:e2 (try 1/3)
+[Wed Apr 15 10:51:00 2026] wlp8s0: authenticated
+[Wed Apr 15 10:51:00 2026] wlp8s0: associate with 7a:8d:af:1c:e0:e2 (try 1/3)
+[Wed Apr 15 10:51:00 2026] wlp8s0: RX AssocResp from 7a:8d:af:1c:e0:e2 (capab=0x1011 status=0 aid=24)
+[Wed Apr 15 10:51:00 2026] wlp8s0: associated
+[Wed Apr 15 10:51:01 2026] wlp8s0: Limiting TX power to 24 (24 - 0) dBm as advertised by 7a:8d:af:1c:e0:e2
+[Wed Apr 15 10:51:05 2026] bridge: filtering via arp/ip/ip6tables is no longer available by default. Update your scripts to load br_netfilter if you need this.
+[Wed Apr 15 10:51:05 2026] kauditd_printk_skb: 2 callbacks suppressed
+[Wed Apr 15 10:51:05 2026] audit: type=1400 audit(1776250266.451:137): apparmor="STATUS" operation="profile_load" profile="unconfined" name="docker-default" pid=1751 comm="apparmor_parser"
+[Wed Apr 15 10:51:05 2026] r8169 0000:09:00.0: invalid VPD tag 0x00 (size 0) at offset 0; assume missing optional EEPROM
+[Wed Apr 15 10:51:05 2026] evm: overlay not supported
+[Wed Apr 15 10:51:05 2026] xhci_hcd 0000:0b:00.0: xHC error in resume, USBSTS 0x401, Reinit
+[Wed Apr 15 10:51:05 2026] usb usb1: root hub lost power or was reset
+[Wed Apr 15 10:51:05 2026] usb usb2: root hub lost power or was reset
+[Wed Apr 15 10:51:06 2026] Initializing XFRM netlink socket
+[Wed Apr 15 10:51:06 2026] usb 1-12: reset high-speed USB device number 2 using xhci_hcd
+[Wed Apr 15 10:51:06 2026] br-6f8e920d52e8: port 1(veth4934f75) entered blocking state
+[Wed Apr 15 10:51:06 2026] br-6f8e920d52e8: port 1(veth4934f75) entered disabled state
+[Wed Apr 15 10:51:06 2026] veth4934f75: entered allmulticast mode
+[Wed Apr 15 10:51:06 2026] veth4934f75: entered promiscuous mode
+[Wed Apr 15 10:51:06 2026] eth0: renamed from veth550b6c4
+[Wed Apr 15 10:51:06 2026] br-6f8e920d52e8: port 1(veth4934f75) entered blocking state
+[Wed Apr 15 10:51:06 2026] br-6f8e920d52e8: port 1(veth4934f75) entered forwarding state
+[Wed Apr 15 10:51:06 2026] docker0: port 1(veth9091233) entered blocking state
+[Wed Apr 15 10:51:06 2026] docker0: port 1(veth9091233) entered disabled state
+[Wed Apr 15 10:51:06 2026] veth9091233: entered allmulticast mode
+[Wed Apr 15 10:51:06 2026] veth9091233: entered promiscuous mode
+[Wed Apr 15 10:51:06 2026] eth0: renamed from veth962f161
+[Wed Apr 15 10:51:06 2026] docker0: port 1(veth9091233) entered blocking state
+[Wed Apr 15 10:51:06 2026] docker0: port 1(veth9091233) entered forwarding state
+[Wed Apr 15 10:51:06 2026] br-dc9497bea247: port 1(vethbd8bfbd) entered blocking state
+[Wed Apr 15 10:51:06 2026] br-dc9497bea247: port 1(vethbd8bfbd) entered disabled state
+[Wed Apr 15 10:51:06 2026] vethbd8bfbd: entered allmulticast mode
+[Wed Apr 15 10:51:06 2026] vethbd8bfbd: entered promiscuous mode
+[Wed Apr 15 10:51:06 2026] eth1: renamed from vethe99ae02
+[Wed Apr 15 10:51:06 2026] br-dc9497bea247: port 1(vethbd8bfbd) entered blocking state
+[Wed Apr 15 10:51:06 2026] br-dc9497bea247: port 1(vethbd8bfbd) entered forwarding state
+[Wed Apr 15 10:51:07 2026] warning: `P[proc]' uses wireless extensions which will stop working for Wi-Fi 7 hardware; use nl80211
+[Wed Apr 15 10:51:07 2026] systemd-journald[484]: Time jumped backwards, rotating.
+[Wed Apr 15 10:51:07 2026] systemd-journald[484]: Failed to read journal file /var/log/journal/68dbb9c47c634af1ae594fe894b8af6b/user-1001.journal for rotation, trying to move it out of the way: Device or resource busy
+[Wed Apr 15 10:51:10 2026] wireguard: WireGuard 1.0.0 loaded. See www.wireguard.com for information.
+[Wed Apr 15 10:51:10 2026] wireguard: Copyright (C) 2015-2019 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.
+[Wed Apr 15 10:59:35 2026] wlp8s0: deauthenticated from 7a:8d:af:1c:e0:e2 (Reason: 1=UNSPECIFIED)
+[Wed Apr 15 10:59:38 2026] wlp8s0: authenticate with 78:8d:af:1c:e0:e0 (local address=d8:b3:2f:0e:49:d5)
+[Wed Apr 15 10:59:38 2026] wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 1/3)
+[Wed Apr 15 10:59:38 2026] wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 2/3)
+[Wed Apr 15 10:59:38 2026] wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 3/3)
+[Wed Apr 15 10:59:38 2026] wlp8s0: authentication with 78:8d:af:1c:e0:e0 timed out
+[Wed Apr 15 10:59:41 2026] wlp8s0: authenticate with 78:8d:af:1c:e0:e0 (local address=d8:b3:2f:0e:49:d5)
+[Wed Apr 15 10:59:41 2026] wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 1/3)
+[Wed Apr 15 10:59:42 2026] wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 2/3)
+[Wed Apr 15 10:59:42 2026] wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 3/3)
+[Wed Apr 15 10:59:42 2026] wlp8s0: authentication with 78:8d:af:1c:e0:e0 timed out
+[Wed Apr 15 10:59:45 2026] wlp8s0: authenticate with 78:8d:af:1c:e0:e0 (local address=d8:b3:2f:0e:49:d5)
+[Wed Apr 15 10:59:45 2026] wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 1/3)
+[Wed Apr 15 10:59:45 2026] wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 2/3)
+[Wed Apr 15 10:59:46 2026] wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 3/3)
+[Wed Apr 15 10:59:46 2026] wlp8s0: authentication with 78:8d:af:1c:e0:e0 timed out
+[Wed Apr 15 10:59:55 2026] wlp8s0: authenticate with 78:8d:af:1c:e0:e0 (local address=d8:b3:2f:0e:49:d5)
+[Wed Apr 15 10:59:55 2026] wlp8s0: send auth to 78:8d:af:1c:e0:e0 (try 1/3)
+[Wed Apr 15 10:59:55 2026] wlp8s0: authenticated
+[Wed Apr 15 10:59:55 2026] wlp8s0: associate with 78:8d:af:1c:e0:e0 (try 1/3)
+[Wed Apr 15 10:59:55 2026] wlp8s0: RX AssocResp from 78:8d:af:1c:e0:e0 (capab=0x1411 status=0 aid=18)
+[Wed Apr 15 10:59:55 2026] wlp8s0: associated
+[Wed Apr 15 10:59:56 2026] wlp8s0: Limiting TX power to 30 (30 - 0) dBm as advertised by 78:8d:af:1c:e0:e0
+[Wed Apr 15 20:03:36 2026] audit: type=1400 audit(1776283417.214:138): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.127243138545456" pid=34166 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+[Wed Apr 15 20:03:36 2026] audit: type=1400 audit(1776283417.218:139): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/apt.cpython-312.pyc.127243138719216" pid=34166 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+[Wed Apr 15 20:03:36 2026] audit: type=1400 audit(1776283417.221:140): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/__init__.cpython-312.pyc.131869536832944" pid=34167 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+[Wed Apr 15 20:03:36 2026] audit: type=1400 audit(1776283417.222:141): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/log.cpython-312.pyc.131869538384256" pid=34167 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+[Wed Apr 15 20:03:36 2026] audit: type=1400 audit(1776283417.226:142): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/defaults.cpython-312.pyc.131869535721520" pid=34167 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+[Wed Apr 15 20:03:36 2026] audit: type=1400 audit(1776283417.226:143): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/secret_manager.cpython-312.pyc.131869535721520" pid=34167 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+[Wed Apr 15 20:03:36 2026] audit: type=1400 audit(1776283417.229:144): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/system.cpython-312.pyc.131869535723568" pid=34167 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+[Wed Apr 15 20:03:36 2026] audit: type=1400 audit(1776283417.233:145): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/exceptions.cpython-312.pyc.131869536153136" pid=34167 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+[Wed Apr 15 20:03:36 2026] audit: type=1400 audit(1776283417.237:146): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_esm_cache" name="/usr/lib/python3/dist-packages/uaclient/messages/__pycache__/__init__.cpython-312.pyc.131869534944560" pid=34167 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+[Wed Apr 15 20:03:36 2026] audit: type=1400 audit(1776283417.238:147): apparmor="DENIED" operation="mknod" class="file" profile="ubuntu_pro_apt_news" name="/usr/lib/python3/dist-packages/uaclient/__pycache__/event_logger.cpython-312.pyc.127243136898736" pid=34166 comm="python3" requested_mask="c" denied_mask="c" fsuid=0 ouid=0
+[Wed Apr 15 23:01:33 2026] wlp8s0: cannot understand ECSA IE operating class, 12, ignoring
+[Wed Apr 15 23:01:33 2026] wlp8s0: driver doesn't support chan-switch with channel contexts
+[Wed Apr 15 23:01:36 2026] wlp8s0: AP is in CSA process, reject auth
+[Wed Apr 15 23:01:39 2026] wlp8s0: authenticate with 7a:8d:af:1c:e0:e2 (local address=d8:b3:2f:0e:49:d5)
+[Wed Apr 15 23:01:39 2026] wlp8s0: send auth to 7a:8d:af:1c:e0:e2 (try 1/3)
+[Wed Apr 15 23:01:39 2026] wlp8s0: authenticated
+[Wed Apr 15 23:01:39 2026] wlp8s0: associate with 7a:8d:af:1c:e0:e2 (try 1/3)
+[Wed Apr 15 23:01:39 2026] wlp8s0: RX AssocResp from 7a:8d:af:1c:e0:e2 (capab=0x1011 status=0 aid=25)
+[Wed Apr 15 23:01:39 2026] wlp8s0: associated
+[Wed Apr 15 23:01:39 2026] wlp8s0: Limiting TX power to 24 (24 - 0) dBm as advertised by 7a:8d:af:1c:e0:e2
+
+[2026-04-16 00:43:36] === Starting OS monitors ===
+Monitor logs directory: logs/monitor_20260416_004334
+Starting monitor: dmesg_watch -> logs/monitor_20260416_004334/dmesg_watch.log
+Monitor dmesg_watch pid=50554
+Starting monitor: vmstat -> logs/monitor_20260416_004334/vmstat.log
+Monitor vmstat pid=50555
+Starting monitor: iostat -> logs/monitor_20260416_004334/iostat.log
+Monitor iostat pid=50559
+Starting monitor: top -> logs/monitor_20260416_004334/top.log
+Monitor top pid=50562
+
+[2026-04-16 00:43:36] === Sync environment ===
+Resolved 130 packages in 0.38ms
+Checked 122 packages in 0.51ms
+
+[2026-04-16 00:43:36] === Extract full audio features ===
+Starting feature extraction (feature_set=full, workers=2)
+Manifest: src/data/audio_manifest.csv
+Output: src/data/audio_features.csv
+Checkpoint interval: 100
+Max tasks per child: 50
+Resuming: 2493 tracks already extracted
+Extracting features for 121259 tracks...
+Failure log: src/data/audio_features.failures.csv
+/home/guest/sutd/50.038-project/src/extract_features.py:103: UserWarning: PySoundFile failed. Trying audioread instead.
+  y, sr = librosa.load(audio_path, sr=SAMPLE_RATE, mono=True)
+/home/guest/sutd/50.038-project/src/extract_features.py:103: UserWarning: PySoundFile failed. Trying audioread instead.
+  y, sr = librosa.load(audio_path, sr=SAMPLE_RATE, mono=True)
+/home/guest/sutd/50.038-project/.venv/lib/python3.12/site-packages/librosa/core/audio.py:184: FutureWarning: librosa.core.audio.__audioread_load
+	Deprecated as of librosa version 0.10.0.
+	It will be removed in librosa version 1.0.
+  y, sr_native = __audioread_load(path, offset, duration, dtype)
+/home/guest/sutd/50.038-project/.venv/lib/python3.12/site-packages/librosa/core/audio.py:184: FutureWarning: librosa.core.audio.__audioread_load
+	Deprecated as of librosa version 0.10.0.
+	It will be removed in librosa version 1.0.
+  y, sr_native = __audioread_load(path, offset, duration, dtype)
