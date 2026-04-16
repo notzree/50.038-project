@@ -11,6 +11,7 @@ STAMP="$(date +%Y%m%d_%H%M%S)"
 LOG_FILE="$LOG_DIR/overnight_high_level_${STAMP}.log"
 MONITOR_DIR="$LOG_DIR/monitor_${STAMP}"
 mkdir -p "$MONITOR_DIR"
+LOCK_DIR="$LOG_DIR/overnight_high_level.lock"
 
 MONITOR_PIDS=()
 
@@ -54,6 +55,25 @@ stop_monitors() {
       echo "Stopped monitor pid=$pid"
     fi
   done
+}
+
+acquire_run_lock() {
+  phase "Acquire run lock"
+  if mkdir "$LOCK_DIR" 2>/dev/null; then
+    echo "Acquired lock: $LOCK_DIR"
+    return
+  fi
+
+  echo "Another overnight run appears active (lock exists: $LOCK_DIR)."
+  echo "If no run is actually active, remove stale lock with: rm -rf $LOCK_DIR"
+  exit 1
+}
+
+release_run_lock() {
+  if [ -d "$LOCK_DIR" ]; then
+    rm -rf "$LOCK_DIR" || true
+    echo "Released lock: $LOCK_DIR"
+  fi
 }
 
 collect_kernel_history() {
@@ -240,16 +260,19 @@ on_error() {
 
 on_exit() {
   stop_monitors
+  release_run_lock
 }
 
 trap on_error ERR
 trap on_exit EXIT
 
-FEATURE_WORKERS="${FEATURE_WORKERS:-2}"
-MAX_TASKS_PER_CHILD="${MAX_TASKS_PER_CHILD:-50}"
+FEATURE_WORKERS="${FEATURE_WORKERS:-1}"
+MAX_TASKS_PER_CHILD="${MAX_TASKS_PER_CHILD:-25}"
 CHECKPOINT_INTERVAL="${CHECKPOINT_INTERVAL:-100}"
 FORMULA_SETS="${FORMULA_SETS:-A,B,C,D}"
 SEEDS="${SEEDS:-42}"
+
+acquire_run_lock
 
 phase "Run configuration"
 echo "FEATURE_WORKERS=$FEATURE_WORKERS"
