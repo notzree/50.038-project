@@ -1,7 +1,10 @@
 import argparse
+import csv
 import multiprocessing
 import os
-from concurrent.futures import ProcessPoolExecutor, as_completed
+import time
+from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures.process import BrokenProcessPool
 from pathlib import Path
 
 import librosa
@@ -191,8 +194,8 @@ def extract_full_features(audio_path: str) -> dict:
     # --- MFCCs 1-13 mean + std ---
     mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
     for i in range(13):
-        feats[f"mfcc_{i+1}_mean"] = float(np.mean(mfcc[i]))
-        feats[f"mfcc_{i+1}_std"] = float(np.std(mfcc[i]))
+        feats[f"mfcc_{i + 1}_mean"] = float(np.mean(mfcc[i]))
+        feats[f"mfcc_{i + 1}_std"] = float(np.std(mfcc[i]))
 
     # --- Spectral bandwidth ---
     spectral_bw = librosa.feature.spectral_bandwidth(y=y, sr=sr)[0]
@@ -231,13 +234,17 @@ def extract_full_features(audio_path: str) -> dict:
     # --- Engineered scores ---
     tempo_norm = np.clip(feats["tempo_bpm"] / MAX_TEMPO_BPM, 0, 1)
     onset_norm = np.clip(feats["onset_strength_mean"] / MAX_ONSET_STRENGTH, 0, 1)
-    stability_norm = 1.0 - np.clip(feats["tempo_stability"] / MAX_TEMPO_INSTABILITY, 0, 1)
+    stability_norm = 1.0 - np.clip(
+        feats["tempo_stability"] / MAX_TEMPO_INSTABILITY, 0, 1
+    )
     feats["danceability_score"] = float(
         (tempo_norm + onset_norm + stability_norm) / 3.0
     )
 
     rms_norm = np.clip(feats["rms_mean"] / MAX_RMS, 0, 1)
-    centroid_norm = np.clip(feats["spectral_centroid_mean"] / MAX_SPECTRAL_CENTROID, 0, 1)
+    centroid_norm = np.clip(
+        feats["spectral_centroid_mean"] / MAX_SPECTRAL_CENTROID, 0, 1
+    )
     bw_norm = np.clip(feats["spectral_bandwidth_mean"] / MAX_SPECTRAL_BANDWIDTH, 0, 1)
     feats["energy_score"] = float((rms_norm + centroid_norm + bw_norm) / 3.0)
 
@@ -254,14 +261,20 @@ def extract_full_features(audio_path: str) -> dict:
 
     S = np.abs(librosa.stft(y))
     spectral_flux = np.sqrt(np.sum(np.diff(S, axis=1) ** 2, axis=0))
-    feats["spectral_flux_mean"] = float(np.mean(spectral_flux)) if len(spectral_flux) > 0 else 0.0
-    feats["spectral_flux_std"] = float(np.std(spectral_flux)) if len(spectral_flux) > 0 else 0.0
+    feats["spectral_flux_mean"] = (
+        float(np.mean(spectral_flux)) if len(spectral_flux) > 0 else 0.0
+    )
+    feats["spectral_flux_std"] = (
+        float(np.std(spectral_flux)) if len(spectral_flux) > 0 else 0.0
+    )
 
     # --- Intra-clip self-similarity ---
     chroma_norm = librosa.util.normalize(chroma, axis=0)
     sim_matrix = chroma_norm.T @ chroma_norm
     upper_tri = sim_matrix[np.triu_indices_from(sim_matrix, k=1)]
-    feats["chroma_self_similarity_mean"] = float(np.mean(upper_tri)) if len(upper_tri) > 0 else 0.0
+    feats["chroma_self_similarity_mean"] = (
+        float(np.mean(upper_tri)) if len(upper_tri) > 0 else 0.0
+    )
 
     # --- Event density ---
     onsets = librosa.onset.onset_detect(y=y, sr=sr)
@@ -269,11 +282,13 @@ def extract_full_features(audio_path: str) -> dict:
     feats["onset_density"] = float(len(onsets) / duration) if duration > 0 else 0.0
 
     chroma_diff = np.diff(chroma, axis=1)
-    chroma_change = np.sqrt(np.sum(chroma_diff ** 2, axis=0))
-    feats["harmonic_change_rate"] = float(np.mean(chroma_change)) if len(chroma_change) > 0 else 0.0
+    chroma_change = np.sqrt(np.sum(chroma_diff**2, axis=0))
+    feats["harmonic_change_rate"] = (
+        float(np.mean(chroma_change)) if len(chroma_change) > 0 else 0.0
+    )
 
     # --- Timbral texture ---
-    S_power = S ** 2
+    S_power = S**2
     freq_bins = librosa.fft_frequencies(sr=sr)
     bass_mask = freq_bins <= BASS_CUTOFF_HZ
     total_energy = np.sum(S_power)
@@ -298,7 +313,9 @@ def extract_full_features(audio_path: str) -> dict:
 def _extract_one(args: tuple) -> dict:
     """Worker function for ProcessPoolExecutor."""
     track_id, file_path, feature_set = args
-    extract_fn = extract_full_features if feature_set == "full" else extract_basic_features
+    extract_fn = (
+        extract_full_features if feature_set == "full" else extract_basic_features
+    )
     feature_keys = FULL_FEATURE_KEYS if feature_set == "full" else BASIC_FEATURE_KEYS
 
     try:
@@ -311,11 +328,14 @@ def _extract_one(args: tuple) -> dict:
             **feats,
         }
     except Exception as e:
+        err = str(e).strip()
+        if not err:
+            err = repr(e)
         return {
             "track_id": track_id,
             "file_path": file_path,
             "status": "failed",
-            "error": str(e),
+            "error": f"{type(e).__name__}: {err}",
             **{k: None for k in feature_keys},
         }
 
@@ -331,6 +351,9 @@ def run_extraction(
     feature_set: str = "full",
     workers: int | None = None,
     checkpoint_interval: int = 1000,
+    max_tasks_per_child: int = 100,
+    failure_log_csv: str | None = None,
+    progress_interval: int = 10,
 ) -> None:
     """Extract features from all tracks in a manifest CSV."""
     manifest_path = Path(manifest_csv)
@@ -340,6 +363,9 @@ def run_extraction(
     print(f"Starting feature extraction (feature_set={feature_set}, workers={workers})")
     print(f"Manifest: {manifest_path}")
     print(f"Output: {output_path}")
+    print(f"Checkpoint interval: {checkpoint_interval}")
+    print(f"Max tasks per child: {max_tasks_per_child}")
+    print(f"Progress interval: {progress_interval}")
 
     if not manifest_path.exists():
         raise FileNotFoundError(f"Manifest not found: {manifest_path}")
@@ -384,27 +410,81 @@ def run_extraction(
     tasks = [(row["track_id"], row["file_path"], feature_set) for row in rows]
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Use 'spawn' context to avoid fork-related crashes with librosa/numpy on macOS
-    ctx = multiprocessing.get_context("spawn")
+    if failure_log_csv is None:
+        failure_log_path = output_path.with_suffix(".failures.csv")
+    else:
+        failure_log_path = Path(failure_log_csv)
+    failure_log_path.parent.mkdir(parents=True, exist_ok=True)
+
+    existing_failure_log = (
+        failure_log_path.exists() and failure_log_path.stat().st_size > 0
+    )
+    failure_file = failure_log_path.open("a", newline="")
+    failure_writer = csv.writer(failure_file)
+    if not existing_failure_log:
+        failure_writer.writerow(["track_id", "file_path", "error"])
+        failure_file.flush()
+
+    print(f"Failure log: {failure_log_path}")
 
     completed = 0
-    with ProcessPoolExecutor(max_workers=workers, mp_context=ctx) as pool:
-        futures = {pool.submit(_extract_one, task): task for task in tasks}
+    ok_count = 0
+    failed_count = 0
+    start_ts = time.time()
 
-        for future in as_completed(futures):
-            result = future.result()
-            records.append(result)
-            completed += 1
+    def _handle_result(result: dict) -> None:
+        nonlocal completed, ok_count, failed_count
+        records.append(result)
+        completed += 1
 
-            if result["status"] == "failed":
-                print(f"  [{completed}/{len(tasks)}] FAILED {result['track_id']}: {result['error']}")
-            elif completed % 100 == 0 or completed == len(tasks):
-                print(f"  [{completed}/{len(tasks)}] extracted")
+        if result["status"] == "failed":
+            failed_count += 1
+            print(
+                f"  [{completed}/{len(tasks)}] FAILED {result['track_id']}: {result['error']}"
+            )
+            failure_writer.writerow(
+                [result["track_id"], result["file_path"], result["error"]]
+            )
+            failure_file.flush()
+        else:
+            ok_count += 1
 
-            # Checkpoint
-            if completed % checkpoint_interval == 0:
-                _write_output(records, output_path)
-                print(f"  Checkpoint written ({completed} total)")
+        if completed % progress_interval == 0 or completed == len(tasks):
+            elapsed = max(time.time() - start_ts, 1e-6)
+            rate = completed / elapsed
+            print(
+                f"  [{completed}/{len(tasks)}] progress | ok={ok_count}, failed={failed_count}, rate={rate:.2f}/s"
+            )
+
+        if completed % checkpoint_interval == 0:
+            _write_output(records, output_path)
+            print(f"  Checkpoint written ({completed} total)")
+
+    try:
+        if workers <= 1:
+            print("Running in single-process mode")
+            for task in tasks:
+                result = _extract_one(task)
+                _handle_result(result)
+        else:
+            # Use 'spawn' context to avoid fork-related crashes with librosa/numpy on macOS
+            ctx = multiprocessing.get_context("spawn")
+            with ProcessPoolExecutor(
+                max_workers=workers,
+                mp_context=ctx,
+                max_tasks_per_child=max_tasks_per_child,
+            ) as pool:
+                for result in pool.map(_extract_one, tasks, chunksize=1):
+                    _handle_result(result)
+    except BrokenProcessPool as e:
+        _write_output(records, output_path)
+        print(
+            "BrokenProcessPool detected. Wrote checkpoint before exiting. "
+            "Try lower --workers (e.g., 1-2) and smaller --max-tasks-per-child (e.g., 25-50)."
+        )
+        raise RuntimeError("Feature extraction worker pool crashed") from e
+    finally:
+        failure_file.close()
 
     _write_output(records, output_path)
 
@@ -418,24 +498,49 @@ def main():
         description="Extract audio features from manifest."
     )
     parser.add_argument(
-        "--manifest", default="src/data/audio_manifest.csv",
+        "--manifest",
+        default="src/data/audio_manifest.csv",
         help="Path to manifest CSV with columns: track_id, file_path",
     )
     parser.add_argument(
-        "--output", default="src/data/audio_features.csv",
+        "--output",
+        default="src/data/audio_features.csv",
         help="Path to output CSV",
     )
     parser.add_argument(
-        "--feature-set", choices=["basic", "full"], default="full",
+        "--feature-set",
+        choices=["basic", "full"],
+        default="full",
         help="Feature set to extract (default: full)",
     )
     parser.add_argument(
-        "--workers", type=int, default=None,
+        "--workers",
+        type=int,
+        default=None,
         help="Number of parallel workers (default: cpu_count - 1)",
     )
     parser.add_argument(
-        "--checkpoint-interval", type=int, default=1000,
+        "--checkpoint-interval",
+        type=int,
+        default=1000,
         help="Write checkpoint every N songs",
+    )
+    parser.add_argument(
+        "--max-tasks-per-child",
+        type=int,
+        default=100,
+        help="Restart each worker after N tracks to reduce long-run memory pressure",
+    )
+    parser.add_argument(
+        "--failure-log-csv",
+        default=None,
+        help="Optional CSV path for per-track failures",
+    )
+    parser.add_argument(
+        "--progress-interval",
+        type=int,
+        default=10,
+        help="Print progress summary every N processed tracks",
     )
     args = parser.parse_args()
 
@@ -445,6 +550,9 @@ def main():
         feature_set=args.feature_set,
         workers=args.workers,
         checkpoint_interval=args.checkpoint_interval,
+        max_tasks_per_child=args.max_tasks_per_child,
+        failure_log_csv=args.failure_log_csv,
+        progress_interval=args.progress_interval,
     )
 
 

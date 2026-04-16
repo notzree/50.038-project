@@ -1,0 +1,926 @@
+
+[2026-04-15 17:32:54] === Run configuration ===
+FEATURE_WORKERS=2
+MAX_TASKS_PER_CHILD=50
+CHECKPOINT_INTERVAL=100
+FORMULA_SETS=A,B,C,D
+SEEDS=42
+LOG_FILE=logs/overnight_high_level_20260415_173254.log
+MONITOR_DIR=logs/monitor_20260415_173254
+
+[2026-04-15 17:32:54] === System snapshot ===
+--- date ---
+Wed Apr 15 05:32:54 PM UTC 2026
+--- uname ---
+Linux atlas1 6.8.0-107-generic #107-Ubuntu SMP PREEMPT_DYNAMIC Fri Mar 13 19:51:50 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+--- os-release ---
+PRETTY_NAME="Ubuntu 24.04.3 LTS"
+NAME="Ubuntu"
+VERSION_ID="24.04"
+VERSION="24.04.3 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=noble
+LOGO=ubuntu-logo
+--- lsb_release ---
+Distributor ID:	Ubuntu
+Description:	Ubuntu 24.04.3 LTS
+Release:	24.04
+Codename:	noble
+--- memory free -h ---
+               total        used        free      shared  buff/cache   available
+Mem:            30Gi       1.4Gi        28Gi        45Mi       1.1Gi        29Gi
+Swap:          8.0Gi          0B       8.0Gi
+--- top (Linux) ---
+top - 17:32:54 up  6:42,  2 users,  load average: 0.04, 0.07, 0.09
+Tasks: 298 total,   1 running, 297 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.6 us,  0.0 sy,  0.0 ni, 99.4 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st 
+MiB Mem :  31166.5 total,  29062.0 free,   1384.8 used,   1154.3 buff/cache     
+MiB Swap:   8192.0 total,   8192.0 free,      0.0 used.  29781.8 avail Mem 
+
+    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+      1 root      20   0   22596  13896   9580 S   0.0   0.0   0:02.36 systemd
+      2 root      20   0       0      0      0 S   0.0   0.0   0:00.00 kthreadd
+      3 root      20   0       0      0      0 S   0.0   0.0   0:00.00 pool_wo+
+      4 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+      5 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+      6 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+      7 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+      8 root      20   0       0      0      0 I   0.0   0.0   0:00.48 kworker+
+     10 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     12 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     13 root      20   0       0      0      0 I   0.0   0.0   0:00.00 rcu_tas+
+     14 root      20   0       0      0      0 I   0.0   0.0   0:00.00 rcu_tas+
+     15 root      20   0       0      0      0 I   0.0   0.0   0:00.00 rcu_tas+
+     16 root      20   0       0      0      0 S   0.0   0.0   0:00.02 ksoftir+
+     17 root      20   0       0      0      0 I   0.0   0.0   0:01.93 rcu_pre+
+     18 root      rt   0       0      0      0 S   0.0   0.0   0:00.31 migrati+
+     19 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     20 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/0
+     21 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/1
+     22 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     23 root      rt   0       0      0      0 S   0.0   0.0   0:00.97 migrati+
+     24 root      20   0       0      0      0 S   0.0   0.0   0:00.01 ksoftir+
+     26 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     27 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/2
+     28 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     29 root      rt   0       0      0      0 S   0.0   0.0   0:00.20 migrati+
+     30 root      20   0       0      0      0 S   0.0   0.0   0:00.06 ksoftir+
+     32 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     33 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/3
+     34 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     35 root      rt   0       0      0      0 S   0.0   0.0   0:01.19 migrati+
+     36 root      20   0       0      0      0 S   0.0   0.0   0:00.02 ksoftir+
+     38 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     39 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/4
+     40 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     41 root      rt   0       0      0      0 S   0.0   0.0   0:00.19 migrati+
+     42 root      20   0       0      0      0 S   0.0   0.0   0:00.05 ksoftir+
+     44 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     45 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/5
+     46 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     47 root      rt   0       0      0      0 S   0.0   0.0   0:00.61 migrati+
+     48 root      20   0       0      0      0 S   0.0   0.0   0:00.01 ksoftir+
+     50 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     51 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/6
+     52 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     53 root      rt   0       0      0      0 S   0.0   0.0   0:00.39 migrati+
+     54 root      20   0       0      0      0 S   0.0   0.0   0:00.01 ksoftir+
+     56 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     57 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/7
+     58 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     59 root      rt   0       0      0      0 S   0.0   0.0   0:00.30 migrati+
+     60 root      20   0       0      0      0 S   0.0   0.0   0:00.00 ksoftir+
+     62 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     63 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/8
+     64 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     65 root      rt   0       0      0      0 S   0.0   0.0   0:00.40 migrati+
+     66 root      20   0       0      0      0 S   0.0   0.0   0:00.01 ksoftir+
+     68 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     69 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/9
+     70 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     71 root      rt   0       0      0      0 S   0.0   0.0   0:00.35 migrati+
+     72 root      20   0       0      0      0 S   0.0   0.0   0:00.00 ksoftir+
+     74 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     75 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/10
+     76 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     77 root      rt   0       0      0      0 S   0.0   0.0   0:00.27 migrati+
+     78 root      20   0       0      0      0 S   0.0   0.0   0:00.01 ksoftir+
+     80 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     81 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/11
+     82 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     83 root      rt   0       0      0      0 S   0.0   0.0   0:00.38 migrati+
+     84 root      20   0       0      0      0 S   0.0   0.0   0:00.02 ksoftir+
+     86 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     87 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/12
+     88 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     89 root      rt   0       0      0      0 S   0.0   0.0   0:00.27 migrati+
+     90 root      20   0       0      0      0 S   0.0   0.0   0:00.05 ksoftir+
+     92 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     93 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/13
+     94 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+     95 root      rt   0       0      0      0 S   0.0   0.0   0:00.56 migrati+
+     96 root      20   0       0      0      0 S   0.0   0.0   0:00.02 ksoftir+
+     98 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+     99 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/14
+    100 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+    101 root      rt   0       0      0      0 S   0.0   0.0   0:00.49 migrati+
+    102 root      20   0       0      0      0 S   0.0   0.0   0:00.01 ksoftir+
+    104 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    105 root      20   0       0      0      0 S   0.0   0.0   0:00.00 cpuhp/15
+    106 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 idle_in+
+    107 root      rt   0       0      0      0 S   0.0   0.0   0:00.42 migrati+
+    108 root      20   0       0      0      0 S   0.0   0.0   0:00.01 ksoftir+
+    110 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    111 root      20   0       0      0      0 S   0.0   0.0   0:00.00 kdevtmp+
+    112 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    113 root      20   0       0      0      0 S   0.0   0.0   0:00.00 kauditd
+    114 root      20   0       0      0      0 S   0.0   0.0   0:00.02 khungta+
+    116 root      20   0       0      0      0 S   0.0   0.0   0:00.00 oom_rea+
+    117 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    118 root      20   0       0      0      0 S   0.0   0.0   0:00.80 kcompac+
+    119 root      25   5       0      0      0 S   0.0   0.0   0:40.35 ksmd
+    120 root      39  19       0      0      0 S   0.0   0.0   0:00.07 khugepa+
+    121 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    122 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    123 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    125 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 irq/9-a+
+    127 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    128 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    129 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    130 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    131 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    132 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    133 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 watchdo+
+    135 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    136 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    137 root      20   0       0      0      0 I   0.0   0.0   0:00.01 kworker+
+    138 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 irq/26-+
+    139 root      20   0       0      0      0 S   0.0   0.0   0:00.00 kswapd0
+    140 root      20   0       0      0      0 S   0.0   0.0   0:00.00 ecryptf+
+    141 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    143 root      20   0       0      0      0 I   0.0   0.0   0:01.81 kworker+
+    145 root      20   0       0      0      0 I   0.0   0.0   0:00.27 kworker+
+    146 root      20   0       0      0      0 I   0.0   0.0   0:00.14 kworker+
+    147 root      20   0       0      0      0 I   0.0   0.0   0:00.10 kworker+
+    149 root      20   0       0      0      0 I   0.0   0.0   0:00.37 kworker+
+    152 root      20   0       0      0      0 I   0.0   0.0   0:00.18 kworker+
+    153 root      20   0       0      0      0 I   0.0   0.0   0:00.01 kworker+
+    154 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    155 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    156 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    157 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    164 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    166 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    171 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    182 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    183 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 irq/27-+
+    184 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 irq/28-+
+    185 root      20   0       0      0      0 I   0.0   0.0   0:00.91 kworker+
+    212 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    216 root       0 -20       0      0      0 I   0.0   0.0   0:00.04 kworker+
+    217 root       0 -20       0      0      0 I   0.0   0.0   0:00.05 kworker+
+    232 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    247 root       0 -20       0      0      0 I   0.0   0.0   0:00.01 kworker+
+    248 root       0 -20       0      0      0 I   0.0   0.0   0:00.01 kworker+
+    249 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    250 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    251 root       0 -20       0      0      0 I   0.0   0.0   0:00.01 kworker+
+    252 root       0 -20       0      0      0 I   0.0   0.0   0:00.01 kworker+
+    253 root       0 -20       0      0      0 I   0.0   0.0   0:00.04 kworker+
+    254 root       0 -20       0      0      0 I   0.0   0.0   0:00.02 kworker+
+    255 root       0 -20       0      0      0 I   0.0   0.0   0:00.02 kworker+
+    256 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    280 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    281 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    282 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    283 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    298 root      20   0       0      0      0 S   0.0   0.0   0:00.00 scsi_eh+
+    299 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    302 root      20   0       0      0      0 S   0.0   0.0   0:00.00 scsi_eh+
+    303 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    304 root      20   0       0      0      0 S   0.0   0.0   0:00.00 scsi_eh+
+    305 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    306 root      20   0       0      0      0 S   0.0   0.0   0:00.00 scsi_eh+
+    307 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    308 root      20   0       0      0      0 S   0.0   0.0   0:00.00 scsi_eh+
+    309 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    310 root      20   0       0      0      0 S   0.0   0.0   0:00.00 scsi_eh+
+    311 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    322 root      20   0       0      0      0 I   0.0   0.0   0:01.06 kworker+
+    326 root      20   0       0      0      0 I   0.0   0.0   0:00.74 kworker+
+    356 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    415 root      20   0       0      0      0 S   0.0   0.0   0:00.56 jbd2/nv+
+    416 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    479 root      -2   0       0      0      0 S   0.0   0.0   0:00.00 psimon
+    484 root      19  -1   58648  19896  18640 S   0.0   0.1   0:00.25 systemd+
+    508 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    509 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    534 root      20   0       0      0      0 I   0.0   0.0   0:00.31 kworker+
+    540 root      rt   0  288952  27292   8760 S   0.0   0.1   0:01.24 multipa+
+    562 root      20   0   29828   8700   5152 S   0.0   0.0   0:00.09 systemd+
+    567 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    577 root      -2   0       0      0      0 S   0.0   0.0   0:00.00 psimon
+    660 root      20   0       0      0      0 I   0.0   0.0   0:00.14 kworker+
+    714 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    770 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    920 systemd+  20   0   21704  13196  10800 S   0.0   0.0   0:00.06 systemd+
+    921 systemd+  20   0   91376   8356   7368 S   0.0   0.0   0:00.08 systemd+
+    922 root      20   0       0      0      0 S   0.0   0.0   0:01.89 napi/ph+
+    923 root      20   0       0      0      0 S   0.0   0.0   0:00.48 napi/ph+
+    924 root      20   0       0      0      0 S   0.0   0.0   0:01.97 napi/ph+
+    938 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    940 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    955 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    956 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    957 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    958 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    959 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    960 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+    961 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 card1-c+
+    962 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 card1-c+
+    963 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 card1-c+
+    964 root     -51   0       0      0      0 S   0.0   0.0   0:00.00 card1-c+
+    990 message+  20   0   10360   6064   4788 S   0.0   0.0   0:06.86 dbus-da+
+    999 polkitd   20   0  308164   8172   7272 S   0.0   0.0   0:00.41 polkitd
+   1013 root      20   0 2884820  40740  26136 S   0.0   0.1   0:01.15 snapd
+   1023 root      20   0   18340   9120   7972 S   0.0   0.0   0:03.27 systemd+
+   1025 root      20   0   17560   8036   7068 S   0.0   0.0   0:00.03 systemd+
+   1036 root      20   0  469124  13960  11640 S   0.0   0.0   0:00.37 udisksd
+   1042 root      20   0   71296  15164  13304 S   0.0   0.0   0:00.00 virtloc+
+   1045 root      20   0   71300  15260  13400 S   0.0   0.0   0:00.01 virtlogd
+   1065 root      20   0   17384   6400   5524 S   0.0   0.0   0:00.08 wpa_sup+
+   1119 systemd+  20   0   22140  10120   8840 S   0.0   0.0   0:00.06 systemd+
+   1126 root      20   0 1357344  46628  25704 S   0.0   0.1   0:10.94 tailsca+
+   1131 syslog    20   0  222508   6848   4672 S   0.0   0.0   0:00.04 rsyslogd
+   1135 root      -2   0       0      0      0 S   0.0   0.0   0:00.45 mt76-tx+
+   1187 root      20   0  318376  13088  11000 S   0.0   0.0   0:00.02 ModemMa+
+   1203 root      20   0   18144  11388   9768 S   0.0   0.0   0:00.11 wpa_sup+
+   1214 root      20   0  109640  23292  13832 S   0.0   0.1   0:00.03 unatten+
+   1220 root      20   0 2689852  53860  35380 S   0.0   0.2   0:21.10 contain+
+   1441 root      20   0 3081348  80528  53748 S   0.0   0.3   0:07.54 dockerd
+   1442 netdata   20   0 1654248 189920  42496 S   0.0   0.6   6:32.01 netdata
+   1444 root      20   0    6824   3040   2792 S   0.0   0.0   0:00.03 cron
+   1448 root      20   0   50384  10628   9512 S   0.0   0.0   0:00.23 systemd+
+   1465 root      20   0    6104   2108   1968 S   0.0   0.0   0:00.00 agetty
+   1728 libvirt+  20   0   11484   2300   1760 S   0.0   0.0   0:03.37 dnsmasq
+   1729 root      20   0   11484   1300    760 S   0.0   0.0   0:00.00 dnsmasq
+   1762 netdata   20   0   65488  14720   2704 S   0.0   0.0   0:01.63 spawn-p+
+   2521 root      20   0 1238384  14680  10768 S   0.0   0.0   0:00.93 contain+
+   2526 root      20   0 1238384  15228  10740 S   0.0   0.0   0:02.45 contain+
+   2564 root      20   0    1056    732    684 S   0.0   0.0   0:00.61 docker-+
+   2565 root      20   0    2480   1264   1172 S   0.0   0.0   0:00.62 tini
+   2615 netdata   20   0 1461288 105828  62592 S   0.0   0.3   0:40.68 go.d.pl+
+   2630 root      20   0   77080  14712   6580 S   0.0   0.0   0:07.73 ebpf.pl+
+   2632 netdata   20   0  203872   7028   5808 S   0.0   0.0   0:14.01 sd-jrnl+
+   2640 netdata   20   0 1597704   6900   5884 S   0.0   0.0   0:00.15 otel-si+
+   2641 netdata   20   0   39304   5796   4932 S   0.0   0.0   0:05.43 sd-unit+
+   2642 netdata   20   0   52812   7936   6308 S   0.0   0.0   0:01.93 otel-pl+
+   2644 netdata   20   0  129188   5860   4948 S   0.0   0.0   0:05.49 NETWORK+
+   2647 netdata   20   0   87984   6188   5152 S   0.0   0.0   0:27.95 debugfs+
+   2649 netdata   20   0  100536  10080   5664 S   0.0   0.0   2:05.03 apps.pl+
+   2650 root      20   0   14136   5452   4660 S   0.0   0.0   0:01.95 nfacct.+
+   2651 netdata   20   0 1274320  18260  10240 S   0.0   0.1   0:12.29 scripts+
+   2726 netdata   20   0   14476   2200   1424 S   0.0   0.0   0:01.47 spawn-s+
+   2905 root      20   0 1597636   4416   3564 S   0.0   0.0   0:00.01 docker-+
+   2911 root      20   0 1818832   4584   3560 S   0.0   0.0   0:00.01 docker-+
+   2926 5984      20   0 4640232 133864  34580 S   0.0   0.4   4:41.34 beam.smp
+   2936 root      20   0 1745100   4464   3564 S   0.0   0.0   0:00.01 docker-+
+   3039 root      20   0  730088  17420  12464 S   0.0   0.1   0:00.92 registry
+   3068 5984      20   0    2472   1488   1388 S   0.0   0.0   0:00.00 erl_chi+
+   3153 5984      20   0    2584   1696   1588 S   0.0   0.0   0:00.00 sh
+   3155 5984      20   0    2336   1480   1384 S   0.0   0.0   0:00.00 memsup
+   3156 5984      20   0    2468   1352   1256 S   0.0   0.0   0:00.00 cpu_sup
+   3157 5984      20   0    3404   1612   1500 S   0.0   0.0   0:00.00 inet_ge+
+   3158 5984      20   0    3404   1732   1604 S   0.0   0.0   0:00.00 inet_ge+
+   5848 root      20   0  479772  44424  37484 S   0.0   0.1   0:00.78 fwupd
+   5855 root      20   0  314492   9648   7612 S   0.0   0.0   0:00.01 upowerd
+   5862 root      20   0       0      0      0 I   0.0   0.0   0:01.31 kworker+
+   6183 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+   7281 root      20   0       0      0      0 I   0.0   0.0   0:00.34 kworker+
+   9306 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  13094 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  13879 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  15864 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  19215 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  19747 root      20   0       0      0      0 I   0.0   0.0   0:00.05 kworker+
+  20023 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  20712 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  21146 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  22458 root      20   0       0      0      0 I   0.0   0.0   0:00.11 kworker+
+  22462 root      20   0       0      0      0 I   0.0   0.0   0:01.38 kworker+
+  22588 root      20   0       0      0      0 I   0.0   0.0   0:01.05 kworker+
+  22996 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  23065 netdata   20   0    4588   3556   3052 S   0.0   0.0   0:00.73 bash
+  23576 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  24280 root      20   0    9692   4896   4100 S   0.0   0.0   0:00.00 login
+  24366 notzree   20   0   20592  11708   9316 S   0.0   0.0   0:00.04 systemd
+  24367 notzree   20   0   21160   3644   1908 S   0.0   0.0   0:00.00 (sd-pam)
+  24380 notzree   20   0    8780   5712   3940 S   0.0   0.0   0:00.00 bash
+  24427 root       0 -20       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  24429 root      20   0       0      0      0 I   0.0   0.0   0:00.03 kworker+
+  24450 root      20   0       0      0      0 I   0.0   0.0   0:00.33 kworker+
+  24806 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  24932 root      20   0    9692   4892   4096 S   0.0   0.0   0:00.00 login
+  24993 guest     20   0   20596  11812   9420 S   0.0   0.0   0:00.05 systemd
+  24994 guest     20   0   21160   3648   1916 S   0.0   0.0   0:00.00 (sd-pam)
+  24999 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  25006 guest     20   0    9860   6848   3960 S   0.0   0.0   0:00.02 bash
+  25299 root      20   0       0      0      0 I   0.0   0.0   0:00.14 kworker+
+  25439 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  25440 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  25448 root      20   0       0      0      0 I   0.0   0.0   0:00.00 kworker+
+  25547 guest     20   0   11888   5484   4788 S   0.0   0.0   0:00.00 tmux: c+
+  25549 guest     20   0   12416   4876   3712 S   0.0   0.0   0:00.00 tmux: s+
+  25550 guest     20   0    8772   5716   3984 S   0.0   0.0   0:00.00 bash
+  25551 guest     20   0    9292   5128   4692 S   0.0   0.0   0:00.00 dbus-da+
+  25607 guest     20   0    7472   3936   3504 S   0.0   0.0   0:00.00 bash
+  25613 guest     20   0    5692   2120   2004 S   0.0   0.0   0:00.00 tee
+  25639 guest     20   0   13200   6564   4372 R   0.0   0.0   0:00.00 top
+--- cpuinfo ---
+processor	: 0
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 3627.139
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 0
+cpu cores	: 8
+apicid		: 0
+initial apicid	: 0
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 1
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 3333.446
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 1
+cpu cores	: 8
+apicid		: 2
+initial apicid	: 2
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 2
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 3438.426
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 2
+cpu cores	: 8
+apicid		: 4
+initial apicid	: 4
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 3
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 5573.918
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 3
+cpu cores	: 8
+apicid		: 6
+initial apicid	: 6
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 4
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 3562.341
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 4
+cpu cores	: 8
+apicid		: 8
+initial apicid	: 8
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 5
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 3646.269
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 5
+cpu cores	: 8
+apicid		: 10
+initial apicid	: 10
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 6
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 600.000
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 6
+cpu cores	: 8
+apicid		: 12
+initial apicid	: 12
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 7
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 600.000
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 7
+cpu cores	: 8
+apicid		: 14
+initial apicid	: 14
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 8
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 600.000
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 0
+cpu cores	: 8
+apicid		: 1
+initial apicid	: 1
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 9
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 600.000
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 1
+cpu cores	: 8
+apicid		: 3
+initial apicid	: 3
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 10
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 600.000
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 2
+cpu cores	: 8
+apicid		: 5
+initial apicid	: 5
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 11
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 3644.521
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 3
+cpu cores	: 8
+apicid		: 7
+initial apicid	: 7
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 12
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 600.000
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 4
+cpu cores	: 8
+apicid		: 9
+initial apicid	: 9
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 13
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 600.000
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 5
+cpu cores	: 8
+apicid		: 11
+initial apicid	: 11
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 14
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 600.000
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 6
+cpu cores	: 8
+apicid		: 13
+initial apicid	: 13
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+processor	: 15
+vendor_id	: AuthenticAMD
+cpu family	: 26
+model		: 68
+model name	: AMD Ryzen 7 9700X 8-Core Processor
+stepping	: 0
+microcode	: 0xb404032
+cpu MHz		: 3500.920
+cache size	: 1024 KB
+physical id	: 0
+siblings	: 16
+core id		: 7
+cpu cores	: 8
+apicid		: 15
+initial apicid	: 15
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 16
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d srso_user_kernel_no
+bugs		: sysret_ss_attrs spectre_v1 spectre_v2 spec_store_bypass
+bogomips	: 7585.89
+TLB size	: 192 4K pages
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 48 bits physical, 48 bits virtual
+power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
+
+--- sysctl kernel.ostype ---
+kernel.ostype = Linux
+--- sysctl kernel.osrelease ---
+kernel.osrelease = 6.8.0-107-generic
+--- nproc ---
+16
+--- ulimit ---
+time(seconds)        unlimited
+file(blocks)         unlimited
+data(kbytes)         unlimited
+stack(kbytes)        8192
+coredump(blocks)     0
+memory(kbytes)       unlimited
+locked memory(kbytes) 3989312
+process              124339
+nofiles              1024
+vmemory(kbytes)      unlimited
+locks                unlimited
+rtprio               0
+--- disk usage ---
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p4  288G  167G  106G  62% /
+
+[2026-04-15 17:32:54] === Environment diagnostics ===
+--- pwd ---
+/home/guest/sutd/50.038-project
+--- git branch ---
+## daniel/script-logging...origin/daniel/script-logging
+?? logs/
+--- uv version ---
+uv 0.11.1 (a6042f67f 2026-03-24 x86_64-unknown-linux-gnu)
+--- python3 version ---
+Python 3.12.3
+--- ffmpeg version ---
+ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers
+built with gcc 13 (Ubuntu 13.2.0-23ubuntu3)
+configuration: --prefix=/usr --extra-version=3ubuntu5 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --disable-libmfx --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libjack --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-pocketsphinx --enable-librsvg --enable-libjxl --enable-shared
+libavutil      58. 29.100 / 58. 29.100
+libavcodec     60. 31.102 / 60. 31.102
+libavformat    60. 16.100 / 60. 16.100
+libavdevice    60.  3.100 / 60.  3.100
+libavfilter     9. 12.100 /  9. 12.100
+libswscale      7.  5.100 /  7.  5.100
+libswresample   4. 12.100 /  4. 12.100
+libpostproc    57.  3.100 / 57.  3.100
+--- ffprobe version ---
+ffprobe version 6.1.1-3ubuntu5 Copyright (c) 2007-2023 the FFmpeg developers
+built with gcc 13 (Ubuntu 13.2.0-23ubuntu3)
+configuration: --prefix=/usr --extra-version=3ubuntu5 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --disable-libmfx --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libjack --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-pocketsphinx --enable-librsvg --enable-libjxl --enable-shared
+libavutil      58. 29.100 / 58. 29.100
+libavcodec     60. 31.102 / 60. 31.102
+libavformat    60. 16.100 / 60. 16.100
+libavdevice    60.  3.100 / 60.  3.100
+libavfilter     9. 12.100 /  9. 12.100
+libswscale      7.  5.100 /  7.  5.100
+libswresample   4. 12.100 /  4. 12.100
+libpostproc    57.  3.100 / 57.  3.100
+--- threading env vars ---
+--- python package diagnostics (uv environment) ---
+python_executable: /home/guest/sutd/50.038-project/.venv/bin/python3
+python_version: 3.12.3 (main, Mar  3 2026, 12:15:18) [GCC 13.3.0]
+platform: Linux-6.8.0-107-generic-x86_64-with-glibc2.39
+system: Linux
+release: 6.8.0-107-generic
+machine: x86_64
+processor: x86_64
+librosa_version: 0.11.0
+numpy_version: 2.4.4
+scipy_version: 1.17.1
+pandas_version: 3.0.2
+sklearn_version: 1.8.0
+soundfile_version: 0.13.1
+audioread_version: unknown
+soundfile_info: 1.2.2
+--- sample of manifest paths (first 5) ---
+manifest_rows: 123752
+              track_id                                                                 file_path
+0006pNcm2SyVexlePGlRD9 /home/guest/sutd/50.038-project/src/data/songs/0006pNcm2SyVexlePGlRD9.mp3
+000Iz0K615UepwSJ5z2RE5 /home/guest/sutd/50.038-project/src/data/songs/000Iz0K615UepwSJ5z2RE5.mp3
+000RW47rhEkSqjgTrZx7YX /home/guest/sutd/50.038-project/src/data/songs/000RW47rhEkSqjgTrZx7YX.mp3
+000qpdoc97IMTBvF8gwcpy /home/guest/sutd/50.038-project/src/data/songs/000qpdoc97IMTBvF8gwcpy.mp3
+000xQL6tZNLJzIrtIgxqSl /home/guest/sutd/50.038-project/src/data/songs/000xQL6tZNLJzIrtIgxqSl.mp3
+
+[2026-04-15 17:32:57] === Kernel history ===
+--- journalctl previous boot kernel ---
+Hint: You are currently not seeing messages from other users and the system.
+      Users in groups 'adm', 'systemd-journal' can see all messages.
+      Pass -q to turn off this notice.
+-- No entries --
+--- journalctl current boot kernel ---
+Hint: You are currently not seeing messages from other users and the system.
+      Users in groups 'adm', 'systemd-journal' can see all messages.
+      Pass -q to turn off this notice.
+-- No entries --
+--- dmesg tail ---
+dmesg: read kernel buffer failed: Operation not permitted
+
+[2026-04-15 17:32:57] === Starting OS monitors ===
+Monitor logs directory: logs/monitor_20260415_173254
+Starting monitor: dmesg_watch -> logs/monitor_20260415_173254/dmesg_watch.log
+Monitor dmesg_watch pid=25845
+Starting monitor: vmstat -> logs/monitor_20260415_173254/vmstat.log
+Monitor vmstat pid=25846
+Starting monitor: iostat -> logs/monitor_20260415_173254/iostat.log
+Monitor iostat pid=25850
+Starting monitor: top -> logs/monitor_20260415_173254/top.log
+Monitor top pid=25853
+
+[2026-04-15 17:32:57] === Sync environment ===
+Resolved 130 packages in 0.40ms
+Checked 122 packages in 0.51ms
+
+[2026-04-15 17:32:57] === Extract full audio features ===
+Starting feature extraction (feature_set=full, workers=2)
+Manifest: src/data/audio_manifest.csv
+Output: src/data/audio_features.csv
+Checkpoint interval: 100
+Max tasks per child: 50
+Resuming: 2396 tracks already extracted
+Extracting features for 121356 tracks...
+Failure log: src/data/audio_features.failures.csv
+/home/guest/sutd/50.038-project/src/extract_features.py:103: UserWarning: PySoundFile failed. Trying audioread instead.
+  y, sr = librosa.load(audio_path, sr=SAMPLE_RATE, mono=True)
+/home/guest/sutd/50.038-project/src/extract_features.py:103: UserWarning: PySoundFile failed. Trying audioread instead.
+  y, sr = librosa.load(audio_path, sr=SAMPLE_RATE, mono=True)
+/home/guest/sutd/50.038-project/.venv/lib/python3.12/site-packages/librosa/core/audio.py:184: FutureWarning: librosa.core.audio.__audioread_load
+	Deprecated as of librosa version 0.10.0.
+	It will be removed in librosa version 1.0.
+  y, sr_native = __audioread_load(path, offset, duration, dtype)
+/home/guest/sutd/50.038-project/.venv/lib/python3.12/site-packages/librosa/core/audio.py:184: FutureWarning: librosa.core.audio.__audioread_load
+	Deprecated as of librosa version 0.10.0.
+	It will be removed in librosa version 1.0.
+  y, sr_native = __audioread_load(path, offset, duration, dtype)

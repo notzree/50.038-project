@@ -60,6 +60,9 @@ uv run python src/google_trends_collector.py --charts src/data/charts.csv --mani
 19) Run formula-set search experiment (optional)
 uv run python src/optimize_high_level_formulas.py --formula-sets A,B,C,D --seeds 42 --output-dir src/data/formula_search
 
+20) Run robust overnight no-download chain with persistent logs
+bash scripts/run_overnight_high_level.sh
+
 20) Preview the Streamlit UI
 uv run streamlit run src/app/user_interface.py
 
