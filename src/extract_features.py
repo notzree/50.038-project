@@ -2,7 +2,8 @@ import argparse
 import csv
 import multiprocessing
 import os
-from concurrent.futures import ProcessPoolExecutor, as_completed
+import time
+from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures.process import BrokenProcessPool
 from pathlib import Path
 
@@ -352,6 +353,7 @@ def run_extraction(
     checkpoint_interval: int = 1000,
     max_tasks_per_child: int = 100,
     failure_log_csv: str | None = None,
+    progress_interval: int = 10,
 ) -> None:
     """Extract features from all tracks in a manifest CSV."""
     manifest_path = Path(manifest_csv)
@@ -363,6 +365,7 @@ def run_extraction(
     print(f"Output: {output_path}")
     print(f"Checkpoint interval: {checkpoint_interval}")
     print(f"Max tasks per child: {max_tasks_per_child}")
+    print(f"Progress interval: {progress_interval}")
 
     if not manifest_path.exists():
         raise FileNotFoundError(f"Manifest not found: {manifest_path}")
@@ -424,38 +427,55 @@ def run_extraction(
 
     print(f"Failure log: {failure_log_path}")
 
-    # Use 'spawn' context to avoid fork-related crashes with librosa/numpy on macOS
-    ctx = multiprocessing.get_context("spawn")
-
     completed = 0
+    ok_count = 0
+    failed_count = 0
+    start_ts = time.time()
+
+    def _handle_result(result: dict) -> None:
+        nonlocal completed, ok_count, failed_count
+        records.append(result)
+        completed += 1
+
+        if result["status"] == "failed":
+            failed_count += 1
+            print(
+                f"  [{completed}/{len(tasks)}] FAILED {result['track_id']}: {result['error']}"
+            )
+            failure_writer.writerow(
+                [result["track_id"], result["file_path"], result["error"]]
+            )
+            failure_file.flush()
+        else:
+            ok_count += 1
+
+        if completed % progress_interval == 0 or completed == len(tasks):
+            elapsed = max(time.time() - start_ts, 1e-6)
+            rate = completed / elapsed
+            print(
+                f"  [{completed}/{len(tasks)}] progress | ok={ok_count}, failed={failed_count}, rate={rate:.2f}/s"
+            )
+
+        if completed % checkpoint_interval == 0:
+            _write_output(records, output_path)
+            print(f"  Checkpoint written ({completed} total)")
+
     try:
-        with ProcessPoolExecutor(
-            max_workers=workers,
-            mp_context=ctx,
-            max_tasks_per_child=max_tasks_per_child,
-        ) as pool:
-            futures = {pool.submit(_extract_one, task): task for task in tasks}
-
-            for future in as_completed(futures):
-                result = future.result()
-                records.append(result)
-                completed += 1
-
-                if result["status"] == "failed":
-                    print(
-                        f"  [{completed}/{len(tasks)}] FAILED {result['track_id']}: {result['error']}"
-                    )
-                    failure_writer.writerow(
-                        [result["track_id"], result["file_path"], result["error"]]
-                    )
-                    failure_file.flush()
-                elif completed % 100 == 0 or completed == len(tasks):
-                    print(f"  [{completed}/{len(tasks)}] extracted")
-
-                # Checkpoint
-                if completed % checkpoint_interval == 0:
-                    _write_output(records, output_path)
-                    print(f"  Checkpoint written ({completed} total)")
+        if workers <= 1:
+            print("Running in single-process mode")
+            for task in tasks:
+                result = _extract_one(task)
+                _handle_result(result)
+        else:
+            # Use 'spawn' context to avoid fork-related crashes with librosa/numpy on macOS
+            ctx = multiprocessing.get_context("spawn")
+            with ProcessPoolExecutor(
+                max_workers=workers,
+                mp_context=ctx,
+                max_tasks_per_child=max_tasks_per_child,
+            ) as pool:
+                for result in pool.map(_extract_one, tasks, chunksize=1):
+                    _handle_result(result)
     except BrokenProcessPool as e:
         _write_output(records, output_path)
         print(
@@ -516,6 +536,12 @@ def main():
         default=None,
         help="Optional CSV path for per-track failures",
     )
+    parser.add_argument(
+        "--progress-interval",
+        type=int,
+        default=10,
+        help="Print progress summary every N processed tracks",
+    )
     args = parser.parse_args()
 
     run_extraction(
@@ -526,6 +552,7 @@ def main():
         checkpoint_interval=args.checkpoint_interval,
         max_tasks_per_child=args.max_tasks_per_child,
         failure_log_csv=args.failure_log_csv,
+        progress_interval=args.progress_interval,
     )
 
 
