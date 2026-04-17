@@ -23,9 +23,46 @@ cleanup() {
   fi
 }
 
+check_oom() {
+  # Check if our process or children were OOM-killed
+  local pid="$1"
+  local name="$2"
+
+  # Check dmesg for OOM kill messages (needs permissions, may fail)
+  if oom_line=$(dmesg 2>/dev/null | grep -i "out of memory\|oom-kill\|killed process" | tail -5); then
+    if [ -n "$oom_line" ]; then
+      printf '[%s] OOM-killer activity detected in dmesg:\n%s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$oom_line"
+    fi
+  fi
+
+  # Check /var/log/syslog or kern.log as fallback
+  for syslog in /var/log/kern.log /var/log/syslog; do
+    if [ -r "$syslog" ]; then
+      if oom_syslog=$(grep -i "oom-kill\|out of memory\|killed process" "$syslog" 2>/dev/null | tail -3); then
+        if [ -n "$oom_syslog" ]; then
+          printf '[%s] OOM evidence in %s:\n%s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$syslog" "$oom_syslog"
+        fi
+      fi
+      break
+    fi
+  done
+}
+
 on_error() {
   local exit_code=$?
-  printf '\n[%s] FAILED (exit=%s)\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$exit_code"
+  printf '\n[%s] FAILED %s (exit=%s)\n' "$(date '+%Y-%m-%d %H:%M:%S')" "${CURRENT_PHASE:-unknown}" "$exit_code"
+
+  # Exit code 137 = SIGKILL (classic OOM-kill signal)
+  if [ "$exit_code" -eq 137 ]; then
+    printf '[%s] Exit code 137 (SIGKILL) — likely OOM-killed\n' "$(date '+%Y-%m-%d %H:%M:%S')"
+  fi
+
+  # Print memory state at time of failure
+  printf '[%s] Memory at failure:\n' "$(date '+%Y-%m-%d %H:%M:%S')"
+  free -h 2>/dev/null || true
+
+  check_oom "$$" "overnight_high_level"
+
   printf '[%s] Log file: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$LOG_FILE"
   exit "$exit_code"
 }
@@ -50,7 +87,8 @@ FORMULA_SETS="${FORMULA_SETS:-A,B,C,D}"
 SEEDS="${SEEDS:-42}"
 FORMULA_OUTPUT_DIR="${FORMULA_OUTPUT_DIR:-src/data/formula_search}"
 
-phase "Configuration"
+CURRENT_PHASE="Configuration"
+phase "$CURRENT_PHASE"
 echo "FEATURE_WORKERS=$FEATURE_WORKERS"
 echo "MAX_TASKS_PER_CHILD=$MAX_TASKS_PER_CHILD"
 echo "CHECKPOINT_INTERVAL=$CHECKPOINT_INTERVAL"
@@ -58,11 +96,14 @@ echo "FORMULA_SETS=$FORMULA_SETS"
 echo "SEEDS=$SEEDS"
 echo "FORMULA_OUTPUT_DIR=$FORMULA_OUTPUT_DIR"
 echo "LOG_FILE=$LOG_FILE"
+printf 'Memory: %s\n' "$(free -h 2>/dev/null | awk '/^Mem:/{print "total="$2" used="$3" avail="$7}' || echo 'unknown')"
 
-phase "Sync environment"
+CURRENT_PHASE="Sync environment"
+phase "$CURRENT_PHASE"
 uv sync
 
-phase "Extract full audio features"
+CURRENT_PHASE="Extract full audio features"
+phase "$CURRENT_PHASE"
 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 \
 uv run python src/extract_features.py \
   --manifest src/data/audio_manifest.csv \
@@ -73,7 +114,8 @@ uv run python src/extract_features.py \
   --max-tasks-per-child "$MAX_TASKS_PER_CHILD" \
   --failure-log-csv src/data/audio_features.failures.csv
 
-phase "Optimize high-level formula sets"
+CURRENT_PHASE="Optimize high-level formula sets"
+phase "$CURRENT_PHASE"
 uv run python src/optimize_high_level_formulas.py \
   --formula-sets "$FORMULA_SETS" \
   --seeds "$SEEDS" \

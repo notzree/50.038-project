@@ -3,6 +3,7 @@ import csv
 import multiprocessing
 import os
 import time
+import warnings
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures.process import BrokenProcessPool
 from pathlib import Path
@@ -10,6 +11,10 @@ from pathlib import Path
 import librosa
 import numpy as np
 import pandas as pd
+
+# Suppress noisy librosa warnings (PySoundFile fallback, audioread deprecation)
+warnings.filterwarnings("ignore", message="PySoundFile failed")
+warnings.filterwarnings("ignore", message="librosa.core.audio.__audioread_load")
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -442,7 +447,9 @@ def run_extraction(
 
     output_file_exists = output_path.exists() and output_path.stat().st_size > 0
     output_file = output_path.open("a", newline="")
-    output_writer = csv.DictWriter(output_file, fieldnames=fieldnames, extrasaction="ignore")
+    output_writer = csv.DictWriter(
+        output_file, fieldnames=fieldnames, extrasaction="ignore"
+    )
     if not output_file_exists:
         output_writer.writeheader()
         output_file.flush()
@@ -492,6 +499,7 @@ def run_extraction(
         else:
             # Use 'spawn' on macOS to avoid fork-related crashes, 'fork' on Linux to save memory
             import sys
+
             mp_method = "spawn" if sys.platform == "darwin" else "fork"
             ctx = multiprocessing.get_context(mp_method)
             with ProcessPoolExecutor(
@@ -512,7 +520,9 @@ def run_extraction(
         output_file.close()
         failure_file.close()
 
-    print(f"Wrote {output_path} | ok={ok_count + len(already_done)}, failed={failed_count}")
+    print(
+        f"Wrote {output_path} | ok={ok_count + len(already_done)}, failed={failed_count}"
+    )
 
 
 def main():
@@ -576,7 +586,6 @@ def main():
         failure_log_csv=args.failure_log_csv,
         progress_interval=args.progress_interval,
     )
-
 
 
 if __name__ == "__main__":
