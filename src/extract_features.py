@@ -269,12 +269,26 @@ def extract_full_features(audio_path: str) -> dict:
     )
 
     # --- Intra-clip self-similarity ---
+    # Use running mean instead of full NxN similarity matrix to avoid OOM on long tracks
     chroma_norm = librosa.util.normalize(chroma, axis=0)
-    sim_matrix = chroma_norm.T @ chroma_norm
-    upper_tri = sim_matrix[np.triu_indices_from(sim_matrix, k=1)]
-    feats["chroma_self_similarity_mean"] = (
-        float(np.mean(upper_tri)) if len(upper_tri) > 0 else 0.0
-    )
+    n_frames = chroma_norm.shape[1]
+    if n_frames > 1:
+        # Sample pairs instead of building full O(n^2) matrix
+        max_pairs = 5000
+        if n_frames * (n_frames - 1) // 2 <= max_pairs:
+            sim_matrix = chroma_norm.T @ chroma_norm
+            upper_tri = sim_matrix[np.triu_indices_from(sim_matrix, k=1)]
+            feats["chroma_self_similarity_mean"] = float(np.mean(upper_tri))
+        else:
+            rng = np.random.RandomState(42)
+            idx_a = rng.randint(0, n_frames, size=max_pairs)
+            idx_b = rng.randint(0, n_frames, size=max_pairs)
+            mask = idx_a != idx_b
+            idx_a, idx_b = idx_a[mask], idx_b[mask]
+            dots = np.sum(chroma_norm[:, idx_a] * chroma_norm[:, idx_b], axis=0)
+            feats["chroma_self_similarity_mean"] = float(np.mean(dots))
+    else:
+        feats["chroma_self_similarity_mean"] = 0.0
 
     # --- Event density ---
     onsets = librosa.onset.onset_detect(y=y, sr=sr)
@@ -288,12 +302,15 @@ def extract_full_features(audio_path: str) -> dict:
     )
 
     # --- Timbral texture ---
+    # Free raw audio — no longer needed
+    del y
     S_power = S**2
     freq_bins = librosa.fft_frequencies(sr=sr)
     bass_mask = freq_bins <= BASS_CUTOFF_HZ
     total_energy = np.sum(S_power)
     bass_energy = np.sum(S_power[bass_mask, :])
     feats["bass_energy_ratio"] = float(bass_energy / (total_energy + 1e-10))
+    del S, S_power
 
     if len(spectral_centroid) > 1:
         x = np.arange(len(spectral_centroid))
@@ -399,14 +416,6 @@ def run_extraction(
 
     print(f"Extracting features for {len(rows)} tracks...")
 
-    # Load existing records to append to
-    records = []
-    if already_done and output_path.exists():
-        try:
-            records = pd.read_csv(output_path).to_dict("records")
-        except Exception:
-            pass
-
     tasks = [(row["track_id"], row["file_path"], feature_set) for row in rows]
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -427,6 +436,17 @@ def run_extraction(
 
     print(f"Failure log: {failure_log_path}")
 
+    # Determine CSV header and open output for append-mode writing
+    feature_keys = FULL_FEATURE_KEYS if feature_set == "full" else BASIC_FEATURE_KEYS
+    fieldnames = ["track_id", "file_path", "status", "error"] + list(feature_keys)
+
+    output_file_exists = output_path.exists() and output_path.stat().st_size > 0
+    output_file = output_path.open("a", newline="")
+    output_writer = csv.DictWriter(output_file, fieldnames=fieldnames, extrasaction="ignore")
+    if not output_file_exists:
+        output_writer.writeheader()
+        output_file.flush()
+
     completed = 0
     ok_count = 0
     failed_count = 0
@@ -434,8 +454,10 @@ def run_extraction(
 
     def _handle_result(result: dict) -> None:
         nonlocal completed, ok_count, failed_count
-        records.append(result)
         completed += 1
+
+        # Write result row immediately instead of accumulating in memory
+        output_writer.writerow(result)
 
         if result["status"] == "failed":
             failed_count += 1
@@ -453,12 +475,13 @@ def run_extraction(
             elapsed = max(time.time() - start_ts, 1e-6)
             rate = completed / elapsed
             print(
-                f"  [{completed}/{len(tasks)}] progress | ok={ok_count}, failed={failed_count}, rate={rate:.2f}/s"
+                f"  [{completed}/{len(tasks)}] progress | ok={ok_count}, failed={failed_count}, rate={rate:.2f}/s",
+                flush=True,
             )
 
         if completed % checkpoint_interval == 0:
-            _write_output(records, output_path)
-            print(f"  Checkpoint written ({completed} total)")
+            output_file.flush()
+            print(f"  Checkpoint flushed ({completed} total)")
 
     try:
         if workers <= 1:
@@ -467,8 +490,10 @@ def run_extraction(
                 result = _extract_one(task)
                 _handle_result(result)
         else:
-            # Use 'spawn' context to avoid fork-related crashes with librosa/numpy on macOS
-            ctx = multiprocessing.get_context("spawn")
+            # Use 'spawn' on macOS to avoid fork-related crashes, 'fork' on Linux to save memory
+            import sys
+            mp_method = "spawn" if sys.platform == "darwin" else "fork"
+            ctx = multiprocessing.get_context(mp_method)
             with ProcessPoolExecutor(
                 max_workers=workers,
                 mp_context=ctx,
@@ -477,20 +502,17 @@ def run_extraction(
                 for result in pool.map(_extract_one, tasks, chunksize=1):
                     _handle_result(result)
     except BrokenProcessPool as e:
-        _write_output(records, output_path)
+        output_file.flush()
         print(
-            "BrokenProcessPool detected. Wrote checkpoint before exiting. "
+            "BrokenProcessPool detected. Flushed output before exiting. "
             "Try lower --workers (e.g., 1-2) and smaller --max-tasks-per-child (e.g., 25-50)."
         )
         raise RuntimeError("Feature extraction worker pool crashed") from e
     finally:
+        output_file.close()
         failure_file.close()
 
-    _write_output(records, output_path)
-
-    n_ok = sum(1 for r in records if r["status"] == "ok")
-    n_failed = sum(1 for r in records if r["status"] == "failed")
-    print(f"Wrote {output_path} | ok={n_ok}, failed={n_failed}")
+    print(f"Wrote {output_path} | ok={ok_count + len(already_done)}, failed={failed_count}")
 
 
 def main():
@@ -555,12 +577,6 @@ def main():
         progress_interval=args.progress_interval,
     )
 
-
-def _write_output(records: list[dict], output_path: Path) -> None:
-    if records:
-        pd.DataFrame(records).to_csv(output_path, index=False)
-    else:
-        pd.DataFrame().to_csv(output_path, index=False)
 
 
 if __name__ == "__main__":
