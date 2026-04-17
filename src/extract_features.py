@@ -505,16 +505,16 @@ def run_extraction(
 
     mp_method = "spawn" if sys.platform == "darwin" else "fork"
     ctx = multiprocessing.get_context(mp_method)
+    # max_tasks_per_child is only supported with 'spawn'; drop it for 'fork'
+    pool_kwargs = dict(max_workers=workers, mp_context=ctx)
+    if mp_method == "spawn":
+        pool_kwargs["max_tasks_per_child"] = max_tasks_per_child
 
     try:
         remaining = list(tasks)
         while remaining:
             try:
-                with ProcessPoolExecutor(
-                    max_workers=workers,
-                    mp_context=ctx,
-                    max_tasks_per_child=max_tasks_per_child,
-                ) as pool:
+                with ProcessPoolExecutor(**pool_kwargs) as pool:
                     for result in pool.map(_extract_one, remaining, chunksize=1):
                         _handle_result(result)
                 remaining = []
