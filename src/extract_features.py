@@ -366,63 +366,6 @@ def _extract_one(args: tuple) -> dict:
         }
 
 
-def _subprocess_worker(args: tuple, result_queue: multiprocessing.Queue) -> None:
-    """Target for subprocess — puts result into queue, then exits."""
-    result_queue.put(_extract_one(args))
-
-
-def _extract_one_isolated(args: tuple, timeout: int = 300) -> dict:
-    """Run extraction in an isolated subprocess to survive segfaults.
-
-    If the subprocess crashes (segfault, OOM-kill, etc.), this returns a
-    failed result instead of crashing the parent process.
-    """
-    track_id, file_path, feature_set = args
-    feature_keys = FULL_FEATURE_KEYS if feature_set == "full" else BASIC_FEATURE_KEYS
-
-    ctx = multiprocessing.get_context("fork")
-    result_queue = ctx.Queue()
-    proc = ctx.Process(target=_subprocess_worker, args=(args, result_queue))
-    proc.start()
-    proc.join(timeout=timeout)
-
-    if proc.is_alive():
-        proc.kill()
-        proc.join()
-        return {
-            "track_id": track_id,
-            "file_path": file_path,
-            "status": "failed",
-            "error": f"Timeout: extraction exceeded {timeout}s",
-            **{k: None for k in feature_keys},
-        }
-
-    if proc.exitcode != 0:
-        signal_name = ""
-        if proc.exitcode is not None and proc.exitcode < 0:
-            import signal as _signal
-            try:
-                signal_name = f" ({_signal.Signals(-proc.exitcode).name})"
-            except (ValueError, AttributeError):
-                pass
-        return {
-            "track_id": track_id,
-            "file_path": file_path,
-            "status": "failed",
-            "error": f"Subprocess crashed: exit={proc.exitcode}{signal_name}",
-            **{k: None for k in feature_keys},
-        }
-
-    try:
-        return result_queue.get_nowait()
-    except Exception:
-        return {
-            "track_id": track_id,
-            "file_path": file_path,
-            "status": "failed",
-            "error": "Subprocess completed but returned no result",
-            **{k: None for k in feature_keys},
-        }
 
 
 # ---------------------------------------------------------------------------
@@ -555,32 +498,50 @@ def run_extraction(
                 flush=True,
             )
 
-    try:
-        if workers <= 1:
-            print("Running in single-process mode (subprocess-isolated)")
-            for task in tasks:
-                result = _extract_one_isolated(task)
-                _handle_result(result)
-        else:
-            # Use 'spawn' on macOS to avoid fork-related crashes, 'fork' on Linux to save memory
-            import sys
+    # Always use a pool (even workers=1) so segfaults kill a worker, not the parent.
+    # On BrokenProcessPool (worker segfault), log the crashing track, skip it,
+    # and restart the pool for remaining tasks.
+    import sys
 
-            mp_method = "spawn" if sys.platform == "darwin" else "fork"
-            ctx = multiprocessing.get_context(mp_method)
-            with ProcessPoolExecutor(
-                max_workers=workers,
-                mp_context=ctx,
-                max_tasks_per_child=max_tasks_per_child,
-            ) as pool:
-                for result in pool.map(_extract_one, tasks, chunksize=1):
-                    _handle_result(result)
-    except BrokenProcessPool as e:
-        output_file.flush()
-        print(
-            "BrokenProcessPool detected. Flushed output before exiting. "
-            "Try lower --workers (e.g., 1-2) and smaller --max-tasks-per-child (e.g., 25-50)."
-        )
-        raise RuntimeError("Feature extraction worker pool crashed") from e
+    mp_method = "spawn" if sys.platform == "darwin" else "fork"
+    ctx = multiprocessing.get_context(mp_method)
+
+    try:
+        remaining = list(tasks)
+        while remaining:
+            try:
+                with ProcessPoolExecutor(
+                    max_workers=workers,
+                    mp_context=ctx,
+                    max_tasks_per_child=max_tasks_per_child,
+                ) as pool:
+                    for result in pool.map(_extract_one, remaining, chunksize=1):
+                        _handle_result(result)
+                remaining = []
+            except BrokenProcessPool:
+                output_file.flush()
+                # completed tracks have been handled; the next one crashed the worker
+                crashed_task = tasks[completed]
+                print(
+                    f"  [{completed + 1}/{len(tasks)}] CRASHED {crashed_task[0]}: "
+                    f"worker segfault — skipping",
+                    flush=True,
+                )
+                _handle_result(
+                    {
+                        "track_id": crashed_task[0],
+                        "file_path": crashed_task[1],
+                        "status": "failed",
+                        "error": "Worker crashed (segfault)",
+                        **{k: None for k in feature_keys},
+                    }
+                )
+                remaining = tasks[completed:]
+                if remaining:
+                    print(
+                        f"  Restarting pool for {len(remaining)} remaining tracks...",
+                        flush=True,
+                    )
     finally:
         output_file.close()
         failure_file.close()
