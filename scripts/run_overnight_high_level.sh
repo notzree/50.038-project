@@ -52,10 +52,12 @@ on_error() {
   local exit_code=$?
   printf '\n[%s] FAILED %s (exit=%s)\n' "$(date '+%Y-%m-%d %H:%M:%S')" "${CURRENT_PHASE:-unknown}" "$exit_code"
 
-  # Exit code 137 = SIGKILL (classic OOM-kill signal)
-  if [ "$exit_code" -eq 137 ]; then
-    printf '[%s] Exit code 137 (SIGKILL) — likely OOM-killed\n' "$(date '+%Y-%m-%d %H:%M:%S')"
-  fi
+  # Decode well-known signal exit codes
+  case "$exit_code" in
+    137) printf '[%s] Exit 137 (SIGKILL) — likely OOM-killed by kernel\n' "$(date '+%Y-%m-%d %H:%M:%S')" ;;
+    139) printf '[%s] Exit 139 (SIGSEGV) — segfault in native library (corrupted audio file?)\n' "$(date '+%Y-%m-%d %H:%M:%S')" ;;
+    134) printf '[%s] Exit 134 (SIGABRT) — aborted, possibly assertion failure in native code\n' "$(date '+%Y-%m-%d %H:%M:%S')" ;;
+  esac
 
   # Print memory state at time of failure
   printf '[%s] Memory at failure:\n' "$(date '+%Y-%m-%d %H:%M:%S')"

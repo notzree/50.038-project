@@ -333,7 +333,11 @@ def extract_full_features(audio_path: str) -> dict:
 
 
 def _extract_one(args: tuple) -> dict:
-    """Worker function for ProcessPoolExecutor."""
+    """Worker function — runs extraction and catches Python exceptions.
+
+    NOTE: This cannot catch segfaults (SIGSEGV/exit 139) in native libraries.
+    Use _extract_one_isolated() to run this in a subprocess for crash safety.
+    """
     track_id, file_path, feature_set = args
     extract_fn = (
         extract_full_features if feature_set == "full" else extract_basic_features
@@ -358,6 +362,65 @@ def _extract_one(args: tuple) -> dict:
             "file_path": file_path,
             "status": "failed",
             "error": f"{type(e).__name__}: {err}",
+            **{k: None for k in feature_keys},
+        }
+
+
+def _subprocess_worker(args: tuple, result_queue: multiprocessing.Queue) -> None:
+    """Target for subprocess — puts result into queue, then exits."""
+    result_queue.put(_extract_one(args))
+
+
+def _extract_one_isolated(args: tuple, timeout: int = 300) -> dict:
+    """Run extraction in an isolated subprocess to survive segfaults.
+
+    If the subprocess crashes (segfault, OOM-kill, etc.), this returns a
+    failed result instead of crashing the parent process.
+    """
+    track_id, file_path, feature_set = args
+    feature_keys = FULL_FEATURE_KEYS if feature_set == "full" else BASIC_FEATURE_KEYS
+
+    ctx = multiprocessing.get_context("fork")
+    result_queue = ctx.Queue()
+    proc = ctx.Process(target=_subprocess_worker, args=(args, result_queue))
+    proc.start()
+    proc.join(timeout=timeout)
+
+    if proc.is_alive():
+        proc.kill()
+        proc.join()
+        return {
+            "track_id": track_id,
+            "file_path": file_path,
+            "status": "failed",
+            "error": f"Timeout: extraction exceeded {timeout}s",
+            **{k: None for k in feature_keys},
+        }
+
+    if proc.exitcode != 0:
+        signal_name = ""
+        if proc.exitcode is not None and proc.exitcode < 0:
+            import signal as _signal
+            try:
+                signal_name = f" ({_signal.Signals(-proc.exitcode).name})"
+            except (ValueError, AttributeError):
+                pass
+        return {
+            "track_id": track_id,
+            "file_path": file_path,
+            "status": "failed",
+            "error": f"Subprocess crashed: exit={proc.exitcode}{signal_name}",
+            **{k: None for k in feature_keys},
+        }
+
+    try:
+        return result_queue.get_nowait()
+    except Exception:
+        return {
+            "track_id": track_id,
+            "file_path": file_path,
+            "status": "failed",
+            "error": "Subprocess completed but returned no result",
             **{k: None for k in feature_keys},
         }
 
@@ -478,23 +541,25 @@ def run_extraction(
         else:
             ok_count += 1
 
+        should_checkpoint = completed % checkpoint_interval == 0
+        if should_checkpoint:
+            output_file.flush()
+
         if completed % progress_interval == 0 or completed == len(tasks):
             elapsed = max(time.time() - start_ts, 1e-6)
             rate = completed / elapsed
+            pct = completed * 100 // len(tasks)
+            checkpoint_tag = " [checkpointed]" if should_checkpoint else ""
             print(
-                f"  [{completed}/{len(tasks)}] progress | ok={ok_count}, failed={failed_count}, rate={rate:.2f}/s",
+                f"  [{completed}/{len(tasks)} {pct}%] ok={ok_count} failed={failed_count} rate={rate:.1f}/s{checkpoint_tag}",
                 flush=True,
             )
 
-        if completed % checkpoint_interval == 0:
-            output_file.flush()
-            print(f"  Checkpoint flushed ({completed} total)")
-
     try:
         if workers <= 1:
-            print("Running in single-process mode")
+            print("Running in single-process mode (subprocess-isolated)")
             for task in tasks:
-                result = _extract_one(task)
+                result = _extract_one_isolated(task)
                 _handle_result(result)
         else:
             # Use 'spawn' on macOS to avoid fork-related crashes, 'fork' on Linux to save memory
