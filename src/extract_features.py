@@ -406,11 +406,18 @@ def run_extraction(
         raise ValueError(f"Manifest missing required columns: {sorted(missing)}")
 
     # Skip already-extracted tracks if output exists (resume support)
+    # Deduplicate the existing output first to prevent accumulating duplicates
+    # across multiple crash-restart cycles, then skip all track_ids present.
     already_done = set()
     if output_path.exists():
         try:
             existing = pd.read_csv(output_path)
-            already_done = set(existing.loc[existing["status"] == "ok", "track_id"])
+            before = len(existing)
+            existing = existing.drop_duplicates(subset=["track_id"], keep="last")
+            if len(existing) < before:
+                print(f"Deduped output: {before} -> {len(existing)} rows")
+                existing.to_csv(output_path, index=False)
+            already_done = set(existing["track_id"])
             print(f"Resuming: {len(already_done)} tracks already extracted")
         except Exception:
             pass

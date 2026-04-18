@@ -18,7 +18,7 @@ from sklearn.metrics import (
     recall_score,
     roc_auc_score,
 )
-from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test_split
+from sklearn.model_selection import GroupShuffleSplit, StratifiedGroupKFold, train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
@@ -64,27 +64,45 @@ def split_data(
     val_size: float,
     seed: int,
 ) -> dict:
-    """Three-way stratified split: train / val / test.
+    """Three-way group-aware split: train / val / test.
 
-    val is used for model selection + threshold tuning.
-    test is held out for final reporting only.
+    Splits by track_id so that all rows for a given track land in the same
+    partition.  This prevents data leakage where the model sees the same
+    track's audio features in both train and test (just for different regions).
     """
-    X_trainval, X_test, y_trainval, y_test, meta_trainval, meta_test = train_test_split(
-        X, y, meta, test_size=test_size, random_state=seed, stratify=y
-    )
+    groups = meta["track_id"].values
 
-    # val_size is relative to the whole dataset, so adjust for the trainval subset
+    # First split: trainval vs test
+    gss_test = GroupShuffleSplit(n_splits=1, test_size=test_size, random_state=seed)
+    trainval_idx, test_idx = next(gss_test.split(X, y, groups))
+
+    X_trainval, X_test = X.iloc[trainval_idx], X.iloc[test_idx]
+    y_trainval, y_test = y[trainval_idx], y[test_idx]
+    meta_trainval, meta_test = meta.iloc[trainval_idx], meta.iloc[test_idx]
+    groups_trainval = groups[trainval_idx]
+
+    # Second split: train vs val (val_size is relative to the whole dataset)
     val_fraction = val_size / (1 - test_size)
-    X_train, X_val, y_train, y_val, meta_train, meta_val = train_test_split(
-        X_trainval,
-        y_trainval,
-        meta_trainval,
-        test_size=val_fraction,
-        random_state=seed,
-        stratify=y_trainval,
-    )
+    gss_val = GroupShuffleSplit(n_splits=1, test_size=val_fraction, random_state=seed)
+    train_idx, val_idx = next(gss_val.split(X_trainval, y_trainval, groups_trainval))
 
-    print(f"Split: train={len(y_train)}, val={len(y_val)}, test={len(y_test)}")
+    X_train, X_val = X_trainval.iloc[train_idx], X_trainval.iloc[val_idx]
+    y_train, y_val = y_trainval[train_idx], y_trainval[val_idx]
+    meta_train, meta_val = meta_trainval.iloc[train_idx], meta_trainval.iloc[val_idx]
+
+    # Verify no track leakage
+    train_tracks = set(meta_train["track_id"])
+    val_tracks = set(meta_val["track_id"])
+    test_tracks = set(meta_test["track_id"])
+    assert train_tracks.isdisjoint(val_tracks), "track leakage: train & val overlap"
+    assert train_tracks.isdisjoint(test_tracks), "track leakage: train & test overlap"
+    assert val_tracks.isdisjoint(test_tracks), "track leakage: val & test overlap"
+
+    print(
+        f"Split: train={len(y_train)} ({len(train_tracks)} tracks), "
+        f"val={len(y_val)} ({len(val_tracks)} tracks), "
+        f"test={len(y_test)} ({len(test_tracks)} tracks)"
+    )
     return {
         "X_train": X_train,
         "y_train": y_train,
@@ -178,23 +196,37 @@ def cross_validate_models(
     preprocessor: ColumnTransformer,
     X_train: pd.DataFrame,
     y_train: np.ndarray,
+    meta_train: pd.DataFrame,
     k: int = 5,
     seed: int = 42,
 ) -> dict[str, dict]:
-    """Run stratified k-fold CV for each candidate. Returns CV results dict."""
-    cv = StratifiedKFold(n_splits=k, shuffle=True, random_state=seed)
+    """Run group-aware stratified k-fold CV for each candidate.
+
+    Folds are split by track_id so the same track never appears in both the
+    training and validation side of a fold.
+    """
+    groups = meta_train["track_id"].values
+    cv = StratifiedGroupKFold(n_splits=k, shuffle=True, random_state=seed)
     cv_results = {}
 
     for name, clf in candidates.items():
-        print(f"  Cross-validating {name} ({k}-fold)...")
+        print(f"  Cross-validating {name} ({k}-fold, grouped by track_id)...")
         pipe = Pipeline(steps=[("preprocessor", preprocessor), ("model", clf)])
 
-        f1_scores = cross_val_score(
-            pipe, X_train, y_train, cv=cv, scoring="f1", n_jobs=-1
-        )
-        roc_scores = cross_val_score(
-            pipe, X_train, y_train, cv=cv, scoring="roc_auc", n_jobs=-1
-        )
+        f1_scores = []
+        roc_scores = []
+        for train_idx, val_idx in cv.split(X_train, y_train, groups):
+            pipe_clone = Pipeline(
+                steps=[("preprocessor", preprocessor), ("model", clf.__class__(**clf.get_params()))]
+            )
+            pipe_clone.fit(X_train.iloc[train_idx], y_train[train_idx])
+            y_pred = pipe_clone.predict(X_train.iloc[val_idx])
+            y_prob = pipe_clone.predict_proba(X_train.iloc[val_idx])[:, 1]
+            f1_scores.append(float(f1_score(y_train[val_idx], y_pred, zero_division=0)))
+            roc_scores.append(float(roc_auc_score(y_train[val_idx], y_prob)))
+
+        f1_scores = np.array(f1_scores)
+        roc_scores = np.array(roc_scores)
 
         cv_results[name] = {
             "f1_mean": float(np.mean(f1_scores)),
@@ -574,10 +606,11 @@ def train_and_evaluate(
     preprocessor = _build_preprocessor(feature_cols)
     candidates = build_model_candidates(seed, y_train=splits["y_train"])
 
-    # 4. Cross-validate
+    # 4. Cross-validate (grouped by track_id to prevent leakage)
     print("Running cross-validation...")
     cv_results = cross_validate_models(
-        candidates, preprocessor, splits["X_train"], splits["y_train"], seed=seed
+        candidates, preprocessor, splits["X_train"], splits["y_train"],
+        meta_train=splits["meta_train"], seed=seed,
     )
 
     # 5. Select best, evaluate on val + test
