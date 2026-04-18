@@ -411,7 +411,7 @@ def run_extraction(
     already_done = set()
     if output_path.exists():
         try:
-            existing = pd.read_csv(output_path)
+            existing = pd.read_csv(output_path, on_bad_lines="warn")
             before = len(existing)
             existing = existing.drop_duplicates(subset=["track_id"], keep="last")
             if len(existing) < before:
