@@ -12,7 +12,6 @@ dependencies = [
     "numpy>=2.3.3",
     "pandas>=2.3.2",
     "python-dotenv>=1.2.1",
-    "pytrends>=4.9.2",
     "scikit-learn>=1.8.0",
     "spotipy>=2.23.0",
     "spotdl>=4.4.3",

@@ -13,6 +13,7 @@ def build_labels_and_train_table(
     chart_name: str,
     genres_csv: str | None = None,
     nonviral_meta_csv: str | None = None,
+    country_profile_csv: str | None = None,
 ) -> None:
     print("Building labels and training table")
     print(f"Charts CSV: {charts_csv}")
@@ -25,6 +26,8 @@ def build_labels_and_train_table(
         print(f"Genres CSV: {genres_csv}")
     if nonviral_meta_csv:
         print(f"Non-viral meta CSV: {nonviral_meta_csv}")
+    if country_profile_csv:
+        print(f"Country profile CSV: {country_profile_csv}")
 
     features = pd.read_csv(features_csv)
 
@@ -107,6 +110,49 @@ def build_labels_and_train_table(
             print(f"Warning: could not merge high-level features: {e}")
 
     train = labels.merge(features_clean, on="track_id", how="inner")
+
+    # Merge country profile features if available
+    if country_profile_csv:
+        try:
+            country = pd.read_csv(country_profile_csv)
+            if "region" not in country.columns:
+                raise ValueError("country profile CSV must contain 'region' column")
+
+            exclude_cols = {"region", "iso3", "data_year", "source_notes"}
+            numeric_cols = [
+                c
+                for c in country.columns
+                if c not in exclude_cols
+                and pd.api.types.is_numeric_dtype(country[c])
+                and not country[c].dropna().empty
+            ]
+
+            keep_cols = ["region", *numeric_cols]
+            country = country[keep_cols].drop_duplicates(
+                subset=["region"], keep="first"
+            )
+
+            train = train.merge(country, on="region", how="left")
+
+            if numeric_cols:
+                missing_any = train[numeric_cols].isna().any(axis=1)
+                train["country_profile_missing"] = missing_any.astype(int)
+
+                for col in numeric_cols:
+                    median = country[col].dropna().median()
+                    fill_value = float(median) if pd.notna(median) else 0.0
+                    train[col] = train[col].fillna(fill_value)
+
+                print(
+                    "Merged country profile features: "
+                    f"cols={numeric_cols}, rows with missing before fill={int(missing_any.sum())}"
+                )
+            else:
+                print(
+                    "Country profile CSV found but no numeric feature columns detected"
+                )
+        except Exception as e:
+            print(f"Warning: could not merge country profile features: {e}")
 
     # Merge genre features if available
     if genres_csv:
@@ -213,6 +259,11 @@ def main() -> None:
         default=None,
         help="Optional path to nonviral_track_ids.csv (from download_nonviral.py)",
     )
+    parser.add_argument(
+        "--country-profile",
+        default=None,
+        help="Optional path to country_profile_features.csv (joined by region)",
+    )
     args = parser.parse_args()
 
     build_labels_and_train_table(
@@ -225,6 +276,7 @@ def main() -> None:
         chart_name=args.chart_name,
         genres_csv=args.genres,
         nonviral_meta_csv=args.nonviral_meta,
+        country_profile_csv=args.country_profile,
     )
     print("Dataset build complete")
 
