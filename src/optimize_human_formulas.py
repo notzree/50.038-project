@@ -212,6 +212,11 @@ def run_search(args) -> None:
     print(f"Seeds: {seeds}")
     print(f"Output dir: {output_dir}")
     print(
+        f"Training speed: cv_folds={args.cv_folds}, rf_n_estimators={args.rf_n_estimators} "
+        "(override with --cv-folds / --rf-n-estimators for fuller CV or a larger forest)",
+        flush=True,
+    )
+    print(
         f"Progress: {n_sets} formula set(s) × "
         f"(high-level build + train table + {n_seeds} train/eval seed(s))",
         flush=True,
@@ -270,6 +275,8 @@ def run_search(args) -> None:
                 seed=seed,
                 feature_importance_out=str(run_dir / "feature_importance.csv"),
                 metadata_out=str(run_dir / "model_metadata.json"),
+                cv_folds=args.cv_folds,
+                rf_n_estimators=args.rf_n_estimators,
             )
 
             selected = metrics["selected_model"]
@@ -327,11 +334,29 @@ def main() -> None:
         "--nonviral-meta-csv", default="src/data/nonviral_track_ids.csv"
     )
     parser.add_argument("--chart-name", default="top200")
-    parser.add_argument("--formula-sets", default="A,B,C,D")
+    parser.add_argument(
+        "--formula-sets",
+        default="A,B",
+        help="Comma-separated formula set ids (default: A,B)",
+    )
     parser.add_argument("--seeds", default="42")
     parser.add_argument("--output-dir", default="src/data/formula_search")
     parser.add_argument("--test-size", type=float, default=0.2)
     parser.add_argument("--val-size", type=float, default=0.2)
+    parser.add_argument(
+        "--cv-folds",
+        type=int,
+        default=3,
+        metavar="K",
+        help="Grouped CV folds per model during search (default 3 for speed; use 5+ for stricter CV)",
+    )
+    parser.add_argument(
+        "--rf-n-estimators",
+        type=int,
+        default=128,
+        metavar="N",
+        help="RandomForest tree count during search (default 128 for speed)",
+    )
     args = parser.parse_args()
 
     run_search(args)

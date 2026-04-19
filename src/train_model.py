@@ -175,12 +175,16 @@ def _make_model(name: str, seed: int, **params):
 
 
 def build_model_candidates(
-    seed: int, y_train: np.ndarray | None = None
+    seed: int,
+    y_train: np.ndarray | None = None,
+    rf_n_estimators: int = 300,
 ) -> dict[str, object]:
     """Return a dict of name -> classifier instance."""
     candidates = {
         "logistic_regression": _make_model("logistic_regression", seed),
-        "random_forest": _make_model("random_forest", seed),
+        "random_forest": _make_model(
+            "random_forest", seed, n_estimators=int(rf_n_estimators)
+        ),
     }
 
     return candidates
@@ -372,20 +376,12 @@ def select_and_evaluate(
     best_name = max(cv_results, key=lambda n: cv_results[n]["f1_mean"])
     print(f"Selected best model by CV F1: {best_name}", flush=True)
 
-    best_clf = Pipeline(
-        steps=[("preprocessor", preprocessor), ("model", candidates[best_name])]
-    )
+    # One fit per candidate on full train (best model is not fitted twice).
+    model_metrics: dict = {}
+    best_clf: Pipeline | None = None
     print(
-        f"Refitting best model ({best_name}) on full training set "
-        f"({len(splits['y_train'])} rows)...",
-        flush=True,
-    )
-    best_clf.fit(splits["X_train"], splits["y_train"])
-
-    # Evaluate all models on val set for comparison
-    model_metrics = {}
-    print(
-        "Refitting all candidates on training set for val/test comparison...",
+        f"Refitting each candidate on full training set ({len(splits['y_train'])} rows) "
+        "for val/test comparison...",
         flush=True,
     )
     for name, clf_obj in candidates.items():
@@ -397,6 +393,10 @@ def select_and_evaluate(
             "test": _evaluate_model(pipe, splits["X_test"], splits["y_test"]),
             "cv": cv_results.get(name, {}),
         }
+        if name == best_name:
+            best_clf = pipe
+
+    assert best_clf is not None
 
     # Threshold tuning on VALIDATION set (not test)
     print("Tuning probability threshold on validation set...", flush=True)
@@ -601,7 +601,14 @@ def train_and_evaluate(
     val_size: float = 0.2,
     feature_importance_out: str | None = None,
     metadata_out: str | None = None,
+    cv_folds: int = 5,
+    rf_n_estimators: int = 300,
 ) -> dict:
+    if cv_folds < 2:
+        raise ValueError("cv_folds must be at least 2")
+    if rf_n_estimators < 1:
+        raise ValueError("rf_n_estimators must be at least 1")
+
     # Defaults for new output paths
     if feature_importance_out is None:
         feature_importance_out = str(
@@ -620,6 +627,8 @@ def train_and_evaluate(
         "val_size": val_size,
         "seed": seed,
         "positive_rate": float(y.mean()),
+        "cv_folds": int(cv_folds),
+        "rf_n_estimators": int(rf_n_estimators),
     }
 
     # 2. Split
@@ -627,17 +636,25 @@ def train_and_evaluate(
 
     # 3. Build preprocessor and candidates
     preprocessor = _build_preprocessor(feature_cols)
-    candidates = build_model_candidates(seed, y_train=splits["y_train"])
+    candidates = build_model_candidates(
+        seed, y_train=splits["y_train"], rf_n_estimators=rf_n_estimators
+    )
 
     # 4. Cross-validate (grouped by track_id to prevent leakage)
     print(
         f"Running cross-validation for {len(candidates)} model(s): "
-        f"{', '.join(sorted(candidates))}...",
+        f"{', '.join(sorted(candidates))} "
+        f"(cv_folds={cv_folds}, rf_n_estimators={rf_n_estimators})...",
         flush=True,
     )
     cv_results = cross_validate_models(
-        candidates, preprocessor, splits["X_train"], splits["y_train"],
-        meta_train=splits["meta_train"], seed=seed,
+        candidates,
+        preprocessor,
+        splits["X_train"],
+        splits["y_train"],
+        meta_train=splits["meta_train"],
+        k=cv_folds,
+        seed=seed,
     )
 
     # 5. Select best, evaluate on val + test
@@ -726,6 +743,20 @@ def main() -> None:
         default=42,
         help="Random seed",
     )
+    parser.add_argument(
+        "--cv-folds",
+        type=int,
+        default=5,
+        metavar="K",
+        help="StratifiedGroupKFold splits (default 5)",
+    )
+    parser.add_argument(
+        "--rf-n-estimators",
+        type=int,
+        default=300,
+        metavar="N",
+        help="RandomForest n_estimators (default 300)",
+    )
     args = parser.parse_args()
 
     train_and_evaluate(
@@ -740,6 +771,8 @@ def main() -> None:
         val_size=args.val_size,
         feature_importance_out=args.feature_importance_out,
         metadata_out=args.metadata_out,
+        cv_folds=args.cv_folds,
+        rf_n_estimators=args.rf_n_estimators,
     )
 
 

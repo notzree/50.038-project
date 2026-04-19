@@ -85,8 +85,10 @@ echo "$$" > "$LOCK_FILE"
 FEATURE_WORKERS="${FEATURE_WORKERS:-1}"
 MAX_TASKS_PER_CHILD="${MAX_TASKS_PER_CHILD:-100}"
 CHECKPOINT_INTERVAL="${CHECKPOINT_INTERVAL:-10}"
-FORMULA_SETS="${FORMULA_SETS:-A,B,C,D}"
+FORMULA_SETS="${FORMULA_SETS:-A,B}"
 SEEDS="${SEEDS:-42}"
+FORMULA_CV_FOLDS="${FORMULA_CV_FOLDS:-3}"
+FORMULA_RF_N_ESTIMATORS="${FORMULA_RF_N_ESTIMATORS:-128}"
 FORMULA_OUTPUT_DIR="${FORMULA_OUTPUT_DIR:-src/data/formula_search}"
 
 CURRENT_PHASE="Configuration"
@@ -96,6 +98,8 @@ echo "MAX_TASKS_PER_CHILD=$MAX_TASKS_PER_CHILD"
 echo "CHECKPOINT_INTERVAL=$CHECKPOINT_INTERVAL"
 echo "FORMULA_SETS=$FORMULA_SETS"
 echo "SEEDS=$SEEDS"
+echo "FORMULA_CV_FOLDS=$FORMULA_CV_FOLDS"
+echo "FORMULA_RF_N_ESTIMATORS=$FORMULA_RF_N_ESTIMATORS"
 echo "FORMULA_OUTPUT_DIR=$FORMULA_OUTPUT_DIR"
 echo "LOG_FILE=$LOG_FILE"
 printf 'Memory: %s\n' "$(free -h 2>/dev/null | awk '/^Mem:/{print "total="$2" used="$3" avail="$7}' || echo 'unknown')"
@@ -123,6 +127,8 @@ phase "$CURRENT_PHASE"
 uv run python src/optimize_high_level_formulas.py \
   --formula-sets "$FORMULA_SETS" \
   --seeds "$SEEDS" \
+  --cv-folds "$FORMULA_CV_FOLDS" \
+  --rf-n-estimators "$FORMULA_RF_N_ESTIMATORS" \
   --output-dir "$FORMULA_OUTPUT_DIR"
 
 phase "Complete"
