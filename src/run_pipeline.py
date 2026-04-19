@@ -279,6 +279,11 @@ def main() -> None:
         help="Path to nonviral_track_ids.csv. Auto-detected if src/data/nonviral_track_ids.csv exists.",
     )
     parser.add_argument(
+        "--country-profile",
+        default=None,
+        help="Path to country_profile_features.csv. Auto-detected if src/data/country_profile_features.csv exists.",
+    )
+    parser.add_argument(
         "--predict-audio",
         default=None,
         help="Optional audio path for single-song prediction after training",
@@ -292,34 +297,6 @@ def main() -> None:
         "--predict-output-json",
         default=None,
         help="Optional JSON output path for single-song prediction",
-    )
-    parser.add_argument(
-        "--with-trends",
-        action="store_true",
-        help="Collect and merge Google Trends compact features into training table",
-    )
-    parser.add_argument(
-        "--trends-output",
-        default="src/data/trends_features.csv",
-        help="Output path for trends feature CSV",
-    )
-    parser.add_argument(
-        "--trends-weeks",
-        type=int,
-        default=12,
-        help="Trailing weeks per trends query",
-    )
-    parser.add_argument(
-        "--trends-delay",
-        type=float,
-        default=10.0,
-        help="Delay between trends requests in seconds",
-    )
-    parser.add_argument(
-        "--trends-max-pairs",
-        type=int,
-        default=None,
-        help="Optional cap on number of artist-level trends queries",
     )
     args = parser.parse_args()
 
@@ -336,7 +313,6 @@ def main() -> None:
     charts = _resolve(args.charts)
     labels_out = _resolve(args.labels_out)
     train_out = _resolve(args.train_out)
-    trends_out = _resolve(args.trends_output)
     qc_summary_out = _resolve(args.qc_summary_out)
     qc_issues_out = _resolve(args.qc_issues_out)
     high_level_features_out = _resolve(args.high_level_features_out)
@@ -387,6 +363,14 @@ def main() -> None:
         if auto_nonviral.exists():
             nonviral_meta_path = str(auto_nonviral)
             print(f"Auto-detected non-viral metadata: {nonviral_meta_path}")
+
+    # Auto-detect country profile CSV
+    country_profile_path = args.country_profile
+    if country_profile_path is None:
+        auto_country = repo_root / "src" / "data" / "country_profile_features.csv"
+        if auto_country.exists():
+            country_profile_path = str(auto_country)
+            print(f"Auto-detected country profile features: {country_profile_path}")
 
     # --- Step 2: Build catalog + manifest ---
     songs_dir.mkdir(parents=True, exist_ok=True)
@@ -464,36 +448,8 @@ def main() -> None:
         chart_name=args.chart_name,
         genres_csv=genres_path,
         nonviral_meta_csv=nonviral_meta_path,
+        country_profile_csv=country_profile_path,
     )
-
-    # --- Step 4b: Optional trends feature collection + merge ---
-    if args.with_trends:
-        print("\n=== Collect and merge Google Trends features ===")
-        from google_trends_collector import (
-            build_trends_features,
-            merge_trends_into_train_table,
-        )
-
-        build_trends_features(
-            charts_path=Path(charts),
-            manifest_path=Path(manifest_path),
-            output_path=Path(trends_out),
-            trailing_weeks=args.trends_weeks,
-            delay=args.trends_delay,
-            max_pairs=args.trends_max_pairs,
-        )
-
-        merged_train_out = str(Path(train_out).with_name("train_table_with_trends.csv"))
-        merge_trends_into_train_table(
-            train_table_path=Path(train_out),
-            trends_path=Path(trends_out),
-            output_path=Path(merged_train_out),
-        )
-        train_out = merged_train_out
-        print(f"Using trends-merged train table: {train_out}")
-    else:
-        print("\n=== Google Trends features ===")
-        print("Skipping trends stage (use --with-trends to enable)")
 
     # --- Step 5: Train and evaluate ---
     print("\n=== Train and evaluate models ===")

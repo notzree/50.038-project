@@ -1,5 +1,6 @@
 import argparse
 import json
+import random
 from pathlib import Path
 
 import pandas as pd
@@ -145,22 +146,66 @@ def _compute_formula_set(values: dict[str, float], set_id: str) -> dict[str, flo
 
 
 def build_high_level_features_for_set(
-    features_csv: str, output_csv: str, set_id: str
+    features_csv: str,
+    output_csv: str,
+    set_id: str,
+    chunk_size: int = 50_000,
+    row_frac: float = 1.0,
+    sample_seed: int = 42,
 ) -> None:
-    df = pd.read_csv(features_csv)
-    if "status" in df.columns:
-        df = df[df["status"] == "ok"].copy()
+    if chunk_size <= 0:
+        raise ValueError("chunk_size must be > 0")
+    if row_frac <= 0.0 or row_frac > 1.0:
+        raise ValueError("row_frac must be in (0, 1]")
 
-    rows = []
-    for _, row in df.iterrows():
-        vals = _norm_inputs(row)
-        feats = _compute_formula_set(vals, set_id)
-        rows.append({"track_id": row["track_id"], **feats})
-
-    out_df = pd.DataFrame(rows)
-    out_df = out_df.drop_duplicates(subset=["track_id"], keep="first")
     Path(output_csv).parent.mkdir(parents=True, exist_ok=True)
-    out_df.to_csv(output_csv, index=False)
+    Path(output_csv).unlink(missing_ok=True)
+
+    seen_track_ids: set[str] = set()
+    wrote_header = False
+    rng = random.Random(sample_seed)
+
+    for chunk in pd.read_csv(features_csv, chunksize=chunk_size):
+        if "status" in chunk.columns:
+            chunk = chunk[chunk["status"] == "ok"]
+        if chunk.empty:
+            continue
+
+        out_rows = []
+        for _, row in chunk.iterrows():
+            if row_frac < 1.0 and rng.random() > row_frac:
+                continue
+
+            track_id = str(row["track_id"])
+            if track_id in seen_track_ids:
+                continue
+            seen_track_ids.add(track_id)
+
+            vals = _norm_inputs(row)
+            feats = _compute_formula_set(vals, set_id)
+            out_rows.append({"track_id": track_id, **feats})
+
+        if not out_rows:
+            continue
+
+        out_df = pd.DataFrame(out_rows)
+        out_df.to_csv(output_csv, mode="a", header=not wrote_header, index=False)
+        wrote_header = True
+
+    if not wrote_header:
+        empty_cols = [
+            "track_id",
+            "danceability_proxy",
+            "energy_proxy",
+            "acousticness_proxy",
+            "instrumentalness_proxy",
+            "speechiness_proxy",
+            "valence_proxy",
+            "brightness_proxy",
+            "rhythmic_stability_proxy",
+            "high_level_features_version",
+        ]
+        pd.DataFrame(columns=empty_cols).to_csv(output_csv, index=False)
 
 
 def parse_csv_list(raw: str) -> list[str]:
@@ -193,7 +238,14 @@ def run_search(args) -> None:
         train_csv = str(set_dir / "train_table.csv")
 
         print(f"\n=== Formula set {set_id}: build high-level features ===")
-        build_high_level_features_for_set(args.features_csv, high_level_csv, set_id)
+        build_high_level_features_for_set(
+            args.features_csv,
+            high_level_csv,
+            set_id,
+            chunk_size=args.chunk_size,
+            row_frac=args.features_row_frac,
+            sample_seed=args.sample_seed,
+        )
 
         print(f"=== Formula set {set_id}: build training table ===")
         build_labels_and_train_table(
@@ -282,6 +334,24 @@ def main() -> None:
     parser.add_argument("--formula-sets", default="A,B,C,D")
     parser.add_argument("--seeds", default="42")
     parser.add_argument("--output-dir", default="src/data/formula_search")
+    parser.add_argument(
+        "--chunk-size",
+        type=int,
+        default=50_000,
+        help="CSV rows per chunk when building high-level proxy features",
+    )
+    parser.add_argument(
+        "--features-row-frac",
+        type=float,
+        default=1.0,
+        help="Fraction of extracted feature rows to use (0,1]",
+    )
+    parser.add_argument(
+        "--sample-seed",
+        type=int,
+        default=42,
+        help="Random seed used when --features-row-frac is below 1.0",
+    )
     parser.add_argument("--test-size", type=float, default=0.2)
     parser.add_argument("--val-size", type=float, default=0.2)
     args = parser.parse_args()

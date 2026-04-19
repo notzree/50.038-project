@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 import joblib
+import numpy as np
 import pandas as pd
 
 from extract_features import extract_basic_features, extract_full_features
@@ -58,6 +59,43 @@ def _load_metadata(model_path: str) -> dict | None:
         ) from e
 
 
+def _load_country_profile() -> pd.DataFrame | None:
+    path = Path("src/data/country_profile_features.csv")
+    if not path.exists():
+        return None
+    try:
+        df = pd.read_csv(path)
+        if "region" not in df.columns:
+            return None
+        return df
+    except Exception:
+        return None
+
+
+def _country_features_for_region(region: str, expected_cols: set[str]) -> dict:
+    df = _load_country_profile()
+    if df is None:
+        return {}
+
+    match = df[
+        df["region"].astype(str).str.strip().str.lower() == region.strip().lower()
+    ]
+    if match.empty:
+        return {}
+
+    row = match.iloc[0].to_dict()
+    exclude = {"region", "iso3", "data_year", "source_notes"}
+    out = {}
+    for k, v in row.items():
+        if k in exclude or k not in expected_cols:
+            continue
+        out[k] = np.nan if pd.isna(v) else v
+
+    if "country_profile_missing" in expected_cols:
+        out["country_profile_missing"] = 0
+    return out
+
+
 def predict_single(audio_path: str, region: str, model_path: str) -> dict:
     print(f"Loading model: {model_path}")
     clf = joblib.load(model_path)
@@ -79,9 +117,24 @@ def predict_single(audio_path: str, region: str, model_path: str) -> dict:
     if metadata and "primary_genre" in metadata.get("feature_columns", []):
         row["primary_genre"] = "unknown"
 
+    # Validate feature columns match what model expects
+    if metadata and "feature_columns" in metadata:
+        expected = set(metadata["feature_columns"])
+
+        # Add country profile features if model expects them.
+        row.update(_country_features_for_region(region, expected))
+
+        # Fill any still-missing expected columns with NA placeholders
+        # (pipeline imputers will handle numeric missing values).
+        for col in expected:
+            if col not in row:
+                if col == "country_profile_missing":
+                    row[col] = 1
+                else:
+                    row[col] = np.nan
+
     X = pd.DataFrame([row])
 
-    # Validate feature columns match what model expects
     if metadata and "feature_columns" in metadata:
         expected = set(metadata["feature_columns"])
         actual = set(X.columns)

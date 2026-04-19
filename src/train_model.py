@@ -1,5 +1,6 @@
 import argparse
 import json
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -18,7 +19,7 @@ from sklearn.metrics import (
     recall_score,
     roc_auc_score,
 )
-from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test_split
+from sklearn.model_selection import StratifiedKFold, cross_validate, train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
@@ -148,6 +149,7 @@ def _make_model(name: str, seed: int, **params):
             class_weight="balanced_subsample",
             random_state=seed,
             n_jobs=-1,
+            verbose=1,
         )
         defaults.update(params)
         return RandomForestClassifier(**defaults)
@@ -157,12 +159,14 @@ def _make_model(name: str, seed: int, **params):
 
 
 def build_model_candidates(
-    seed: int, y_train: np.ndarray | None = None
+    seed: int,
+    y_train: np.ndarray | None = None,
+    rf_n_jobs: int = -1,
 ) -> dict[str, object]:
     """Return a dict of name -> classifier instance."""
     candidates = {
         "logistic_regression": _make_model("logistic_regression", seed),
-        "random_forest": _make_model("random_forest", seed),
+        "random_forest": _make_model("random_forest", seed, n_jobs=rf_n_jobs),
     }
 
     return candidates
@@ -180,6 +184,7 @@ def cross_validate_models(
     y_train: np.ndarray,
     k: int = 5,
     seed: int = 42,
+    cv_jobs: int = -1,
 ) -> dict[str, dict]:
     """Run stratified k-fold CV for each candidate. Returns CV results dict."""
     cv = StratifiedKFold(n_splits=k, shuffle=True, random_state=seed)
@@ -187,14 +192,22 @@ def cross_validate_models(
 
     for name, clf in candidates.items():
         print(f"  Cross-validating {name} ({k}-fold)...")
+        started = time.perf_counter()
         pipe = Pipeline(steps=[("preprocessor", preprocessor), ("model", clf)])
 
-        f1_scores = cross_val_score(
-            pipe, X_train, y_train, cv=cv, scoring="f1", n_jobs=-1
+        scores = cross_validate(
+            pipe,
+            X_train,
+            y_train,
+            cv=cv,
+            scoring={"f1": "f1", "roc_auc": "roc_auc"},
+            n_jobs=cv_jobs,
+            pre_dispatch="n_jobs",
+            return_train_score=False,
         )
-        roc_scores = cross_val_score(
-            pipe, X_train, y_train, cv=cv, scoring="roc_auc", n_jobs=-1
-        )
+
+        f1_scores = scores["test_f1"]
+        roc_scores = scores["test_roc_auc"]
 
         cv_results[name] = {
             "f1_mean": float(np.mean(f1_scores)),
@@ -209,6 +222,8 @@ def cross_validate_models(
             f"(+/- {cv_results[name]['f1_std']:.4f}), "
             f"ROC-AUC={cv_results[name]['roc_auc_mean']:.4f}"
         )
+        elapsed = time.perf_counter() - started
+        print(f"    Done {name} CV in {elapsed:.1f}s")
 
     return cv_results
 
@@ -332,13 +347,19 @@ def select_and_evaluate(
     best_clf = Pipeline(
         steps=[("preprocessor", preprocessor), ("model", candidates[best_name])]
     )
+    print(f"Training selected model ({best_name}) on train split...")
+    started = time.perf_counter()
     best_clf.fit(splits["X_train"], splits["y_train"])
+    print(f"Finished selected model training in {time.perf_counter() - started:.1f}s")
 
     # Evaluate all models on val set for comparison
     model_metrics = {}
     for name, clf_obj in candidates.items():
+        print(f"Training candidate for val/test comparison: {name}")
+        started = time.perf_counter()
         pipe = Pipeline(steps=[("preprocessor", preprocessor), ("model", clf_obj)])
         pipe.fit(splits["X_train"], splits["y_train"])
+        print(f"Finished {name} comparison fit in {time.perf_counter() - started:.1f}s")
         model_metrics[name] = {
             "val": _evaluate_model(pipe, splits["X_val"], splits["y_val"]),
             "test": _evaluate_model(pipe, splits["X_test"], splits["y_test"]),
@@ -546,6 +567,9 @@ def train_and_evaluate(
     val_size: float = 0.2,
     feature_importance_out: str | None = None,
     metadata_out: str | None = None,
+    cv_folds: int = 5,
+    cv_jobs: int = -1,
+    rf_n_jobs: int = -1,
 ) -> dict:
     # Defaults for new output paths
     if feature_importance_out is None:
@@ -572,12 +596,22 @@ def train_and_evaluate(
 
     # 3. Build preprocessor and candidates
     preprocessor = _build_preprocessor(feature_cols)
-    candidates = build_model_candidates(seed, y_train=splits["y_train"])
+    candidates = build_model_candidates(
+        seed,
+        y_train=splits["y_train"],
+        rf_n_jobs=rf_n_jobs,
+    )
 
     # 4. Cross-validate
     print("Running cross-validation...")
     cv_results = cross_validate_models(
-        candidates, preprocessor, splits["X_train"], splits["y_train"], seed=seed
+        candidates,
+        preprocessor,
+        splits["X_train"],
+        splits["y_train"],
+        k=cv_folds,
+        seed=seed,
+        cv_jobs=cv_jobs,
     )
 
     # 5. Select best, evaluate on val + test
@@ -666,6 +700,24 @@ def main() -> None:
         default=42,
         help="Random seed",
     )
+    parser.add_argument(
+        "--cv-folds",
+        type=int,
+        default=5,
+        help="Number of CV folds",
+    )
+    parser.add_argument(
+        "--cv-jobs",
+        type=int,
+        default=-1,
+        help="Parallel jobs for cross-validation (-1 uses all cores)",
+    )
+    parser.add_argument(
+        "--rf-jobs",
+        type=int,
+        default=-1,
+        help="Parallel jobs for RandomForest (-1 uses all cores)",
+    )
     args = parser.parse_args()
 
     train_and_evaluate(
@@ -680,6 +732,9 @@ def main() -> None:
         val_size=args.val_size,
         feature_importance_out=args.feature_importance_out,
         metadata_out=args.metadata_out,
+        cv_folds=args.cv_folds,
+        cv_jobs=args.cv_jobs,
+        rf_n_jobs=args.rf_jobs,
     )
 
 

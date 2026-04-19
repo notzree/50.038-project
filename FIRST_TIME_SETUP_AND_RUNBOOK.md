@@ -55,14 +55,6 @@ With download step:
 uv run python src/run_pipeline.py --download --limit 100
 ```
 
-Optional: include Google Trends compact features in the pipeline:
-
-```bash
-uv run python src/run_pipeline.py --with-trends --trends-weeks 12 --trends-delay 10
-```
-
-Google Trends is an optional secondary modality and may require retries due to external rate limits.
-
 Pipeline creates:
 
 1. `src/data/audio_manifest.csv`

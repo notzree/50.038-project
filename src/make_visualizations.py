@@ -441,7 +441,7 @@ def plot_trends_coverage_heatmap(train_csv: Path, out_path: Path) -> None:
     ax.set_xticklabels(coverage.columns, rotation=35, ha="right")
     ax.set_yticks(np.arange(len(coverage.index)))
     ax.set_yticklabels(coverage.index)
-    ax.set_title("Google Trends Feature Coverage by Region")
+    ax.set_title("External Feature Coverage by Region")
 
     fig.tight_layout()
     fig.savefig(out_path, dpi=180)
@@ -497,7 +497,7 @@ def plot_trends_distributions_by_label(train_csv: Path, out_path: Path) -> None:
         axes[j].axis("off")
 
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.suptitle("Google Trends Compact Feature Distributions by Label", y=1.02)
+    fig.suptitle("External Feature Distributions by Label", y=1.02)
     fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False)
     fig.tight_layout(rect=[0, 0, 1, 0.95])
     fig.savefig(out_path, dpi=180)
@@ -755,10 +755,6 @@ def main() -> None:
     parser.add_argument("--error-counts", default="src/data/error_counts_by_region.csv")
     parser.add_argument("--test-preds", default="src/data/test_predictions.csv")
     parser.add_argument("--model", default="src/data/model.joblib")
-    parser.add_argument("--baseline-metrics", default=None)
-    parser.add_argument("--trends-metrics", default=None)
-    parser.add_argument("--baseline-error-counts", default=None)
-    parser.add_argument("--trends-error-counts", default=None)
     parser.add_argument("--out-dir", default="src/data/plots")
     args = parser.parse_args()
 
@@ -784,37 +780,6 @@ def main() -> None:
     plot_region_probability_gap(
         Path(args.test_preds), out_dir / "09_region_probability_gap.png"
     )
-
-    # Trends-focused visuals
-    plot_trends_coverage_heatmap(
-        Path(args.train), out_dir / "10_trends_coverage_heatmap.png"
-    )
-    plot_trends_distributions_by_label(
-        Path(args.train), out_dir / "11_trends_distributions_by_label.png"
-    )
-
-    if args.baseline_metrics and args.trends_metrics:
-        plot_trends_ablation_comparison(
-            Path(args.baseline_metrics),
-            Path(args.trends_metrics),
-            out_dir / "12_trends_ablation_comparison.png",
-        )
-    else:
-        print(
-            "Skipping trends ablation chart (provide --baseline-metrics and --trends-metrics)"
-        )
-
-    if args.baseline_error_counts and args.trends_error_counts:
-        plot_trends_error_reduction_by_region(
-            Path(args.baseline_error_counts),
-            Path(args.trends_error_counts),
-            out_dir / "13_trends_error_reduction_by_region.png",
-        )
-    else:
-        print(
-            "Skipping trends error reduction chart "
-            "(provide --baseline-error-counts and --trends-error-counts)"
-        )
 
     # Core diagnostics
     plot_pr_curve(Path(args.test_preds), out_dir / "14_pr_curve.png")
