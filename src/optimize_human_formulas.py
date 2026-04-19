@@ -1,3 +1,15 @@
+import os
+
+# Large pandas merges can trigger rare OpenBLAS/MKL segfaults when many threads
+# compete. Set before importing NumPy/Pandas (same idea as extract_features overnight).
+for _k, _v in (
+    ("OMP_NUM_THREADS", "1"),
+    ("MKL_NUM_THREADS", "1"),
+    ("OPENBLAS_NUM_THREADS", "1"),
+    ("NUMEXPR_NUM_THREADS", "1"),
+):
+    os.environ.setdefault(_k, _v)
+
 import argparse
 import json
 import time

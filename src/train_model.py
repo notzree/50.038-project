@@ -1,7 +1,16 @@
 import argparse
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
+
+for _k, _v in (
+    ("OMP_NUM_THREADS", "1"),
+    ("MKL_NUM_THREADS", "1"),
+    ("OPENBLAS_NUM_THREADS", "1"),
+    ("NUMEXPR_NUM_THREADS", "1"),
+):
+    os.environ.setdefault(_k, _v)
 
 import joblib
 import numpy as np

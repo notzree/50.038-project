@@ -1,4 +1,13 @@
 import argparse
+import os
+
+for _k, _v in (
+    ("OMP_NUM_THREADS", "1"),
+    ("MKL_NUM_THREADS", "1"),
+    ("OPENBLAS_NUM_THREADS", "1"),
+    ("NUMEXPR_NUM_THREADS", "1"),
+):
+    os.environ.setdefault(_k, _v)
 
 import pandas as pd
 
@@ -35,7 +44,9 @@ def build_labels_and_train_table(
     print(f"Using {len(features)} feature rows for train table build", flush=True)
 
     tracks = features[["track_id"]].drop_duplicates()
+    print(f"Unique tracks: {len(tracks)}", flush=True)
 
+    print(f"Loading charts: {charts_csv} ...", flush=True)
     charts = pd.read_csv(charts_csv)
     charts = charts[charts["chart"] == chart_name].copy()
     charts["track_id"] = (
@@ -43,24 +54,35 @@ def build_labels_and_train_table(
     )
 
     regions = charts[["region"]].drop_duplicates()
+    print(f"Regions in chart filter: {len(regions)}", flush=True)
 
     # Cross product of all tracks x all regions
     tracks["_key"] = 1
     regions["_key"] = 1
-    pairs = tracks.merge(regions, on="_key").drop(columns="_key")
+    print("Building track x region label grid (merge)...", flush=True)
+    pairs = tracks.merge(regions, on="_key").drop(columns="_key"])
+    print(f"Label grid rows: {len(pairs)}", flush=True)
 
     # Positive labels: (track_id, region) that appear in charts
     positives = charts[["track_id", "region"]].drop_duplicates()
     positives["appears_in_region"] = 1
 
+    print("Merging positives into label grid...", flush=True)
     labels = pairs.merge(positives, on=["track_id", "region"], how="left")
     labels["appears_in_region"] = labels["appears_in_region"].fillna(0).astype(int)
+    print("Sorting labels...", flush=True)
     labels = labels.sort_values(["track_id", "region"]).reset_index(drop=True)
 
+    print(f"Writing labels CSV ({len(labels)} rows)...", flush=True)
     labels.to_csv(labels_csv, index=False)
 
     drop_cols = [c for c in ["status", "error", "file_path"] if c in features.columns]
     features_clean = features.drop(columns=drop_cols)
+    print(
+        f"Features matrix for merge: {len(features_clean)} rows x "
+        f"{len(features_clean.columns)} cols",
+        flush=True,
+    )
 
     # Merge catalog-level metadata (source + global nonviral flag)
     if track_catalog_csv:
@@ -109,7 +131,12 @@ def build_labels_and_train_table(
         except Exception as e:
             print(f"Warning: could not merge high-level features: {e}")
 
+    print(
+        f"Merging labels ({len(labels)} rows) with features ({len(features_clean)} rows)...",
+        flush=True,
+    )
     train = labels.merge(features_clean, on="track_id", how="inner")
+    print(f"Train matrix after merge: {len(train)} rows", flush=True)
 
     # Merge genre features if available
     if genres_csv:
