@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import shutil
+import time
 from pathlib import Path
 
 
@@ -23,7 +24,12 @@ def _copy(src: Path, dst: Path) -> None:
         raise FileNotFoundError(f"Missing source file: {src}")
     dst.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(src, dst)
-    print(f"Copied: {src} -> {dst}")
+    size_mb = src.stat().st_size / (1024 * 1024)
+    print(f"Copied ({size_mb:.1f} MB): {src} -> {dst}")
+
+
+def _status(path: Path) -> str:
+    return "OK" if path.exists() else "MISSING"
 
 
 def _rebuild_with_country_profile(
@@ -37,6 +43,9 @@ def _rebuild_with_country_profile(
     country_profile_csv: Path,
     chart_name: str,
     seed: int,
+    cv_folds: int,
+    cv_jobs: int,
+    rf_jobs: int,
 ) -> None:
     from build_dataset import build_labels_and_train_table
     from train_model import train_and_evaluate
@@ -68,6 +77,9 @@ def _rebuild_with_country_profile(
         seed=seed,
         feature_importance_out=str(data_dir / "feature_importance.csv"),
         metadata_out=str(data_dir / "model_metadata.json"),
+        cv_folds=cv_folds,
+        cv_jobs=cv_jobs,
+        rf_n_jobs=rf_jobs,
     )
 
 
@@ -84,9 +96,21 @@ def promote(
     chart_name: str,
     apply_country_profile: bool,
     country_profile_csv: Path,
+    cv_folds: int,
+    cv_jobs: int,
+    rf_jobs: int,
 ) -> None:
+    started = time.perf_counter()
     set_dir = base_dir / f"set_{set_id}"
     seed_dir = set_dir / f"seed_{seed}"
+
+    print("\n=== Promotion config ===")
+    print(f"Formula set: {set_id}")
+    print(f"Seed: {seed}")
+    print(f"Formula search dir: {base_dir}")
+    print(f"Set dir [{_status(set_dir)}]: {set_dir}")
+    print(f"Seed dir [{_status(seed_dir)}]: {seed_dir}")
+    print(f"Target data dir [{_status(data_dir)}]: {data_dir}")
 
     file_map = {
         set_dir / "audio_features_high_level.csv": data_dir
@@ -104,15 +128,21 @@ def promote(
         seed_dir / "model_metadata.json": data_dir / "model_metadata.json",
     }
 
+    print("\nStep 1/4: Copy canonical region metrics")
     # copy region metrics to canonical destination first
     _copy(seed_dir / "region_metrics.csv", data_dir / "region_metrics.csv")
 
+    print(f"\nStep 2/4: Copy core artifacts ({len(file_map)} files)")
+    copied = 0
     for src, dst in file_map.items():
         if dst.name in {"region_metrics.csv", "mvp_region_metrics.csv"}:
             continue
+        copied += 1
+        print(f"[{copied}/{len(file_map)}] Preparing copy")
         _copy(src, dst)
 
     if apply_country_profile:
+        print("\nStep 3/4: Rebuild + retrain with country profile")
         _rebuild_with_country_profile(
             data_dir=data_dir,
             charts_csv=charts_csv,
@@ -124,16 +154,24 @@ def promote(
             country_profile_csv=country_profile_csv,
             chart_name=chart_name,
             seed=seed,
+            cv_folds=cv_folds,
+            cv_jobs=cv_jobs,
+            rf_jobs=rf_jobs,
         )
+    else:
+        print("\nStep 3/4: Skip country profile rebuild (flag not set)")
 
+    print("\nStep 4/4: Sync compatibility alias + baseline snapshot")
     # keep UI compatibility alias synced to canonical region metrics
     _copy(data_dir / "region_metrics.csv", data_dir / "mvp_region_metrics.csv")
 
     _snapshot_baseline(data_dir)
 
+    elapsed = time.perf_counter() - started
     print("\nPromotion complete.")
     print(f"Selected formula set: {set_id}")
     print(f"Selected seed: {seed}")
+    print(f"Elapsed time: {elapsed:.1f}s")
     print("You can now run: uv run python src/make_visualizations.py")
     print("And launch UI: uv run streamlit run src/app/user_interface.py")
 
@@ -170,6 +208,24 @@ def main() -> None:
     parser.add_argument(
         "--country-profile-csv", default="src/data/country_profile_features.csv"
     )
+    parser.add_argument(
+        "--cv-folds",
+        type=int,
+        default=3,
+        help="CV folds during country-profile retrain (lower uses less memory)",
+    )
+    parser.add_argument(
+        "--cv-jobs",
+        type=int,
+        default=1,
+        help="Parallel jobs for cross-validation during retrain",
+    )
+    parser.add_argument(
+        "--rf-jobs",
+        type=int,
+        default=1,
+        help="Parallel jobs for RandomForest during retrain",
+    )
     args = parser.parse_args()
 
     promote(
@@ -185,6 +241,9 @@ def main() -> None:
         chart_name=args.chart_name,
         apply_country_profile=args.apply_country_profile,
         country_profile_csv=Path(args.country_profile_csv),
+        cv_folds=args.cv_folds,
+        cv_jobs=args.cv_jobs,
+        rf_jobs=args.rf_jobs,
     )
 
 
