@@ -2,6 +2,9 @@ import argparse
 import csv
 import multiprocessing
 import os
+import shutil
+import subprocess
+import sys
 import time
 import warnings
 from concurrent.futures import ProcessPoolExecutor
@@ -332,17 +335,85 @@ def extract_full_features(audio_path: str) -> dict:
 # ---------------------------------------------------------------------------
 
 
-def _extract_one(args: tuple) -> dict:
+def _feature_keys(feature_set: str) -> list[str]:
+    return FULL_FEATURE_KEYS if feature_set == "full" else BASIC_FEATURE_KEYS
+
+
+def _failed_feature_row(
+    track_id: str, file_path: str, feature_set: str, error: str
+) -> dict:
+    keys = _feature_keys(feature_set)
+    return {
+        "track_id": track_id,
+        "file_path": file_path,
+        "status": "failed",
+        "error": error,
+        **{k: None for k in keys},
+    }
+
+
+def _ffmpeg_preflight(file_path: str, timeout_sec: int) -> str | None:
+    """Decode-only check in a separate process. Return error text if bad, else None."""
+    ff = shutil.which("ffmpeg")
+    if not ff:
+        return None
+    try:
+        r = subprocess.run(
+            [
+                ff,
+                "-hide_banner",
+                "-v",
+                "error",
+                "-nostdin",
+                "-i",
+                str(file_path),
+                "-f",
+                "null",
+                "-",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=timeout_sec,
+        )
+        if r.returncode != 0:
+            msg = (r.stderr or r.stdout or "").strip() or f"exit {r.returncode}"
+            msg = " ".join(msg.split())
+            return msg[:800]
+    except subprocess.TimeoutExpired:
+        return (
+            f"ffmpeg decode timed out after {timeout_sec}s "
+            "(file may be corrupt or decoder stuck)"
+        )
+    except OSError as e:
+        return f"ffmpeg could not run: {e}"
+    return None
+
+
+def _extraction_mp_method(mp_fork: bool) -> str:
+    """Prefer spawn (safer with native libs); allow fork on Linux for speed."""
+    env = os.environ.get("EXTRACT_MP_METHOD", "").strip().lower()
+    if env == "fork":
+        return "fork"
+    if env == "spawn":
+        return "spawn"
+    if sys.platform == "darwin":
+        return "spawn"
+    if mp_fork:
+        return "fork"
+    return "spawn"
+
+
+def _extract_one(args: tuple[str, str, str]) -> dict:
     """Worker function — runs extraction and catches Python exceptions.
 
-    NOTE: This cannot catch segfaults (SIGSEGV/exit 139) in native libraries.
-    Use _extract_one_isolated() to run this in a subprocess for crash safety.
+    NOTE: This cannot catch segfaults (SIGSEGV) in native libraries; the pool
+    worker may die, which the parent handles via BrokenProcessPool. Optional
+    ffmpeg preflight (see _extract_one_task) skips many bad files before librosa.
     """
     track_id, file_path, feature_set = args
     extract_fn = (
         extract_full_features if feature_set == "full" else extract_basic_features
     )
-    feature_keys = FULL_FEATURE_KEYS if feature_set == "full" else BASIC_FEATURE_KEYS
 
     try:
         feats = extract_fn(file_path)
@@ -357,13 +428,35 @@ def _extract_one(args: tuple) -> dict:
         err = str(e).strip()
         if not err:
             err = repr(e)
-        return {
-            "track_id": track_id,
-            "file_path": file_path,
-            "status": "failed",
-            "error": f"{type(e).__name__}: {err}",
-            **{k: None for k in feature_keys},
-        }
+        return _failed_feature_row(
+            track_id, file_path, feature_set, f"{type(e).__name__}: {err}"
+        )
+
+
+def _extract_one_task(
+    args: tuple[str, str, str, bool, int],
+) -> dict:
+    """Pool entrypoint: file checks, optional ffmpeg preflight, then librosa path."""
+    track_id, file_path, feature_set, use_ffmpeg_preflight, preflight_timeout = args
+    path = Path(file_path)
+    if not path.is_file():
+        return _failed_feature_row(track_id, file_path, feature_set, "Audio file missing")
+    try:
+        if path.stat().st_size == 0:
+            return _failed_feature_row(track_id, file_path, feature_set, "Audio file empty")
+    except OSError as e:
+        return _failed_feature_row(
+            track_id, file_path, feature_set, f"Cannot read file metadata: {e}"
+        )
+
+    if use_ffmpeg_preflight:
+        why = _ffmpeg_preflight(file_path, preflight_timeout)
+        if why:
+            return _failed_feature_row(
+                track_id, file_path, feature_set, f"Audio preflight failed: {why}"
+            )
+
+    return _extract_one((track_id, file_path, feature_set))
 
 
 
@@ -382,6 +475,9 @@ def run_extraction(
     max_tasks_per_child: int = 100,
     failure_log_csv: str | None = None,
     progress_interval: int = 10,
+    mp_fork: bool = False,
+    ffmpeg_preflight: bool = True,
+    preflight_timeout: int = 60,
 ) -> None:
     """Extract features from all tracks in a manifest CSV."""
     manifest_path = Path(manifest_csv)
@@ -394,6 +490,16 @@ def run_extraction(
     print(f"Checkpoint interval: {checkpoint_interval}")
     print(f"Max tasks per child: {max_tasks_per_child}")
     print(f"Progress interval: {progress_interval}")
+
+    mp_method = _extraction_mp_method(mp_fork)
+    use_preflight = bool(ffmpeg_preflight and shutil.which("ffmpeg"))
+    if ffmpeg_preflight and not use_preflight:
+        print("ffmpeg not on PATH — skipping audio preflight (install ffmpeg for safer skips)")
+    elif use_preflight:
+        print(
+            f"Audio preflight: ffmpeg decode check, timeout={preflight_timeout}s per track"
+        )
+    print(f"Multiprocessing start method: {mp_method}")
 
     if not manifest_path.exists():
         raise FileNotFoundError(f"Manifest not found: {manifest_path}")
@@ -434,7 +540,16 @@ def run_extraction(
 
     print(f"Extracting features for {len(rows)} tracks...")
 
-    tasks = [(row["track_id"], row["file_path"], feature_set) for row in rows]
+    tasks = [
+        (
+            str(row["track_id"]),
+            str(row["file_path"]),
+            feature_set,
+            use_preflight,
+            int(preflight_timeout),
+        )
+        for row in rows
+    ]
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     if failure_log_csv is None:
@@ -509,9 +624,6 @@ def run_extraction(
     # Always use a pool (even workers=1) so segfaults kill a worker, not the parent.
     # On BrokenProcessPool (worker segfault), log the crashing track, skip it,
     # and restart the pool for remaining tasks.
-    import sys
-
-    mp_method = "spawn" if sys.platform == "darwin" else "fork"
     ctx = multiprocessing.get_context(mp_method)
     # max_tasks_per_child is only supported with 'spawn'; drop it for 'fork'
     pool_kwargs = dict(max_workers=workers, mp_context=ctx)
@@ -523,7 +635,7 @@ def run_extraction(
         while remaining:
             try:
                 with ProcessPoolExecutor(**pool_kwargs) as pool:
-                    for result in pool.map(_extract_one, remaining, chunksize=1):
+                    for result in pool.map(_extract_one_task, remaining, chunksize=1):
                         _handle_result(result)
                 remaining = []
             except BrokenProcessPool:
@@ -532,17 +644,16 @@ def run_extraction(
                 crashed_task = tasks[completed]
                 print(
                     f"  [{completed + 1}/{len(tasks)}] CRASHED {crashed_task[0]}: "
-                    f"worker segfault — skipping",
+                    f"worker died (segfault/native abort) — skipping",
                     flush=True,
                 )
                 _handle_result(
-                    {
-                        "track_id": crashed_task[0],
-                        "file_path": crashed_task[1],
-                        "status": "failed",
-                        "error": "Worker crashed (segfault)",
-                        **{k: None for k in feature_keys},
-                    }
+                    _failed_feature_row(
+                        crashed_task[0],
+                        crashed_task[1],
+                        feature_set,
+                        "Worker crashed (segfault or native abort) — track skipped",
+                    )
                 )
                 remaining = tasks[completed:]
                 if remaining:
@@ -608,6 +719,23 @@ def main():
         default=10,
         help="Print progress summary every N processed tracks",
     )
+    parser.add_argument(
+        "--mp-fork",
+        action="store_true",
+        help="Use fork multiprocessing on Linux (faster worker startup; default is spawn).",
+    )
+    parser.add_argument(
+        "--no-ffmpeg-preflight",
+        action="store_true",
+        help="Skip ffmpeg decode check before librosa (corrupt files may crash workers).",
+    )
+    parser.add_argument(
+        "--preflight-timeout",
+        type=int,
+        default=60,
+        metavar="SEC",
+        help="Per-track timeout for ffmpeg preflight decode (default: 60).",
+    )
     args = parser.parse_args()
 
     run_extraction(
@@ -619,6 +747,9 @@ def main():
         max_tasks_per_child=args.max_tasks_per_child,
         failure_log_csv=args.failure_log_csv,
         progress_interval=args.progress_interval,
+        mp_fork=args.mp_fork,
+        ffmpeg_preflight=not args.no_ffmpeg_preflight,
+        preflight_timeout=args.preflight_timeout,
     )
 
 

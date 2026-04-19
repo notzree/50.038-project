@@ -210,12 +210,22 @@ def cross_validate_models(
     cv_results = {}
 
     for name, clf in candidates.items():
-        print(f"  Cross-validating {name} ({k}-fold, grouped by track_id)...")
+        print(
+            f"  Cross-validating {name} ({k}-fold, grouped by track_id)...",
+            flush=True,
+        )
         pipe = Pipeline(steps=[("preprocessor", preprocessor), ("model", clf)])
 
         f1_scores = []
         roc_scores = []
-        for train_idx, val_idx in cv.split(X_train, y_train, groups):
+        for fold_i, (train_idx, val_idx) in enumerate(
+            cv.split(X_train, y_train, groups), start=1
+        ):
+            print(
+                f"    {name}: fold {fold_i}/{k} (fit on {len(train_idx)} rows, "
+                f"eval on {len(val_idx)})...",
+                flush=True,
+            )
             pipe_clone = Pipeline(
                 steps=[("preprocessor", preprocessor), ("model", clf.__class__(**clf.get_params()))]
             )
@@ -237,9 +247,10 @@ def cross_validate_models(
             "roc_auc_folds": roc_scores.tolist(),
         }
         print(
-            f"    F1={cv_results[name]['f1_mean']:.4f} "
+            f"    {name} CV summary: F1={cv_results[name]['f1_mean']:.4f} "
             f"(+/- {cv_results[name]['f1_std']:.4f}), "
-            f"ROC-AUC={cv_results[name]['roc_auc_mean']:.4f}"
+            f"ROC-AUC={cv_results[name]['roc_auc_mean']:.4f}",
+            flush=True,
         )
 
     return cv_results
@@ -359,16 +370,26 @@ def select_and_evaluate(
     """Select best model by CV F1, fit on train, tune threshold on val, evaluate on test."""
 
     best_name = max(cv_results, key=lambda n: cv_results[n]["f1_mean"])
-    print(f"Selected best model by CV F1: {best_name}")
+    print(f"Selected best model by CV F1: {best_name}", flush=True)
 
     best_clf = Pipeline(
         steps=[("preprocessor", preprocessor), ("model", candidates[best_name])]
+    )
+    print(
+        f"Refitting best model ({best_name}) on full training set "
+        f"({len(splits['y_train'])} rows)...",
+        flush=True,
     )
     best_clf.fit(splits["X_train"], splits["y_train"])
 
     # Evaluate all models on val set for comparison
     model_metrics = {}
+    print(
+        "Refitting all candidates on training set for val/test comparison...",
+        flush=True,
+    )
     for name, clf_obj in candidates.items():
+        print(f"  fitting {name}...", flush=True)
         pipe = Pipeline(steps=[("preprocessor", preprocessor), ("model", clf_obj)])
         pipe.fit(splits["X_train"], splits["y_train"])
         model_metrics[name] = {
@@ -378,11 +399,13 @@ def select_and_evaluate(
         }
 
     # Threshold tuning on VALIDATION set (not test)
+    print("Tuning probability threshold on validation set...", flush=True)
     val_prob = best_clf.predict_proba(splits["X_val"])[:, 1]
     default_threshold_metrics = _evaluate_at_threshold(splits["y_val"], val_prob, 0.5)
     tuned_threshold_metrics = _find_best_threshold(splits["y_val"], val_prob)
 
     # Final test evaluation at tuned threshold
+    print("Evaluating on held-out test set...", flush=True)
     test_prob = best_clf.predict_proba(splits["X_test"])[:, 1]
     tuned_threshold = tuned_threshold_metrics["threshold"]
     test_at_tuned = _evaluate_at_threshold(splits["y_test"], test_prob, tuned_threshold)
@@ -607,7 +630,11 @@ def train_and_evaluate(
     candidates = build_model_candidates(seed, y_train=splits["y_train"])
 
     # 4. Cross-validate (grouped by track_id to prevent leakage)
-    print("Running cross-validation...")
+    print(
+        f"Running cross-validation for {len(candidates)} model(s): "
+        f"{', '.join(sorted(candidates))}...",
+        flush=True,
+    )
     cv_results = cross_validate_models(
         candidates, preprocessor, splits["X_train"], splits["y_train"],
         meta_train=splits["meta_train"], seed=seed,

@@ -106,6 +106,8 @@ uv sync
 
 CURRENT_PHASE="Extract full audio features"
 phase "$CURRENT_PHASE"
+# ffmpeg on PATH enables a quick decode preflight so corrupt MP3s are skipped before librosa
+# (reduces worker segfaults). Default multiprocessing is spawn (override: EXTRACT_MP_METHOD=fork).
 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 \
 uv run python src/extract_features.py \
   --manifest src/data/audio_manifest.csv \

@@ -1,5 +1,6 @@
 import argparse
 import json
+import time
 from pathlib import Path
 
 import pandas as pd
@@ -149,20 +150,42 @@ def build_high_level_features_for_set(
 ) -> None:
     # Appended feature extracts can rarely contain a malformed physical line (e.g. crash
     # mid-write). Match extract_features resume behavior so optimization can proceed.
+    t0 = time.monotonic()
+    print(f"  Reading {features_csv} ...", flush=True)
     df = pd.read_csv(features_csv, on_bad_lines="warn", low_memory=False)
     if "status" in df.columns:
         df = df[df["status"] == "ok"].copy()
 
+    n = len(df)
+    print(
+        f"  Formula set {set_id}: {n} tracks with status=ok -- computing proxies ...",
+        flush=True,
+    )
+    report_every = max(5000, n // 12) if n > 8000 else max(1, n // 6)
+
     rows = []
-    for _, row in df.iterrows():
+    for i, (_, row) in enumerate(df.iterrows(), start=1):
         vals = _norm_inputs(row)
         feats = _compute_formula_set(vals, set_id)
         rows.append({"track_id": row["track_id"], **feats})
+        if i % report_every == 0 or i == n:
+            pct = 100 * i // max(n, 1)
+            dt = time.monotonic() - t0
+            rate = i / max(dt, 1e-6)
+            print(
+                f"  ... high-level proxies {i}/{n} ({pct}%)  "
+                f"~{rate:.0f} tracks/s  elapsed {dt:.0f}s",
+                flush=True,
+            )
 
     out_df = pd.DataFrame(rows)
     out_df = out_df.drop_duplicates(subset=["track_id"], keep="first")
     Path(output_csv).parent.mkdir(parents=True, exist_ok=True)
     out_df.to_csv(output_csv, index=False)
+    print(
+        f"  Wrote {output_csv} ({len(out_df)} rows) in {time.monotonic() - t0:.1f}s",
+        flush=True,
+    )
 
 
 def parse_csv_list(raw: str) -> list[str]:
@@ -182,11 +205,19 @@ def run_search(args) -> None:
 
     summary_rows = []
 
+    n_sets = len(formula_sets)
+    n_seeds = len(seeds)
+    t_search = time.monotonic()
     print(f"Formula sets: {formula_sets}")
     print(f"Seeds: {seeds}")
     print(f"Output dir: {output_dir}")
+    print(
+        f"Progress: {n_sets} formula set(s) × "
+        f"(high-level build + train table + {n_seeds} train/eval seed(s))",
+        flush=True,
+    )
 
-    for set_id in formula_sets:
+    for si, set_id in enumerate(formula_sets, start=1):
         set_dir = output_dir / f"set_{set_id}"
         set_dir.mkdir(parents=True, exist_ok=True)
 
@@ -194,10 +225,18 @@ def run_search(args) -> None:
         labels_csv = str(set_dir / "labels_appears_in_region.csv")
         train_csv = str(set_dir / "train_table.csv")
 
-        print(f"\n=== Formula set {set_id}: build high-level features ===")
+        print(
+            f"\n=== [{si}/{n_sets}] Formula set {set_id}: build high-level features "
+            f"(elapsed {time.monotonic() - t_search:.0f}s) ===",
+            flush=True,
+        )
         build_high_level_features_for_set(args.features_csv, high_level_csv, set_id)
 
-        print(f"=== Formula set {set_id}: build training table ===")
+        print(
+            f"=== [{si}/{n_sets}] Formula set {set_id}: build training table "
+            f"(elapsed {time.monotonic() - t_search:.0f}s) ===",
+            flush=True,
+        )
         build_labels_and_train_table(
             charts_csv=args.charts_csv,
             features_csv=args.features_csv,
@@ -210,11 +249,15 @@ def run_search(args) -> None:
             nonviral_meta_csv=args.nonviral_meta_csv,
         )
 
-        for seed in seeds:
+        for sj, seed in enumerate(seeds, start=1):
             run_dir = set_dir / f"seed_{seed}"
             run_dir.mkdir(parents=True, exist_ok=True)
 
-            print(f"=== Formula set {set_id} | seed {seed}: train/eval ===")
+            print(
+                f"=== [{si}/{n_sets}] Formula set {set_id} | seed {seed} ({sj}/{n_seeds}): "
+                f"train/eval (elapsed {time.monotonic() - t_search:.0f}s) ===",
+                flush=True,
+            )
             metrics = train_and_evaluate(
                 input_csv=train_csv,
                 metrics_out=str(run_dir / "model_metrics.json"),
@@ -262,7 +305,10 @@ def run_search(args) -> None:
     best_json = output_dir / "best_formula_result.json"
     best_json.write_text(json.dumps(best, indent=2))
 
-    print("\n=== Formula search complete ===")
+    print(
+        f"\n=== Formula search complete (total {time.monotonic() - t_search:.0f}s) ===",
+        flush=True,
+    )
     print(f"Wrote summary: {summary_csv}")
     print(f"Wrote best result: {best_json}")
     if best:
