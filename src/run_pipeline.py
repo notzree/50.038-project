@@ -283,21 +283,6 @@ def main() -> None:
         default=None,
         help="Path to country_profile_features.csv. Auto-detected if src/data/country_profile_features.csv exists.",
     )
-    parser.add_argument(
-        "--predict-audio",
-        default=None,
-        help="Optional audio path for single-song prediction after training",
-    )
-    parser.add_argument(
-        "--predict-region",
-        default=None,
-        help="Optional region for single-song prediction after training",
-    )
-    parser.add_argument(
-        "--predict-output-json",
-        default=None,
-        help="Optional JSON output path for single-song prediction",
-    )
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parent.parent
@@ -502,24 +487,6 @@ def main() -> None:
     else:
         print("\n=== Visualizations ===")
         print("Skipping (--skip-visualizations enabled)")
-
-    # --- Step 7: Optional single prediction ---
-    if args.predict_audio and args.predict_region:
-        print("\n=== Predict single song ===")
-        from predict_single_audio import predict_single
-        import json
-
-        result = predict_single(args.predict_audio, args.predict_region, model_out)
-        print(json.dumps(result, indent=2))
-
-        if args.predict_output_json:
-            out = Path(args.predict_output_json)
-            out.parent.mkdir(parents=True, exist_ok=True)
-            out.write_text(json.dumps(result, indent=2))
-    elif args.predict_audio or args.predict_region:
-        print(
-            "\nSkipping prediction: provide both --predict-audio and --predict-region"
-        )
 
     print("\nPipeline complete")
     print(f"Features: {features_out}")
