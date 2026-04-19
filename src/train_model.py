@@ -47,9 +47,15 @@ def load_and_prepare_data(
     """Load CSV, separate features / target / metadata."""
     print(f"Loading training table: {input_csv} ...", flush=True)
     t0 = time.monotonic()
-    df = pd.read_csv(input_csv, on_bad_lines="warn", low_memory=False)
+    p = Path(input_csv)
+    if p.suffix.lower() == ".parquet":
+        df = pd.read_parquet(input_csv, engine="pyarrow")
+        load_tag = "read_parquet"
+    else:
+        df = pd.read_csv(input_csv, on_bad_lines="warn", low_memory=False)
+        load_tag = "read_csv"
     print(
-        f"  read_csv done in {time.monotonic() - t0:.1f}s ({len(df)} rows)",
+        f"  {load_tag} done in {time.monotonic() - t0:.1f}s ({len(df)} rows)",
         flush=True,
     )
 
@@ -811,8 +817,8 @@ def main() -> None:
     )
     parser.add_argument(
         "--input",
-        default="src/data/train_table.csv",
-        help="Path to training CSV",
+        default="src/data/train_table.parquet",
+        help="Path to training table (.parquet recommended; .csv still supported)",
     )
     parser.add_argument(
         "--metrics-out",

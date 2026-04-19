@@ -49,7 +49,7 @@ def main() -> None:
     parser.add_argument(
         "--train-only",
         action="store_true",
-        help="Skip high-level + dataset build; expect train_table.csv under output-dir",
+        help="Skip high-level + dataset build; expect train_table.parquet (or legacy .csv) under output-dir",
     )
     args = parser.parse_args()
 
@@ -57,9 +57,21 @@ def main() -> None:
     out.mkdir(parents=True, exist_ok=True)
     high_level_csv = str(out / "audio_features_high_level.csv")
     labels_csv = str(out / "labels_appears_in_region.csv")
-    train_csv = str(out / "train_table.csv")
+    train_parquet = out / "train_table.parquet"
+    train_csv_legacy = out / "train_table.csv"
+    train_csv = str(train_parquet)
     run_dir = out / f"seed_{args.seed}"
     run_dir.mkdir(parents=True, exist_ok=True)
+
+    if args.train_only:
+        if train_parquet.is_file():
+            train_csv = str(train_parquet)
+        elif train_csv_legacy.is_file():
+            train_csv = str(train_csv_legacy)
+        else:
+            raise SystemExit(
+                f"--train-only but neither {train_parquet} nor {train_csv_legacy} exists"
+            )
 
     if not args.train_only:
         print("=== Step 1/3: high-level features (formula set A only) ===", flush=True)
@@ -76,9 +88,6 @@ def main() -> None:
             genres_csv=args.genres_csv,
             nonviral_meta_csv=args.nonviral_meta_csv,
         )
-    else:
-        if not Path(train_csv).is_file():
-            raise SystemExit(f"--train-only but missing {train_csv}")
 
     print("=== Step 3/3: train logistic regression (no CV) ===", flush=True)
     train_and_evaluate(

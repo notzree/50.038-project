@@ -18,8 +18,14 @@ def _ensure_dir(path: Path) -> None:
     path.mkdir(parents=True, exist_ok=True)
 
 
+def _load_train_tabular(train_path: Path) -> pd.DataFrame:
+    if train_path.suffix.lower() == ".parquet":
+        return pd.read_parquet(train_path, engine="pyarrow")
+    return pd.read_csv(train_path, on_bad_lines="warn", low_memory=False)
+
+
 def plot_dataset_overview(train_csv: Path, labels_csv: Path, out_path: Path) -> None:
-    train_df = pd.read_csv(train_csv)
+    train_df = _load_train_tabular(train_csv)
     labels_df = pd.read_csv(labels_csv)
 
     num_tracks = train_df["track_id"].nunique()
@@ -88,7 +94,7 @@ def plot_label_distribution(labels_csv: Path, out_path: Path) -> None:
 
 
 def plot_feature_distributions(train_csv: Path, out_path: Path) -> None:
-    df = pd.read_csv(train_csv)
+    df = _load_train_tabular(train_csv)
     features = [
         "tempo_bpm",
         "rms_mean",
@@ -303,7 +309,7 @@ def plot_region_feature_lift_heatmap(
     min_region_support: int = 100,
 ) -> None:
     """Heatmap of per-region proxy feature lift: mean(pos) - mean(neg)."""
-    df = pd.read_csv(train_csv)
+    df = _load_train_tabular(train_csv)
     proxy_cols = [c for c in df.columns if c.endswith("_proxy")]
     if not proxy_cols:
         print("No proxy columns found, skipping region feature lift heatmap")
@@ -410,7 +416,7 @@ def plot_region_probability_gap(
 
 def plot_trends_coverage_heatmap(train_csv: Path, out_path: Path) -> None:
     """Visualize non-zero coverage of gt_* features by region."""
-    df = pd.read_csv(train_csv)
+    df = _load_train_tabular(train_csv)
     gt_cols = [c for c in df.columns if c.startswith("gt_")]
     if not gt_cols or "region" not in df.columns:
         print("No trends columns found; skipping trends coverage heatmap")
@@ -450,7 +456,7 @@ def plot_trends_coverage_heatmap(train_csv: Path, out_path: Path) -> None:
 
 def plot_trends_distributions_by_label(train_csv: Path, out_path: Path) -> None:
     """Show distributions of compact trends features split by label."""
-    df = pd.read_csv(train_csv)
+    df = _load_train_tabular(train_csv)
     gt_cols = [
         c
         for c in [
@@ -748,7 +754,7 @@ def plot_learning_curve(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate project visualization set")
-    parser.add_argument("--train", default="src/data/train_table.csv")
+    parser.add_argument("--train", default="src/data/train_table.parquet")
     parser.add_argument("--labels", default="src/data/labels_appears_in_region.csv")
     parser.add_argument("--metrics", default="src/data/model_metrics.json")
     parser.add_argument("--region-metrics", default="src/data/region_metrics.csv")

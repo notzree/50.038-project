@@ -563,7 +563,10 @@ def merge_trends_into_train_table(
     Rows with no trends match get 0-filled gt_* columns (safe default).
     """
     log.info("Loading train table from %s", train_table_path)
-    train = pl.read_csv(train_table_path)
+    if train_table_path.suffix.lower() == ".parquet":
+        train = pl.read_parquet(train_table_path)
+    else:
+        train = pl.read_csv(train_table_path)
     train = train.rename({c: c.strip().lower() for c in train.columns})
 
     log.info("Loading trends features from %s", trends_path)
@@ -588,7 +591,10 @@ def merge_trends_into_train_table(
     merged = merged.with_columns([pl.col(c).fill_null(0.0) for c in gt_cols])
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    merged.write_csv(output_path)
+    if output_path.suffix.lower() == ".parquet":
+        merged.write_parquet(output_path)
+    else:
+        merged.write_csv(output_path)
     log.info(
         "Merged train table saved (%d rows, %d cols) → %s",
         len(merged),

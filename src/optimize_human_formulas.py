@@ -246,7 +246,7 @@ def run_search(args) -> None:
 
         high_level_csv = str(set_dir / "audio_features_high_level.csv")
         labels_csv = str(set_dir / "labels_appears_in_region.csv")
-        train_csv = str(set_dir / "train_table.csv")
+        train_csv = str(set_dir / "train_table.parquet")
 
         print(
             f"\n=== [{si}/{n_sets}] Formula set {set_id}: build high-level features "

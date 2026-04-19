@@ -219,8 +219,8 @@ def main() -> None:
     )
     parser.add_argument(
         "--train-out",
-        default="src/data/train_table.csv",
-        help="Training table CSV output path",
+        default="src/data/train_table.parquet",
+        help="Training table output path (.parquet recommended for large grids)",
     )
     parser.add_argument(
         "--metrics-out",
@@ -490,7 +490,11 @@ def main() -> None:
             max_pairs=args.trends_max_pairs,
         )
 
-        merged_train_out = str(Path(train_out).with_name("train_table_with_trends.csv"))
+        train_out_path = Path(train_out)
+        merged_train_out = str(
+            train_out_path.parent
+            / f"{train_out_path.stem}_with_trends{train_out_path.suffix}"
+        )
         merge_trends_into_train_table(
             train_table_path=Path(train_out),
             trends_path=Path(trends_out),

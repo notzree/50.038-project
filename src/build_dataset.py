@@ -42,6 +42,52 @@ def _write_dataframe_csv_chunked(
     print(f"Finished writing {path}", flush=True)
 
 
+def _write_dataframe_parquet_chunked(
+    df: pd.DataFrame,
+    path: str,
+    *,
+    chunk_rows: int = 250_000,
+    label: str = "rows",
+) -> None:
+    """Write Parquet in row chunks (avoids pandas CSV C crashes on huge wide tables)."""
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    n = len(df)
+    writer: pq.ParquetWriter | None = None
+    schema: pa.Schema | None = None
+
+    print(
+        f"Writing {label} ({n} rows) to {path} as Parquet (chunks of {chunk_rows}) ...",
+        flush=True,
+    )
+    for start in range(0, n, chunk_rows):
+        stop = min(start + chunk_rows, n)
+        chunk = df.iloc[start:stop]
+        table = pa.Table.from_pandas(chunk, preserve_index=False)
+        if writer is None:
+            schema = table.schema
+            writer = pq.ParquetWriter(path, schema, compression="snappy")
+        elif table.schema != schema:
+            table = pa.Table.from_pandas(chunk, preserve_index=False, schema=schema)
+        writer.write_table(table)
+        print(f"  ... {label}: rows {start}-{stop - 1} / {n - 1}", flush=True)
+
+    if writer is not None:
+        writer.close()
+    print(f"Finished writing {path}", flush=True)
+
+
+def _write_train_table(df: pd.DataFrame, path: str) -> None:
+    """Train matrix I/O: Parquet for stability; CSV only if path ends in .csv."""
+    suffix = Path(path).suffix.lower()
+    if suffix == ".parquet":
+        _write_dataframe_parquet_chunked(df, path, label="train table")
+    else:
+        _write_dataframe_csv_chunked(df, path, label="train table")
+
+
 def build_labels_and_train_table(
     charts_csv: str,
     features_csv: str,
@@ -238,7 +284,7 @@ def build_labels_and_train_table(
                 flush=True,
             )
 
-    _write_dataframe_csv_chunked(train, train_csv, label="train table")
+    _write_train_table(train, train_csv)
 
     print(f"Wrote labels to {labels_csv} with shape={labels_shape}", flush=True)
     print(label_counts, flush=True)
@@ -277,8 +323,8 @@ def main() -> None:
     )
     parser.add_argument(
         "--train-out",
-        default="src/data/train_table.csv",
-        help="Output path for training table CSV",
+        default="src/data/train_table.parquet",
+        help="Output path for training table (Parquet recommended for large track×region grids)",
     )
     parser.add_argument(
         "--chart-name",
