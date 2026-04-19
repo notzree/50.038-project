@@ -26,7 +26,7 @@ def build_labels_and_train_table(
     if nonviral_meta_csv:
         print(f"Non-viral meta CSV: {nonviral_meta_csv}")
 
-    features = pd.read_csv(features_csv)
+    features = pd.read_csv(features_csv, on_bad_lines="warn", low_memory=False)
 
     if "status" in features.columns:
         features = features[features["status"] == "ok"].copy()

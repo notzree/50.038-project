@@ -147,7 +147,9 @@ def _compute_formula_set(values: dict[str, float], set_id: str) -> dict[str, flo
 def build_high_level_features_for_set(
     features_csv: str, output_csv: str, set_id: str
 ) -> None:
-    df = pd.read_csv(features_csv)
+    # Appended feature extracts can rarely contain a malformed physical line (e.g. crash
+    # mid-write). Match extract_features resume behavior so optimization can proceed.
+    df = pd.read_csv(features_csv, on_bad_lines="warn", low_memory=False)
     if "status" in df.columns:
         df = df[df["status"] == "ok"].copy()
 

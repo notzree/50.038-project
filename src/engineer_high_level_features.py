@@ -11,7 +11,7 @@ def build_high_level_features(input_csv: str, output_csv: str) -> None:
     print(f"Input features: {input_csv}")
     print(f"Output high-level features: {output_csv}")
 
-    df = pd.read_csv(input_csv)
+    df = pd.read_csv(input_csv, on_bad_lines="warn", low_memory=False)
     if "track_id" not in df.columns:
         raise ValueError("Input features CSV must contain track_id column")
 

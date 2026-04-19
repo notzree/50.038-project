@@ -33,7 +33,7 @@ def run_qc(
 
     feature_summary = {}
     if features_csv and Path(features_csv).exists():
-        feats = pd.read_csv(features_csv)
+        feats = pd.read_csv(features_csv, on_bad_lines="warn", low_memory=False)
         if "status" in feats.columns:
             n_ok = int((feats["status"] == "ok").sum())
             n_failed = int((feats["status"] == "failed").sum())

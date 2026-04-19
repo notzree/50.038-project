@@ -478,6 +478,7 @@ def run_extraction(
 
         # Write result row immediately instead of accumulating in memory
         output_writer.writerow(result)
+        output_file.flush()
 
         if result["status"] == "failed":
             failed_count += 1
