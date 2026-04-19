@@ -1,5 +1,6 @@
 import argparse
 import os
+from pathlib import Path
 
 for _k, _v in (
     ("OMP_NUM_THREADS", "1"),
@@ -10,6 +11,34 @@ for _k, _v in (
     os.environ.setdefault(_k, _v)
 
 import pandas as pd
+
+
+def _write_dataframe_csv_chunked(
+    df: pd.DataFrame,
+    path: str,
+    *,
+    chunk_rows: int = 350_000,
+    label: str = "rows",
+) -> None:
+    """Write CSV in chunks to avoid long silent hangs and some native crashes on huge frames."""
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    n = len(df)
+    if n <= chunk_rows:
+        print(f"Writing {label} ({n} rows) to {path} ...", flush=True)
+        df.to_csv(path, index=False)
+        print(f"Finished writing {path}", flush=True)
+        return
+
+    print(
+        f"Writing {label} ({n} rows) to {path} in chunks of {chunk_rows} ...",
+        flush=True,
+    )
+    for i, start in enumerate(range(0, n, chunk_rows)):
+        stop = min(start + chunk_rows, n)
+        chunk = df.iloc[start:stop]
+        chunk.to_csv(path, mode="w" if i == 0 else "a", header=(i == 0), index=False)
+        print(f"  ... {label}: rows {start}-{stop - 1} / {n - 1}", flush=True)
+    print(f"Finished writing {path}", flush=True)
 
 
 def build_labels_and_train_table(
@@ -73,8 +102,7 @@ def build_labels_and_train_table(
     print("Sorting labels...", flush=True)
     labels = labels.sort_values(["track_id", "region"]).reset_index(drop=True)
 
-    print(f"Writing labels CSV ({len(labels)} rows)...", flush=True)
-    labels.to_csv(labels_csv, index=False)
+    _write_dataframe_csv_chunked(labels, labels_csv, label="labels")
 
     drop_cols = [c for c in ["status", "error", "file_path"] if c in features.columns]
     features_clean = features.drop(columns=drop_cols)
@@ -154,7 +182,8 @@ def build_labels_and_train_table(
         try:
             if "global_nonviral" in train.columns:
                 print(
-                    "Skipping legacy non-viral merge; global_nonviral already present"
+                    "Skipping legacy non-viral merge; global_nonviral already present",
+                    flush=True,
                 )
             else:
                 nonviral = pd.read_csv(nonviral_meta_csv)[
@@ -180,12 +209,16 @@ def build_labels_and_train_table(
             n_tracks = contradictions["track_id"].nunique()
             print(
                 "Warning: found global non-viral tracks with positive regional labels "
-                f"({len(contradictions)} rows, {n_tracks} tracks)"
+                f"({len(contradictions)} rows, {n_tracks} tracks)",
+                flush=True,
             )
         else:
-            print("Sanity check passed: no global non-viral positives found")
+            print(
+                "Sanity check passed: no global non-viral positives found",
+                flush=True,
+            )
 
-    train.to_csv(train_csv, index=False)
+    _write_dataframe_csv_chunked(train, train_csv, label="train table")
 
     label_counts = labels["appears_in_region"].value_counts().sort_index()
     print(f"Wrote labels to {labels_csv} with shape={labels.shape}")
