@@ -13,6 +13,7 @@ for _k, _v in (
 import argparse
 import json
 import time
+import traceback
 from pathlib import Path
 
 import pandas as pd
@@ -265,6 +266,10 @@ def run_search(args) -> None:
             genres_csv=args.genres_csv,
             nonviral_meta_csv=args.nonviral_meta_csv,
         )
+        print(
+            f"Finished build_labels_and_train_table for set {set_id} -> {train_csv}",
+            flush=True,
+        )
 
         for sj, seed in enumerate(seeds, start=1):
             run_dir = set_dir / f"seed_{seed}"
@@ -275,21 +280,29 @@ def run_search(args) -> None:
                 f"train/eval (elapsed {time.monotonic() - t_search:.0f}s) ===",
                 flush=True,
             )
-            metrics = train_and_evaluate(
-                input_csv=train_csv,
-                metrics_out=str(run_dir / "model_metrics.json"),
-                model_out=str(run_dir / "model.joblib"),
-                region_metrics_out=str(run_dir / "region_metrics.csv"),
-                test_preds_out=str(run_dir / "test_predictions.csv"),
-                errors_out=str(run_dir / "error_rows.csv"),
-                test_size=args.test_size,
-                val_size=args.val_size,
-                seed=seed,
-                feature_importance_out=str(run_dir / "feature_importance.csv"),
-                metadata_out=str(run_dir / "model_metadata.json"),
-                cv_folds=args.cv_folds,
-                rf_n_estimators=args.rf_n_estimators,
-            )
+            try:
+                metrics = train_and_evaluate(
+                    input_csv=train_csv,
+                    metrics_out=str(run_dir / "model_metrics.json"),
+                    model_out=str(run_dir / "model.joblib"),
+                    region_metrics_out=str(run_dir / "region_metrics.csv"),
+                    test_preds_out=str(run_dir / "test_predictions.csv"),
+                    errors_out=str(run_dir / "error_rows.csv"),
+                    test_size=args.test_size,
+                    val_size=args.val_size,
+                    seed=seed,
+                    feature_importance_out=str(run_dir / "feature_importance.csv"),
+                    metadata_out=str(run_dir / "model_metadata.json"),
+                    cv_folds=args.cv_folds,
+                    rf_n_estimators=args.rf_n_estimators,
+                )
+            except Exception:
+                print(
+                    f"ERROR: train_and_evaluate failed for set {set_id} seed {seed}",
+                    flush=True,
+                )
+                traceback.print_exc()
+                raise
 
             selected = metrics["selected_model"]
             selected_cv = metrics["models"][selected]["cv"]
@@ -335,6 +348,10 @@ def run_search(args) -> None:
 
 
 def main() -> None:
+    import faulthandler
+
+    faulthandler.enable()
+
     parser = argparse.ArgumentParser(
         description="Overnight search over high-level feature formula sets"
     )

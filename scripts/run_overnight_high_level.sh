@@ -124,7 +124,9 @@ uv run python src/extract_features.py \
 
 CURRENT_PHASE="Optimize high-level formula sets"
 phase "$CURRENT_PHASE"
-# Same thread caps as feature extraction — avoids BLAS/OpenMP segfaults on huge merges
+# Same thread caps as feature extraction — avoids BLAS/OpenMP segfaults on huge merges.
+# PYTHONFAULTHANDLER=2 dumps C-level stack on SIGSEGV (if the interpreter can still react).
+PYTHONFAULTHANDLER=2 \
 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 \
 uv run python src/optimize_high_level_formulas.py \
   --formula-sets "$FORMULA_SETS" \

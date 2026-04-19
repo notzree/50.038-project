@@ -1,6 +1,8 @@
 import argparse
+import gc
 import json
 import os
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -43,13 +45,42 @@ def load_and_prepare_data(
     input_csv: str,
 ) -> tuple[pd.DataFrame, np.ndarray, pd.DataFrame, list[str]]:
     """Load CSV, separate features / target / metadata."""
-    print(f"Loading training table: {input_csv}")
-    df = pd.read_csv(input_csv)
+    print(f"Loading training table: {input_csv} ...", flush=True)
+    t0 = time.monotonic()
+    df = pd.read_csv(input_csv, low_memory=False)
+    print(
+        f"  read_csv done in {time.monotonic() - t0:.1f}s ({len(df)} rows)",
+        flush=True,
+    )
 
     required_cols = {"track_id", "region", "appears_in_region"}
     missing = required_cols - set(df.columns)
     if missing:
         raise ValueError(f"Missing required columns: {sorted(missing)}")
+
+    # Multi-million-row train tables: shrink numeric dtypes before building X/y
+    # so GroupShuffleSplit / CV do not run out of RAM.
+    large_row_threshold = 1_000_000
+    if len(df) > large_row_threshold:
+        print(
+            f"  Downcasting numeric columns (>{large_row_threshold} rows) ...",
+            flush=True,
+        )
+        t1 = time.monotonic()
+        for c in df.columns:
+            if c in ("track_id", "region"):
+                continue
+            if c == "appears_in_region":
+                df[c] = pd.to_numeric(df[c], downcast="integer")
+                continue
+            if pd.api.types.is_float_dtype(df[c]):
+                df[c] = df[c].astype(np.float32)
+            elif pd.api.types.is_integer_dtype(df[c]):
+                try:
+                    df[c] = pd.to_numeric(df[c], downcast="integer")
+                except (TypeError, ValueError):
+                    pass
+        print(f"  downcast done in {time.monotonic() - t1:.1f}s", flush=True)
 
     feature_cols = [c for c in df.columns if c not in NON_FEATURE_COLS]
     if not feature_cols:
@@ -57,10 +88,18 @@ def load_and_prepare_data(
 
     X = df[feature_cols]
     y = df["appears_in_region"].to_numpy()
-    meta = df[["track_id", "region"]]
+    meta = df[["track_id", "region"]].copy()
+    del df
+    gc.collect()
+    print(
+        f"  built X/y/meta in {time.monotonic() - t0:.1f}s total; "
+        f"positive_rate={float(y.mean()):.4f}",
+        flush=True,
+    )
 
     print(
-        f"Rows={len(df)}, features={len(feature_cols)}, positive_rate={float(y.mean()):.4f}"
+        f"Rows={len(X)}, features={len(feature_cols)}, positive_rate={float(y.mean()):.4f}",
+        flush=True,
     )
     return X, y, meta, feature_cols
 
@@ -82,8 +121,14 @@ def split_data(
     groups = meta["track_id"].values
 
     # First split: trainval vs test
+    print(
+        f"  split_data: GroupShuffleSplit train+val vs test (n={len(y)}) ...",
+        flush=True,
+    )
+    t0 = time.monotonic()
     gss_test = GroupShuffleSplit(n_splits=1, test_size=test_size, random_state=seed)
     trainval_idx, test_idx = next(gss_test.split(X, y, groups))
+    print(f"  split_data: first split done in {time.monotonic() - t0:.1f}s", flush=True)
 
     X_trainval, X_test = X.iloc[trainval_idx], X.iloc[test_idx]
     y_trainval, y_test = y[trainval_idx], y[test_idx]
@@ -92,8 +137,14 @@ def split_data(
 
     # Second split: train vs val (val_size is relative to the whole dataset)
     val_fraction = val_size / (1 - test_size)
+    print(
+        f"  split_data: GroupShuffleSplit train vs val (trainval_n={len(y_trainval)}) ...",
+        flush=True,
+    )
+    t1 = time.monotonic()
     gss_val = GroupShuffleSplit(n_splits=1, test_size=val_fraction, random_state=seed)
     train_idx, val_idx = next(gss_val.split(X_trainval, y_trainval, groups_trainval))
+    print(f"  split_data: second split done in {time.monotonic() - t1:.1f}s", flush=True)
 
     X_train, X_val = X_trainval.iloc[train_idx], X_trainval.iloc[val_idx]
     y_train, y_val = y_trainval[train_idx], y_trainval[val_idx]
@@ -110,7 +161,8 @@ def split_data(
     print(
         f"Split: train={len(y_train)} ({len(train_tracks)} tracks), "
         f"val={len(y_val)} ({len(val_tracks)} tracks), "
-        f"test={len(y_test)} ({len(test_tracks)} tracks)"
+        f"test={len(y_test)} ({len(test_tracks)} tracks)",
+        flush=True,
     )
     return {
         "X_train": X_train,
@@ -452,6 +504,7 @@ def save_artifacts(
     tuned_params: dict | None = None,
 ) -> dict:
     """Write all artifacts to disk."""
+    print("save_artifacts: test predictions ...", flush=True)
 
     # -- Test predictions --
     test_prob = best_clf.predict_proba(splits["X_test"])[:, 1]
@@ -466,6 +519,7 @@ def save_artifacts(
     pred_path = Path(test_preds_out)
     pred_path.parent.mkdir(parents=True, exist_ok=True)
     pred_df.to_csv(pred_path, index=False)
+    print(f"save_artifacts: wrote {pred_path}", flush=True)
 
     # -- Error analysis --
     errors_df = pred_df.copy()
@@ -524,7 +578,9 @@ def save_artifacts(
     # -- Model --
     model_path = Path(model_out)
     model_path.parent.mkdir(parents=True, exist_ok=True)
+    print(f"save_artifacts: joblib.dump pipeline to {model_path} ...", flush=True)
     joblib.dump(best_clf, model_path)
+    print(f"save_artifacts: wrote {model_path}", flush=True)
 
     # -- Model metadata (for frontend) --
     X_train = splits["X_train"]
@@ -579,16 +635,24 @@ def save_artifacts(
 
     out_path = Path(metrics_out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    print(f"Writing metrics JSON to {metrics_out} ...", flush=True)
     out_path.write_text(json.dumps(full_metrics, indent=2))
 
-    print(f"Wrote metrics to {metrics_out}")
-    print(f"Wrote best model ({best_name}) to {model_out}")
-    print(f"Wrote model metadata to {metadata_out}")
-    print(f"Wrote region metrics to {region_metrics_out}")
-    print(f"Wrote test predictions to {test_preds_out}")
-    print(f"Wrote error rows to {errors_out}")
-    print(f"Wrote error counts by region to {error_by_region_path}")
-    print(json.dumps(full_metrics, indent=2))
+    print(f"Wrote metrics to {metrics_out}", flush=True)
+    print(f"Wrote best model ({best_name}) to {model_out}", flush=True)
+    print(f"Wrote model metadata to {metadata_out}", flush=True)
+    print(f"Wrote region metrics to {region_metrics_out}", flush=True)
+    print(f"Wrote test predictions to {test_preds_out}", flush=True)
+    print(f"Wrote error rows to {errors_out}", flush=True)
+    print(f"Wrote error counts by region to {error_by_region_path}", flush=True)
+    sel = full_metrics.get("selected_model", "?")
+    test_f1 = full_metrics.get("thresholding", {})
+    test_f1 = test_f1.get("test_at_tuned_threshold", {}).get("f1", "?")
+    print(
+        f"Training summary: selected_model={sel}, test_f1_tuned={test_f1} "
+        f"(full metrics in {metrics_out})",
+        flush=True,
+    )
 
     return full_metrics
 
@@ -626,6 +690,7 @@ def train_and_evaluate(
     if metadata_out is None:
         metadata_out = str(Path(model_out).with_name("model_metadata.json"))
 
+    print("train_and_evaluate: step 1/6 load CSV ...", flush=True)
     # 1. Load data
     X, y, meta, feature_cols = load_and_prepare_data(input_csv)
 
@@ -640,15 +705,18 @@ def train_and_evaluate(
         "rf_n_estimators": int(rf_n_estimators),
     }
 
+    print("train_and_evaluate: step 2/6 group-aware train/val/test split ...", flush=True)
     # 2. Split
     splits = split_data(X, y, meta, test_size=test_size, val_size=val_size, seed=seed)
 
+    print("train_and_evaluate: step 3/6 build preprocessor + model candidates ...", flush=True)
     # 3. Build preprocessor and candidates
     preprocessor = _build_preprocessor(feature_cols)
     candidates = build_model_candidates(
         seed, y_train=splits["y_train"], rf_n_estimators=rf_n_estimators
     )
 
+    print("train_and_evaluate: step 4/6 cross-validate ...", flush=True)
     # 4. Cross-validate (grouped by track_id to prevent leakage)
     print(
         f"Running cross-validation for {len(candidates)} model(s): "
@@ -666,11 +734,13 @@ def train_and_evaluate(
         seed=seed,
     )
 
+    print("train_and_evaluate: step 5/6 select model, refit, threshold tune ...", flush=True)
     # 5. Select best, evaluate on val + test
     best_name, best_clf, metrics = select_and_evaluate(
         candidates, cv_results, preprocessor, splits
     )
 
+    print("train_and_evaluate: step 6/6 save artifacts ...", flush=True)
     # 6. Save everything
     return save_artifacts(
         best_name,
