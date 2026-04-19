@@ -229,6 +229,11 @@ def run_search(args) -> None:
         "(override with --cv-folds / --rf-n-estimators for fuller CV or a larger forest)",
         flush=True,
     )
+    if getattr(args, "lr_only", False):
+        print(
+            "Models: logistic_regression only (--lr-only; avoids RandomForest on huge tables)",
+            flush=True,
+        )
     print(
         f"Progress: {n_sets} formula set(s) × "
         f"(high-level build + train table + {n_seeds} train/eval seed(s))",
@@ -281,6 +286,11 @@ def run_search(args) -> None:
                 flush=True,
             )
             try:
+                train_models: tuple[str, ...] = (
+                    ("logistic_regression",)
+                    if getattr(args, "lr_only", False)
+                    else ("logistic_regression", "random_forest")
+                )
                 metrics = train_and_evaluate(
                     input_csv=train_csv,
                     metrics_out=str(run_dir / "model_metrics.json"),
@@ -295,6 +305,7 @@ def run_search(args) -> None:
                     metadata_out=str(run_dir / "model_metadata.json"),
                     cv_folds=args.cv_folds,
                     rf_n_estimators=args.rf_n_estimators,
+                    models=train_models,
                 )
             except Exception:
                 print(
@@ -385,6 +396,11 @@ def main() -> None:
         default=128,
         metavar="N",
         help="RandomForest tree count during search (default 128 for speed)",
+    )
+    parser.add_argument(
+        "--lr-only",
+        action="store_true",
+        help="Train only logistic regression (much lower RAM/CPU on multi-million-row tables)",
     )
     args = parser.parse_args()
 

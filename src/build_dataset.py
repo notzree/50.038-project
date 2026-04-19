@@ -1,4 +1,5 @@
 import argparse
+import gc
 import os
 from pathlib import Path
 
@@ -102,10 +103,18 @@ def build_labels_and_train_table(
     print("Sorting labels...", flush=True)
     labels = labels.sort_values(["track_id", "region"]).reset_index(drop=True)
 
+    labels_shape = labels.shape
+    label_counts = labels["appears_in_region"].value_counts().sort_index()
+
     _write_dataframe_csv_chunked(labels, labels_csv, label="labels")
+
+    del pairs, positives, tracks, regions, charts
+    gc.collect()
 
     drop_cols = [c for c in ["status", "error", "file_path"] if c in features.columns]
     features_clean = features.drop(columns=drop_cols)
+    del features
+    gc.collect()
     print(
         f"Features matrix for merge: {len(features_clean)} rows x "
         f"{len(features_clean.columns)} cols",
@@ -133,7 +142,9 @@ def build_labels_and_train_table(
                     features_clean["source_type"] = features_clean[
                         "source_type"
                     ].fillna("unknown")
-                print("Merged track catalog metadata into features")
+                print("Merged track catalog metadata into features", flush=True)
+                del catalog
+                gc.collect()
         except Exception as e:
             print(f"Warning: could not merge track catalog metadata: {e}")
 
@@ -156,6 +167,8 @@ def build_labels_and_train_table(
             ]:
                 if version_col in features_clean.columns:
                     features_clean = features_clean.drop(columns=[version_col])
+            del high_level
+            gc.collect()
         except Exception as e:
             print(f"Warning: could not merge high-level features: {e}")
 
@@ -165,6 +178,8 @@ def build_labels_and_train_table(
     )
     train = labels.merge(features_clean, on="track_id", how="inner")
     print(f"Train matrix after merge: {len(train)} rows", flush=True)
+    del labels, features_clean
+    gc.collect()
 
     # Merge genre features if available
     if genres_csv:
@@ -173,7 +188,9 @@ def build_labels_and_train_table(
             train = train.merge(genres, on="track_id", how="left")
             train["primary_genre"] = train["primary_genre"].fillna("unknown")
             n_with_genre = (train["primary_genre"] != "unknown").sum()
-            print(f"Merged genres: {n_with_genre}/{len(train)} rows have genre data")
+            print(f"Merged genres: {n_with_genre}/{len(train)} rows have genre data", flush=True)
+            del genres
+            gc.collect()
         except Exception as e:
             print(f"Warning: could not merge genres: {e}")
 
@@ -195,8 +212,11 @@ def build_labels_and_train_table(
                 )
                 n_nonviral = (train["global_nonviral"] == 1).sum()
                 print(
-                    f"Merged non-viral metadata: {n_nonviral}/{len(train)} rows are non-viral"
+                    f"Merged non-viral metadata: {n_nonviral}/{len(train)} rows are non-viral",
+                    flush=True,
                 )
+                del nonviral
+                gc.collect()
         except Exception as e:
             print(f"Warning: could not merge non-viral metadata: {e}")
 
@@ -220,10 +240,9 @@ def build_labels_and_train_table(
 
     _write_dataframe_csv_chunked(train, train_csv, label="train table")
 
-    label_counts = labels["appears_in_region"].value_counts().sort_index()
-    print(f"Wrote labels to {labels_csv} with shape={labels.shape}")
-    print(label_counts)
-    print(f"Wrote train table to {train_csv} with shape={train.shape}")
+    print(f"Wrote labels to {labels_csv} with shape={labels_shape}", flush=True)
+    print(label_counts, flush=True)
+    print(f"Wrote train table to {train_csv} with shape={train.shape}", flush=True)
 
 
 def main() -> None:

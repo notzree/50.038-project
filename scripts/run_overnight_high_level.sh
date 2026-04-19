@@ -89,6 +89,8 @@ FORMULA_SETS="${FORMULA_SETS:-A,B}"
 SEEDS="${SEEDS:-42}"
 FORMULA_CV_FOLDS="${FORMULA_CV_FOLDS:-3}"
 FORMULA_RF_N_ESTIMATORS="${FORMULA_RF_N_ESTIMATORS:-128}"
+# Set FORMULA_LR_ONLY=1 to skip RandomForest (saves RAM/CPU on multi-million-row train tables).
+FORMULA_LR_ONLY="${FORMULA_LR_ONLY:-0}"
 FORMULA_OUTPUT_DIR="${FORMULA_OUTPUT_DIR:-src/data/formula_search}"
 
 CURRENT_PHASE="Configuration"
@@ -100,6 +102,7 @@ echo "FORMULA_SETS=$FORMULA_SETS"
 echo "SEEDS=$SEEDS"
 echo "FORMULA_CV_FOLDS=$FORMULA_CV_FOLDS"
 echo "FORMULA_RF_N_ESTIMATORS=$FORMULA_RF_N_ESTIMATORS"
+echo "FORMULA_LR_ONLY=$FORMULA_LR_ONLY"
 echo "FORMULA_OUTPUT_DIR=$FORMULA_OUTPUT_DIR"
 echo "LOG_FILE=$LOG_FILE"
 printf 'Memory: %s\n' "$(free -h 2>/dev/null | awk '/^Mem:/{print "total="$2" used="$3" avail="$7}' || echo 'unknown')"
@@ -133,6 +136,7 @@ uv run python src/optimize_high_level_formulas.py \
   --seeds "$SEEDS" \
   --cv-folds "$FORMULA_CV_FOLDS" \
   --rf-n-estimators "$FORMULA_RF_N_ESTIMATORS" \
+  $( [ "${FORMULA_LR_ONLY:-0}" = "1" ] && echo --lr-only ) \
   --output-dir "$FORMULA_OUTPUT_DIR"
 
 phase "Complete"

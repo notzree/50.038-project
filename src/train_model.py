@@ -47,7 +47,7 @@ def load_and_prepare_data(
     """Load CSV, separate features / target / metadata."""
     print(f"Loading training table: {input_csv} ...", flush=True)
     t0 = time.monotonic()
-    df = pd.read_csv(input_csv, low_memory=False)
+    df = pd.read_csv(input_csv, on_bad_lines="warn", low_memory=False)
     print(
         f"  read_csv done in {time.monotonic() - t0:.1f}s ({len(df)} rows)",
         flush=True,
@@ -235,19 +235,31 @@ def _make_model(name: str, seed: int, **params):
         raise ValueError(f"Unknown model: {name}")
 
 
+_MODEL_NAMES = frozenset({"logistic_regression", "random_forest"})
+
+
 def build_model_candidates(
     seed: int,
     y_train: np.ndarray | None = None,
     rf_n_estimators: int = 300,
+    *,
+    models: tuple[str, ...] | None = None,
 ) -> dict[str, object]:
     """Return a dict of name -> classifier instance."""
-    candidates = {
-        "logistic_regression": _make_model("logistic_regression", seed),
-        "random_forest": _make_model(
-            "random_forest", seed, n_estimators=int(rf_n_estimators)
-        ),
-    }
+    want = models or ("logistic_regression", "random_forest")
+    unknown = set(want) - _MODEL_NAMES
+    if unknown:
+        raise ValueError(f"Unknown model(s): {sorted(unknown)}; allowed={sorted(_MODEL_NAMES)}")
+    if not want:
+        raise ValueError("At least one model name is required")
 
+    candidates: dict[str, object] = {}
+    if "logistic_regression" in want:
+        candidates["logistic_regression"] = _make_model("logistic_regression", seed)
+    if "random_forest" in want:
+        candidates["random_forest"] = _make_model(
+            "random_forest", seed, n_estimators=int(rf_n_estimators)
+        )
     return candidates
 
 
@@ -676,9 +688,12 @@ def train_and_evaluate(
     metadata_out: str | None = None,
     cv_folds: int = 5,
     rf_n_estimators: int = 300,
+    models: tuple[str, ...] | None = None,
+    *,
+    skip_cross_validation: bool = False,
 ) -> dict:
-    if cv_folds < 2:
-        raise ValueError("cv_folds must be at least 2")
+    if not skip_cross_validation and cv_folds < 2:
+        raise ValueError("cv_folds must be at least 2 (or pass skip_cross_validation=True)")
     if rf_n_estimators < 1:
         raise ValueError("rf_n_estimators must be at least 1")
 
@@ -694,6 +709,21 @@ def train_and_evaluate(
     # 1. Load data
     X, y, meta, feature_cols = load_and_prepare_data(input_csv)
 
+    print("train_and_evaluate: step 2/6 group-aware train/val/test split ...", flush=True)
+    # 2. Split
+    splits = split_data(X, y, meta, test_size=test_size, val_size=val_size, seed=seed)
+    gc.collect()
+
+    print("train_and_evaluate: step 3/6 build preprocessor + model candidates ...", flush=True)
+    # 3. Build preprocessor and candidates
+    preprocessor = _build_preprocessor(feature_cols)
+    candidates = build_model_candidates(
+        seed,
+        y_train=splits["y_train"],
+        rf_n_estimators=rf_n_estimators,
+        models=models,
+    )
+
     dataset_info = {
         "num_rows": len(y),
         "num_features": len(feature_cols),
@@ -701,38 +731,53 @@ def train_and_evaluate(
         "val_size": val_size,
         "seed": seed,
         "positive_rate": float(y.mean()),
-        "cv_folds": int(cv_folds),
+        "cv_folds": 0 if skip_cross_validation else int(cv_folds),
+        "skip_cross_validation": bool(skip_cross_validation),
         "rf_n_estimators": int(rf_n_estimators),
+        "models": sorted(candidates.keys()),
     }
 
-    print("train_and_evaluate: step 2/6 group-aware train/val/test split ...", flush=True)
-    # 2. Split
-    splits = split_data(X, y, meta, test_size=test_size, val_size=val_size, seed=seed)
-
-    print("train_and_evaluate: step 3/6 build preprocessor + model candidates ...", flush=True)
-    # 3. Build preprocessor and candidates
-    preprocessor = _build_preprocessor(feature_cols)
-    candidates = build_model_candidates(
-        seed, y_train=splits["y_train"], rf_n_estimators=rf_n_estimators
-    )
-
     print("train_and_evaluate: step 4/6 cross-validate ...", flush=True)
-    # 4. Cross-validate (grouped by track_id to prevent leakage)
-    print(
-        f"Running cross-validation for {len(candidates)} model(s): "
-        f"{', '.join(sorted(candidates))} "
-        f"(cv_folds={cv_folds}, rf_n_estimators={rf_n_estimators})...",
-        flush=True,
-    )
-    cv_results = cross_validate_models(
-        candidates,
-        preprocessor,
-        splits["X_train"],
-        splits["y_train"],
-        meta_train=splits["meta_train"],
-        k=cv_folds,
-        seed=seed,
-    )
+    if skip_cross_validation:
+        if len(candidates) != 1:
+            raise ValueError(
+                "skip_cross_validation requires exactly one model in `models=` "
+                f"(got {sorted(candidates.keys())})"
+            )
+        only = next(iter(candidates))
+        print(
+            f"Skipping grouped CV (--no-cv); single model={only!r} "
+            "(train/val/test metrics still computed)",
+            flush=True,
+        )
+        cv_results = {
+            only: {
+                "f1_mean": 0.0,
+                "f1_std": 0.0,
+                "roc_auc_mean": 0.0,
+                "roc_auc_std": 0.0,
+                "f1_folds": [],
+                "roc_auc_folds": [],
+                "skipped": True,
+            }
+        }
+    else:
+        # 4. Cross-validate (grouped by track_id to prevent leakage)
+        print(
+            f"Running cross-validation for {len(candidates)} model(s): "
+            f"{', '.join(sorted(candidates))} "
+            f"(cv_folds={cv_folds}, rf_n_estimators={rf_n_estimators if 'random_forest' in candidates else 'n/a'})...",
+            flush=True,
+        )
+        cv_results = cross_validate_models(
+            candidates,
+            preprocessor,
+            splits["X_train"],
+            splits["y_train"],
+            meta_train=splits["meta_train"],
+            k=cv_folds,
+            seed=seed,
+        )
 
     print("train_and_evaluate: step 5/6 select model, refit, threshold tune ...", flush=True)
     # 5. Select best, evaluate on val + test
@@ -836,7 +881,25 @@ def main() -> None:
         metavar="N",
         help="RandomForest n_estimators (default 300)",
     )
+    parser.add_argument(
+        "--models",
+        default="logistic_regression,random_forest",
+        help="Comma-separated subset of: logistic_regression, random_forest",
+    )
+    parser.add_argument(
+        "--no-cv",
+        action="store_true",
+        help="Skip StratifiedGroupKFold CV (requires exactly one model in --models; saves RAM/time)",
+    )
     args = parser.parse_args()
+
+    model_tuple = tuple(
+        x.strip() for x in args.models.split(",") if x.strip()
+    )
+    if not model_tuple:
+        raise SystemExit("--models must list at least one of: logistic_regression, random_forest")
+    if args.no_cv and len(model_tuple) != 1:
+        raise SystemExit("--no-cv requires exactly one model in --models")
 
     train_and_evaluate(
         input_csv=args.input,
@@ -852,6 +915,8 @@ def main() -> None:
         metadata_out=args.metadata_out,
         cv_folds=args.cv_folds,
         rf_n_estimators=args.rf_n_estimators,
+        models=model_tuple,
+        skip_cross_validation=bool(args.no_cv),
     )
 
 
