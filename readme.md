@@ -1,111 +1,36 @@
-# Project Workflow
+# Project Quickstart
 
-New here? Start with `FIRST_TIME_SETUP_AND_RUNBOOK.md` for first-time setup and large-audio guidance.
+Main workflow (70/30 viral vs non-viral, formula search, promotion, plots, Streamlit):
 
-## Setup
 ```bash
 uv sync
-```
 
-## One-command pipeline
+TOTAL=1000
+VIRAL=$(( TOTAL * 70 / 100 ))
+NONVIRAL=$(( TOTAL - VIRAL ))
 
-Use existing songs in `src/data/songs/`:
-```bash
-uv run python src/run_pipeline.py
-```
+uv run python src/run_pipeline.py \
+  --download \
+  --limit "$VIRAL" \
+  --download-nonviral \
+  --nonviral-limit "$NONVIRAL" \
+  --skip-visualizations
 
-Download songs first, then run everything:
-```bash
-uv run python src/run_pipeline.py --download --limit 100
-```
+uv run python src/optimize_high_level_formulas.py \
+  --formula-sets A,B,C,D \
+  --seeds 42 \
+  --output-dir src/data/formula_search
 
-Pipeline outputs:
-- `src/data/audio_manifest.csv`
-- `src/data/track_catalog.csv`
-- `src/data/audio_qc_summary.json`
-- `src/data/audio_qc_issues.csv`
-- `src/data/audio_features.csv`
-- `src/data/audio_features_high_level.csv`
-- `src/data/labels_appears_in_region.csv`
-- `src/data/train_table.csv`
-- `src/data/model_metrics.json`
-- `src/data/model.joblib`
-- `src/data/model_metadata.json`
-- `src/data/region_metrics.csv`
-- `src/data/test_predictions.csv`
-- `src/data/error_rows.csv`
-- `src/data/error_counts_by_region.csv`
-- `src/data/plots/` visualizations
+BEST_SET=$(uv run python -c "import json;print(json.load(open('src/data/formula_search/best_formula_result.json'))['formula_set'])")
+BEST_SEED=$(uv run python -c "import json;print(int(json.load(open('src/data/formula_search/best_formula_result.json'))['seed']))")
 
-Table notes:
-- `audio_manifest.csv` now includes `source_type` and `is_nonviral_global`.
-- `track_catalog.csv` stores canonical per-track metadata (chart/non-viral source flags and optional title/artist metadata).
+uv run python src/promote_formula_run.py \
+  --set "$BEST_SET" \
+  --seed "$BEST_SEED" \
+  --formula-search-dir src/data/formula_search \
+  --apply-country-profile \
+  --country-profile-csv src/data/country_profile_features.csv
 
-Key visualization files:
-- `src/data/plots/01_dataset_overview.png`
-- `src/data/plots/02_label_distribution.png`
-- `src/data/plots/03_feature_distributions.png`
-- `src/data/plots/04_model_comparison.png`
-- `src/data/plots/05_confusion_matrices.png`
-- `src/data/plots/06_region_performance.png`
-- `src/data/plots/07_region_errors.png`
-- `src/data/plots/08_region_feature_lift_heatmap.png`
-- `src/data/plots/09_region_probability_gap.png`
-
-Run pipeline + single-song prediction in one command:
-```bash
-uv run python src/run_pipeline.py --predict-audio "/full/path/to/song.mp3" --predict-region Singapore
-```
-
-## Single-song prediction
-
-Direct path:
-```bash
-uv run python src/predict_single_audio.py --audio src/data/songs/<track_id>.mp3 --region Singapore --model src/data/model.joblib
-```
-
-Interactive prompt mode:
-```bash
-uv run python src/predict_single_audio.py
-```
-
-Finder picker mode (if available in Python build):
-```bash
-uv run python src/predict_single_audio.py --pick-file --region Singapore --model src/data/model.joblib
-```
-
-## Optional manual steps
-
-Extract full features:
-```bash
-uv run python src/extract_features.py --manifest src/data/audio_manifest.csv --output src/data/audio_features.csv --feature-set full
-```
-
-Build high-level proxy features:
-```bash
-uv run python src/engineer_high_level_features.py --input src/data/audio_features.csv --output src/data/audio_features_high_level.csv
-```
-
-Build labels + train table:
-```bash
-uv run python src/build_dataset.py
-```
-
-Train model:
-```bash
-uv run python src/train_model.py
-```
-
-Generate visualization set:
-```bash
 uv run python src/make_visualizations.py
+uv run streamlit run src/app/user_interface.py
 ```
-
-Optional formula-search experiment (not part of core pipeline):
-```bash
-uv run python src/optimize_high_level_formulas.py --formula-sets A,B,C,D --seeds 42 --output-dir src/data/formula_search
-```
-
-This generates the region-aware high-level feature visuals as:
-- `08_region_feature_lift_heatmap.png`
-- `09_region_probability_gap.png`

@@ -252,7 +252,7 @@ def main() -> None:
     parser.add_argument(
         "--genres",
         default=None,
-        help="Optional path to genre_features.csv (from fetch_genres.py)",
+        help="Optional path to genre_features.csv",
     )
     parser.add_argument(
         "--nonviral-meta",
